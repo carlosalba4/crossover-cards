@@ -20,20 +20,20 @@ Proyecto académico de la asignatura "Desarrollo con IA" con las siguientes rest
 
 Stack acordado:
 
-| Capa | Herramienta |
-|---|---|
-| Framework de juego | Phaser 4 (plan Personal gratuito) |
-| Lenguaje | TypeScript (strict mode) |
-| Bundler | Vite |
-| IDE agéntico alto nivel | Google Antigravity (free preview) |
-| IDE agéntico bajo nivel | opencode (CLI dentro de terminal de Antigravity) |
+| Capa                            | Herramienta                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| Framework de juego              | Phaser 4 (plan Personal gratuito)                                                |
+| Lenguaje                        | TypeScript (strict mode)                                                         |
+| Bundler                         | Vite                                                                             |
+| IDE agéntico alto nivel         | Google Antigravity (free preview)                                                |
+| IDE agéntico bajo nivel         | opencode (CLI dentro de terminal de Antigravity)                                 |
 | Modelos cloud (vía Antigravity) | Gemini 3.1 Pro, Claude Sonnet 4.6, Claude Opus 4.6, Gemini 3 Flash, GPT-OSS 120B |
-| Modelos locales (vía Ollama) | Qwen2.5-Coder-7B, Qwen3-8B, DeepSeek-R1-8B, Phi-4-mini |
-| Testing | Vitest |
-| Lint / Format | ESLint + Prettier |
-| Control de versiones | Git + GitHub privado |
-| GUI Git | GitHub Desktop |
-| Despliegue | GitHub Pages o itch.io (por decidir en fase 5) |
+| Modelos locales (vía Ollama)    | Qwen2.5-Coder-7B, Qwen3-8B, DeepSeek-R1-8B, Phi-4-mini                           |
+| Testing                         | Vitest                                                                           |
+| Lint / Format                   | ESLint + Prettier                                                                |
+| Control de versiones            | Git + GitHub privado                                                             |
+| GUI Git                         | GitHub Desktop                                                                   |
+| Despliegue                      | GitHub Pages o itch.io (por decidir en fase 5)                                   |
 
 ## Justificación
 

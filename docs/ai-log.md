@@ -1,8 +1,8 @@
 # Registro de Interacciones con IA
 
 Este archivo registra todas las interacciones con herramientas de IA durante el proyecto.  
-Es un entregable clave de la rúbrica: "es fundamental documentar todas las interacciones 
-con las herramientas de IA: prompts, agentes, indicaciones, resultados, aspectos clave 
+Es un entregable clave de la rúbrica: "es fundamental documentar todas las interacciones
+con las herramientas de IA: prompts, agentes, indicaciones, resultados, aspectos clave
 a destacar, creación o modificación de los json o .md correspondientes".
 
 ---
@@ -20,6 +20,7 @@ a destacar, creación o modificación de los json o .md correspondientes".
 **Objetivo**: [Qué se quería conseguir]
 
 **Prompt** (resumen o referencia a `/prompts/...`):
+
 > [Texto del prompt o ruta al archivo]
 
 **Resultado**: [Qué generó la IA — resumen + referencia al artifact si aplica]
@@ -45,17 +46,20 @@ a destacar, creación o modificación de los json o .md correspondientes".
 **Objetivo**: Planificar el proyecto completo, definir stack tecnológico, metodología, fases, agentes IA y entregables. Decidir herramientas (Antigravity + opencode + Ollama) y producir la documentación base del repositorio.
 
 **Prompt** (resumen):
+
 > Conversación iterativa de planificación a partir del PDF del enunciado de la asignatura, refinando decisiones técnicas, restricciones de modelos, alcance del MVP y mecánicas innovadoras del juego.
 
-**Resultado**: 
+**Resultado**:
+
 - ADR-001 con el stack tecnológico definitivo.
 - Estructura del repositorio.
 - README, .gitignore, Grupo.txt.
-- Configuración de opencode (Modelfile-*, opencode.json).
+- Configuración de opencode (Modelfile-\*, opencode.json).
 - Sistema de capturas para la memoria.
 - Plan de 14 días dividido en 6 fases.
 
 **Decisiones clave**:
+
 - Descartar Phaser Editor v5 por ser de pago.
 - Combinar Antigravity (alto nivel, cloud) con opencode (bajo nivel, local) tal como pide el enunciado.
 - Sprites de personajes reales pero con repo privado para mitigar IP.
@@ -64,6 +68,7 @@ a destacar, creación o modificación de los json o .md correspondientes".
 **Iteraciones**: ~8 mensajes de ida y vuelta para refinar el plan.
 
 **Capturas asociadas**:
+
 - `docs/screenshots/01-setup/2026-05-18_01-setup_antigravity-modelos-disponibles_01.png`
 - `docs/screenshots/01-setup/2026-05-18_01-setup_github-colaboradores_02.png`
 - `docs/screenshots/01-setup/2026-05-18_01-setup_repo-estructura-inicial_03.png`
