@@ -162,3 +162,87 @@ autónoma, el agente habría reintentado los pasos automáticamente; aquí fuero
 ajustados con supervisión humana.
 
 ---
+
+### Interacción #004 — 2026-05-18 (Configuración y verificación de opencode)
+
+- **Fase**: Configuración previa (anterior a Análisis)
+- **Agente**: Test-Opencode-Agent (verificación inicial)
+- **Herramienta**: opencode (dentro de la terminal de Antigravity)
+- **Modelos probados**: 
+  - Qwen 2.5 Coder 7B (custom: qwen-coder-agent, num_ctx 16384, temp 0.2)
+  - Qwen 3 8B (custom: qwen3-agent, num_ctx 16384, temp 0.3)
+- **Tokens (entrada ≈ / salida ≈)**: ~800 / ~1400
+
+**Objetivo**: Verificar que la infraestructura local de IA está completamente funcional:
+Ollama corriendo, modelos personalizados creados, opencode instalado, conexión 
+opencode ↔ Ollama operativa, y capacidad agéntica de lectura de filesystem.
+
+**Prompt** (en chat de opencode):
+> Lista los archivos de la carpeta docs/ y dime brevemente para qué sirve cada uno
+> según su nombre y contenido.
+
+**Resultado**: Funcional. Tras 3 iteraciones internas del agente, leyó correctamente 
+`docs/ai-log.md` y produjo un resumen válido del propósito del archivo.
+
+**Iteraciones**:
+1. **Primer intento — Qwen2.5-Coder con agente "Plan"**: el modelo escribió la 
+   llamada al tool (`{"name": "bash", "arguments": {"command": "ls docs/"}}`) en 
+   texto plano en lugar de invocarla. Causa: el agente "Plan" de opencode no 
+   ejecuta acciones, solo planifica. Diagnóstico correcto: no era un problema 
+   del modelo sino del modo de agente.
+2. **Segundo intento — Qwen3 8B con agente "Build"**: ejecución agéntica real, 
+   pero con peculiaridades:
+   - El modelo alucinó nombres de archivos típicos (`README.md`, `api.md`, 
+     `tutorial.md`) y trató de leerlos sin verificar existencia. Fallaron con 
+     "File not found".
+   - Usó offset=0 en el primer `read`, lo que dio error (opencode requiere 
+     offset ≥ 1). Tras el error, ajustó a offset=1.
+   - Posteriormente usó `glob "docs/*"` para listar archivos reales. El patrón 
+     no es recursivo, así que solo detectó `ai-log.md` (ignoró `decisions/`).
+   - Finalmente leyó `ai-log.md` con éxito y produjo un resumen correcto.
+   - Duración total: 1 min 51 s.
+
+**Decisiones clave**:
+- A partir de ahora, tareas mecánicas (boilerplate, tests, refactor pequeño) se 
+  delegan a opencode + Qwen local con el agente "Build".
+- Tareas exploratorias, de razonamiento o multi-archivo se hacen en Antigravity 
+  con Gemini/Claude para evitar iteraciones excesivas.
+- En prompts para modelos locales, se recomienda **forzar exploración inicial** 
+  (ej.: "Empieza listando los archivos con `glob docs/**/*` antes de leerlos") 
+  para reducir alucinaciones.
+- Documentar limitaciones encontradas como parte de la gestión de tokens.
+
+**Limitaciones identificadas (Qwen3 8B local)**:
+- Tendencia a alucinar nombres de archivos genéricos antes de listar lo real.
+- Patrones de glob no siempre óptimos (no recursivos por defecto).
+- Requiere más iteraciones internas que modelos cloud → más tiempo de respuesta.
+
+**Capturas asociadas**:
+- `docs/screenshots/01-setup/2026-05-18_01-setup_ollama-modelos-custom-creados_010-01.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_ollama-qwen-coder-test_010-02.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_opencode-version_010-03.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_opencode-modelos-disponibles_010-04.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_opencode-primera-ejecucion-agentica_010-05.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_gpu-uso-ollama_010-06.png` (opcional)
+- `docs/screenshots/01-setup/2026-05-18_01-setup_antigravity-opencode-split_010-07.png`
+
+**Notas**: Las limitaciones identificadas no son bloqueantes; al contrario, justifican 
+plenamente la arquitectura híbrida cloud/local del proyecto y validan el reparto de 
+tareas según capacidad del modelo. Esta verificación cierra la fase de Setup.
+
+**Nota sobre capturas**: La captura `010-05` (primera ejecución agéntica) se 
+omitió porque la prueba reveló limitaciones del modelo Qwen3 que motivaron 
+una revisión de la elección de modelos locales (ver Interacción #005).
+
+**Acción correctora aplicada**: Tras la primera prueba con limitaciones, se creó 
+`AGENTS.md` en la raíz del proyecto con reglas explícitas sobre exploración de 
+filesystem, convenciones de código, arquitectura y estilo de respuesta. Opencode 
+lo lee automáticamente. 
+
+**Segunda prueba (con AGENTS.md cargado)**: el modelo Qwen3 8B respetó las reglas, 
+usó `glob "docs/**/*"` para listado recursivo, leyó los archivos reales antes de 
+resumirlos, y no alucinó nombres. La precisión mejoró sustancialmente.
+
+Conclusión: para modelos locales de tamaño medio (≤10B), un AGENTS.md bien 
+formulado tiene impacto comparable a cambiar a un modelo más grande. Esta decisión 
+queda documentada como ADR-003.
