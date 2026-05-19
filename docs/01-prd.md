@@ -1,12 +1,12 @@
-# Product Requirements Document (PRD)
+﻿# Product Requirements Document (PRD)
 ## Juego de Cartas Estratégico por Turnos — Crossover Animado
 
 ---
 
 | Campo            | Valor                                      |
 |------------------|--------------------------------------------|
-| Titulo           | Crossover Cards: El Juego de Cartas Definitivo |
-| Version          | 1.0.0                                      |
+| Titulo           | Crossover Cards                                |
+| Version          | 1.1.0                                      |
 | Fecha            | 2026-05-19                                 |
 | Estado           | Borrador — pendiente de revision del equipo |
 | Autores          | Equipo del proyecto (2 personas)           |
@@ -207,10 +207,10 @@ y el uso efectivo de herramientas de IA en el flujo de desarrollo de software.
 | MH-02  | 2 heroes jugables con habilidad pasiva unica           |
 | MH-03  | 20 cartas iniciales (10 por mazo)                      |
 | MH-04  | Sistema de turnos: Robo, Principal, Combate, Fin       |
-| MH-05  | Sistema de mana creciente (1 a 10, +1 por turno)      |
-| MH-06  | Tablero con limite de 7 criaturas por lado             |
+| MH-05  | Sistema de Nostalgia creciente (1 a 10, +1 por turno, reloj victoriano)      |
+| MH-06  | Tablero con limite de 7 Personajes por lado             |
 | MH-07  | Mano maxima de 10 cartas, mazo de 30 cartas            |
-| MH-08  | Tipos de carta: Criatura, Hechizo, Objeto              |
+| MH-08  | Tipos de carta: Personaje, Hechizo, Objeto              |
 | MH-09  | Sistema de rareza: Comun, Rara, Epica, Legendaria      |
 | MH-10  | IA con nivel Facil (Greedy) y Medio (Threat-aware)     |
 | MH-11  | Tablero animado con easter egg oculto interactivo      |
@@ -240,7 +240,7 @@ y el uso efectivo de herramientas de IA en el flujo de desarrollo de software.
 
 | ID     | Funcionalidad                                                    |
 |--------|------------------------------------------------------------------|
-| CH-01  | Animacion de entrada de criaturas al tablero                     |
+| CH-01  | Animacion de entrada de Personajes al tablero                     |
 | CH-02  | Persistencia local de estadisticas (victorias/derrotas)          |
 | CH-03  | Selector de nivel de dificultad en el menu                       |
 | CH-04  | Musica de fondo adaptativa segun fase del juego                  |
@@ -287,18 +287,18 @@ Inicio de Partida
     |         - Si el mazo esta vacio: recibe 1 danyo por carta que deberia robar
     |
     +---> FASE 2: PRINCIPAL
-    |         - El jugador activo recibe su mana del turno (+1, max 10)
-    |         - Puede jugar cartas (Criaturas, Hechizos, Objetos) pagando su coste
-    |         - Puede activar la habilidad de heroe (si tiene mana)
+    |         - El jugador activo recibe su Nostalgia del turno (+1, max 10)
+    |         - Puede jugar cartas (Personajes, Hechizos, Objetos) pagando su coste
+    |         - Puede activar la habilidad de heroe (si tiene Nostalgia)
     |         - Puede activar Crossover (una vez por partida)
     |         - Puede colocar cartas de Mision (coste 0)
-    |         - Puede gastar Momentum como mana adicional
+    |         - Puede gastar Momentum como Nostalgia adicional
     |
     +---> FASE 3: COMBATE
-    |         - Las criaturas del jugador activo pueden atacar
-    |         - Cada criatura puede atacar una vez por turno
-    |         - Se puede atacar a criaturas enemigas o al heroe rival
-    |         - Si el rival tiene criaturas con Provocacion, es obligatorio atacarlas primero
+    |         - Las Personajes del jugador activo pueden atacar
+    |         - Cada Personaje puede atacar una vez por turno
+    |         - Se puede atacar a Personajes enemigas o al heroe rival
+    |         - Si el rival tiene Personajes con Provocacion, es obligatorio atacarlas primero
     |
     +---> FASE 4: FIN DE TURNO
               - Se resuelven efectos de "fin de turno"
@@ -308,22 +308,27 @@ Inicio de Partida
               - El turno pasa al otro jugador
 ```
 
-### 6.3 Sistema de Mana
+### 6.3 Sistema de Nostalgia
 
-- Cada jugador comienza el turno 1 con 1 punto de mana (maximo 1).
-- Cada turno, el maximo de mana aumenta en 1 hasta un tope de 10.
-- Al inicio de cada turno del jugador, su mana se recarga al maximo actual.
-- El mana no utilizado NO se acumula entre turnos.
-- El Momentum (ver Mecanica M2) puede actuar como mana adicional en el mismo turno.
+La Nostalgia es el recurso principal del juego. Narrativamente representa el sentimiento
+nostalgico que invocan los personajes de cartoon al entrar en combate. Se representa
+visualmente en la UI mediante un **reloj de bolsillo victoriano de cadena** que se
+recarga al inicio de cada turno.
+
+- Cada jugador comienza el turno 1 con 1 punto de Nostalgia (maximo 1).
+- Cada turno, el maximo de Nostalgia aumenta en 1 hasta un tope de 10.
+- Al inicio de cada turno del jugador, su Nostalgia se recarga al maximo actual.
+- La Nostalgia no utilizada NO se acumula entre turnos.
+- El Momentum (ver Mecanica M2) puede actuar como Nostalgia adicional en el mismo turno.
 
 ### 6.4 Sistema de Combate
 
-- Una criatura recien jugada NO puede atacar en el mismo turno, salvo que tenga
+- Una Personaje recien jugada NO puede atacar en el mismo turno, salvo que tenga
   la habilidad "Cargo" (charge).
-- Al atacar, ambas criaturas se infligen dano mutuamente igual a su valor de Ataque.
-- Una criatura con 0 o menos puntos de Vida es destruida y enviada al cementerio.
-- El heroe no puede atacar directamente; solo recibe dano de criaturas y hechizos.
-- Una criatura solo puede realizar una accion de ataque por turno.
+- Al atacar, ambas Personajes se infligen dano mutuamente igual a su valor de Ataque.
+- Una Personaje con 0 o menos puntos de Vida es destruida y enviada al cementerio.
+- El heroe no puede atacar directamente; solo recibe dano de Personajes y hechizos.
+- Una Personaje solo puede realizar una accion de ataque por turno.
 
 ### 6.5 Fin de Partida
 
@@ -333,18 +338,18 @@ a) Los puntos de vida de un heroe llegan a 0 o menos → ese jugador pierde.
 b) Ambos heroes llegan a 0 en el mismo momento → empate (se muestra pantalla especial).
 c) [PENDIENTE DE VALIDACION] Opcion de rendicion voluntaria por parte del jugador humano.
 
-### 6.6 Habilidades Especiales de Criaturas
+### 6.6 Habilidades Especiales de Personajes
 
 | Habilidad       | Nombre tecnico  | Descripcion                                                     |
 |-----------------|-----------------|-----------------------------------------------------------------|
-| Provocacion     | Taunt           | Los rivales deben atacar esta criatura antes que a otras        |
+| Provocacion     | Taunt           | Los rivales deben atacar esta Personaje antes que a otras        |
 | Cargo           | Charge          | Puede atacar el mismo turno que es jugada                       |
 | Escudo Divino   | Divine Shield   | Ignora el primer punto de dano que recibe                       |
 | Ultimo Aliento  | Deathrattle     | Activa un efecto al ser destruida                               |
 | Grito de Guerra | Battlecry       | Activa un efecto al ser jugada desde la mano                    |
 | Vision          | Stealth         | No puede ser objetivo de ataques ni hechizos hasta que ataque   |
-| Veneno          | Poisonous       | Destruye cualquier criatura a la que danya, independientemente de su vida |
-| Silencio        | Silence (efecto)| Elimina todas las habilidades especiales de la criatura objetivo |
+| Veneno          | Poisonous       | Destruye cualquier Personaje a la que danya, independientemente de su vida |
+| Silencio        | Silence (efecto)| Elimina todas las habilidades especiales de la Personaje objetivo |
 
 ---
 
@@ -354,19 +359,19 @@ c) [PENDIENTE DE VALIDACION] Opcion de rendicion voluntaria por parte del jugado
 
 | Atributo        | Tipo      | Descripcion                                                   |
 |-----------------|-----------|---------------------------------------------------------------|
-| id              | string    | Identificador unico. Formato: `ARCH-NUM` (ej: `FLO-001`)     |
+| id              | string    | Identificador unico. Formato: `ARCH-NUM` (ej: `LIC-001`)     |
 | name            | string    | Nombre de la carta                                            |
-| type            | enum      | Criatura / Hechizo / Objeto                                   |
-| archetype       | enum      | Floja / Aventura / Submarino / Deportiva / Neutral            |
-| manaCost        | integer   | Coste en puntos de mana para jugarla (0-10)                   |
+| type            | enum      | Personaje / Hechizo / Objeto                                   |
+| archetype       | enum      | Cartoon Clasico / Aventura Magica / Anime Combate / Sobrenatural / Neutral |
+| nostalgyCost    | integer   | Coste en puntos de Nostalgia para jugarla (0-10)                   |
 | rarity          | enum      | Comun / Rara / Epica / Legendaria                             |
 | description     | string    | Descripcion del efecto de la carta                            |
 | spriteKey       | string    | Clave del asset grafico en Phaser                             |
-| greetingText    | string    | Texto que el personaje dice al ser jugado                     |
+| greetingText    | string    | Texto que el personaje/carta dice al ser jugado                     |
 
 ### 7.2 Atributos Adicionales por Tipo
 
-#### Criaturas
+#### Personajes
 
 | Atributo        | Tipo          | Descripcion                                                 |
 |-----------------|---------------|-------------------------------------------------------------|
@@ -405,41 +410,40 @@ c) [PENDIENTE DE VALIDACION] Opcion de rendicion voluntaria por parte del jugado
 
 ### 7.4 Tabla de Cartas Iniciales del MVP
 
-El MVP incluye 20 cartas distintas: 10 del mazo de El Flojo (arquetipo Floja) y 10 del
-mazo de El Aventurero (arquetipo Aventura). Cada mazo tiene 30 cartas en total, por lo
-que se permite incluir 2-3 copias de las cartas Comunes y Raras.
+El MVP incluye 20 cartas distintas: 10 del mazo de El Lich y 10 del mazo de Axel Blaze.
+Cada mazo tiene 30 cartas en total, por lo que se permite incluir 2-3 copias de las
+cartas Comunes y Raras.
 
-#### Mazo de El Flojo (Arquetipo Floja)
+#### Mazo de El Lich
 
-| ID      | Nombre                  | Tipo     | Mana | Rareza    | ATQ | VID | Habilidades / Efecto                                              |
-|---------|-------------------------|----------|------|-----------|-----|-----|-------------------------------------------------------------------|
-| FLO-001 | Mordecai el Pajaro      | Criatura | 3    | Comun     | 3   | 3   | Grito de Guerra: Roba 1 carta                                     |
-| FLO-002 | Rigby el Mapache        | Criatura | 2    | Comun     | 2   | 2   | Cargo. Al atacar, descarta 1 carta aleatoria del rival            |
-| FLO-003 | Benson Furioso          | Criatura | 4    | Rara      | 4   | 4   | Provocacion. Sinergia Floja: +2 ATQ por cada aliada Floja         |
-| FLO-004 | Skips el Sabio          | Criatura | 5    | Epica     | 3   | 6   | Al inicio de tu turno, restaura 2 vida al heroe aliado            |
-| FLO-005 | Pops el Gentil          | Criatura | 2    | Comun     | 1   | 3   | Escudo Divino. Al morir, otorga +1/+1 a una criatura aliada aleatoria |
-| FLO-006 | El Raton de las Nieves  | Criatura | 6    | Legendaria| 5   | 5   | Ultimo Aliento: Invoca dos ratas 1/1 con Cargo                    |
-| FLO-007 | Dia de Flojera          | Hechizo  | 2    | Comun     | --  | --  | Roba 2 cartas. Descarta 1 carta aleatoria de tu mano              |
-| FLO-008 | Control Remoto Magico   | Hechizo  | 3    | Rara      | --  | --  | Toma el control de una criatura enemiga con 3 o menos ATQ hasta el fin del turno |
-| FLO-009 | Bebida Energetica       | Objeto   | 1    | Comun     | --  | --  | Equipa a una criatura aliada: +2 ATQ y gana Cargo este turno      |
-| FLO-010 | Sillon Reclinable       | Objeto   | 3    | Rara      | --  | --  | Equipa al heroe: al inicio de cada turno, recupera 1 punto de vida. Durabilidad 4 |
+| ID      | Nombre                      | Tipo      | Nostalgia | Rareza     | ATQ | VID | Arquetipo         | Habilidades / Efecto                                                                   |
+|---------|-----------------------------|-----------|-----------|------------|-----|-----|-------------------|----------------------------------------------------------------------------------------|
+| LIC-001 | Pops el Gentil              | Personaje | 2         | Rara       | 1   | 4   | Cartoon Clasico   | Ultimo Aliento: otorga +2/+2 a una Personaje aliada aleatoria                          |
+| LIC-002 | Darwin Watterson            | Personaje | 2         | Comun      | 2   | 3   | Cartoon Clasico   | Grito de Guerra: si hay otra Personaje aliada en el tablero, esta Personaje gana +1/+1 |
+| LIC-003 | Chowder                     | Personaje | 3         | Comun      | 3   | 2   | Cartoon Clasico   | Grito de Guerra: destruye una Personaje enemiga con 1 o menos VID ("se la come")       |
+| LIC-004 | Patricio Estrella           | Personaje | 3         | Comun      | 4   | 3   | Cartoon Clasico   | Al atacar, efecto aleatorio: gana +2 ATQ O pierde -1 ATQ ese ataque [PENDIENTE VALIDACION] |
+| LIC-005 | Rigby                       | Personaje | 2         | Rara       | 3   | 2   | Cartoon Clasico   | Cargo. No puede atacar el turno inmediatamente siguiente tras atacar                   |
+| LIC-006 | Jake el Perro               | Personaje | 4         | Epica      | --  | --  | Aventura Magica   | Al jugarlo, el jugador elige la forma: 6/2 (forma ofensiva) o 2/6 (forma defensiva)   |
+| LIC-007 | Superbocata                 | Hechizo   | 4         | Rara       | --  | --  | Neutral           | Restaura 6 PV al heroe aliado                                                          |
+| LIC-008 | Cangreburger                | Hechizo   | 2         | Comun      | --  | --  | Neutral           | Restaura 3 PV al heroe aliado y roba 1 carta                                          |
+| LIC-009 | El Poder                    | Objeto    | 3         | Epica      | --  | --  | Neutral           | Equipa al heroe: al activarse, inflige 3 de dano a todas las Personajes enemigas. Durabilidad 1 |
+| LIC-010 | Espada de Sangre de Demonio | Objeto    | 5         | Legendaria | --  | --  | Aventura Magica   | Equipa al heroe: +5 ATQ. Al inicio de cada turno propio, el heroe recibe 1 de dano. Durabilidad 3 |
 
-#### Mazo de El Aventurero (Arquetipo Aventura)
+#### Mazo de Axel Blaze
 
-| ID      | Nombre                  | Tipo     | Mana | Rareza    | ATQ | VID | Habilidades / Efecto                                              |
-|---------|-------------------------|----------|------|-----------|-----|-----|-------------------------------------------------------------------|
-| AVE-001 | Finn el Humano          | Criatura | 3    | Comun     | 3   | 4   | Grito de Guerra: Si tienes otra criatura Aventura, gana +2 ATQ   |
-| AVE-002 | Jake el Perro           | Criatura | 4    | Rara      | 2   | 6   | Puede dividir su ATQ entre todos los enemigos (AoE dividido)      |
-| AVE-003 | La Princesa Jelly       | Criatura | 2    | Comun     | 2   | 2   | Battlecry: Aplica Silencio a una criatura enemiga con 2 o menos VID |
-| AVE-004 | El Rey Hielo            | Criatura | 5    | Epica     | 3   | 5   | Al inicio del turno rival, congela una criatura enemiga aleatoria (no puede atacar 1 turno) |
-| AVE-005 | BMO                     | Criatura | 1    | Comun     | 1   | 2   | Ultimo Aliento: Roba 1 carta                                      |
-| AVE-006 | Marceline la Vampira    | Criatura | 6    | Legendaria| 6   | 5   | Veneno. Vision. Al atacar a un heroe, recupera 2 vida al heroe aliado |
-| AVE-007 | Patada de Aventura      | Hechizo  | 2    | Comun     | --  | --  | Inflige 3 de dano a una criatura enemiga                          |
-| AVE-008 | Pergamino del Conocimiento | Hechizo | 4   | Rara      | --  | --  | Roba 3 cartas. Cuesta 1 menos por cada criatura Aventura en el tablero |
-| AVE-009 | Mochila Multifuncion    | Objeto   | 2    | Comun     | --  | --  | Equipa a una criatura aliada: +1/+1 y gana Provocacion            |
-| AVE-010 | Espada de la Victoria   | Objeto   | 3    | Epica     | --  | --  | Equipa al heroe: gana un uso de habilidad adicional este turno. Durabilidad 2 |
+| ID      | Nombre                      | Tipo      | Nostalgia | Rareza     | ATQ | VID | Arquetipo         | Habilidades / Efecto                                                                   |
+|---------|-----------------------------|-----------|-----------|------------|-----|-----|-------------------|----------------------------------------------------------------------------------------|
+| AXE-001 | Goku                        | Personaje | 7         | Legendaria | 6   | 6   | Anime Combate     | Al recibir dano que lo dejaria a 0 VID, en lugar de morir vuelve con 4/4 y gana Cargo (una vez por partida) |
+| AXE-002 | Marceline                   | Personaje | 5         | Epica      | 4   | 5   | Aventura Magica   | Drenaje: al atacar a una Personaje, el heroe aliado recupera PV iguales al dano infligido |
+| AXE-003 | Fantasma Chocala            | Personaje | 3         | Rara       | 2   | 3   | Sobrenatural      | Grito de Guerra: otorga +1/+1 a una Personaje aliada aleatoria. No puede ser objetivo de hechizos el turno en que es jugado |
+| AXE-004 | Diamantino                  | Personaje | 4         | Rara       | 3   | 5   | Anime Combate     | Escudo Cristalino: la primera vez que recibe dano, lo reduce a la mitad (redondeado hacia abajo) |
+| AXE-005 | Chum Chum                   | Personaje | 1         | Comun      | 1   | 2   | Cartoon Clasico   | Sin habilidad especial. Coste 1, ideal para activar sinergias tribales                 |
+| AXE-006 | Agallas el Perro Cobarde    | Personaje | 3         | Rara       | 2   | 4   | Sobrenatural      | No puede ser objetivo de ataques mientras haya otra Personaje aliada (taunt inverso). Si es la unica aliada, gana +2 ATQ |
+| AXE-007 | Pedo Poderoso               | Hechizo   | 4         | Epica      | --  | --  | Neutral           | Inflige 2 de dano a todas las Personajes enemigas del tablero (AoE)                   |
+| AXE-008 | Linterna Minimizadora       | Hechizo   | 3         | Rara       | --  | --  | Neutral           | Reduce el ATQ y VID de una Personaje enemiga a la mitad (redondeo hacia abajo) de forma permanente |
+| AXE-009 | Bola de Dragon              | Objeto    | 5         | Legendaria | --  | --  | Anime Combate     | Al jugarse, el jugador elige entre: curar 5 PV al heroe / infligir 5 dano al heroe enemigo / ganar 3 Nostalgia extra este turno |
+| AXE-010 | Omnitrix                    | Objeto    | 4         | Legendaria | --  | --  | Anime Combate     | Equipa al heroe. Al activar habilidad de heroe, elige entre: infligir 3 dano / Escudo Divino hasta el siguiente turno / robar 2 cartas. Durabilidad 2 |
 
-### 7.5 Reglas de Construccion de Mazo
 
 - Cada mazo contiene exactamente 30 cartas.
 - Cartas Comunes y Raras: maximo 2 copias por carta.
@@ -452,82 +456,75 @@ que se permite incluir 2-3 copias de las cartas Comunes y Raras.
 
 ## 8. Heroes
 
-### 8.1 Ficha de Heroe — El Flojo
+### 8.1 Ficha de Heroe — El Lich
 
-| Campo               | Valor                                                        |
-|---------------------|--------------------------------------------------------------|
-| ID                  | HERO-001                                                     |
-| Nombre canónico     | El Flojo                                                     |
-| Alternativas de nombre | "El Vago Supremo", "El Maestro de la Inaccion"          |
-| Arquetipo           | Floja                                                        |
-| Puntos de Vida base | 30                                                           |
-| Universo de referencia | Regular Show (Mordecai y Rigby)                          |
-| Estilo de juego     | Control y robo de cartas, gestion de recursos               |
+| Campo               | Valor                                                            |
+|---------------------|------------------------------------------------------------------|
+| ID                  | HERO-001                                                         |
+| Nombre canonico     | El Lich                                                          |
+| Arquetipo principal | Aventura Magica                                                  |
+| Puntos de Vida base | 30                                                               |
+| Universo de referencia | Hora de Aventuras — Cartoon Network                           |
+| Estilo de juego     | Control, dano directo, desgaste del rival                        |
+| Estetica            | Tonos morados y verdes oscuros, calaveras, magia corrupta        |
 
-#### Habilidad Pasiva: Pereza Estrategica
+**Trasfondo**: El Lich es la entidad no-muerta mas antigua y poderosa de las Tierras de
+Ooo. En el multiverso de Crossover Cards aparece como un nigromante que usa el
+sentimiento de la nostalgia de forma corrupta para drenar la energia de sus rivales.
+Habla con voz gelida y profunda.
 
-| Campo        | Valor                                                              |
-|--------------|--------------------------------------------------------------------|
-| Nombre       | Pereza Estrategica                                                 |
-| Coste        | 1 mana                                                             |
-| Frecuencia   | Una vez por turno (en la Fase Principal)                          |
-| Efecto       | Roba 1 carta de tu mazo. Descarta 1 carta aleatoria de tu mano    |
-| Sinergia     | Combina bien con cartas que generan valor al ser descartadas o al tener pocas cartas en mano |
+#### Habilidad Activable: Hechizo Ancestral
 
-**Razonamiento de la habilidad**: la dicotomia robar/descartar refleja la personalidad
-de Mordecai y Rigby: siempre tienen buenas ideas pero nunca las ejecutan bien del todo.
-Funciona como herramienta de filtrado de mano a bajo coste.
+| Campo        | Valor                                                                    |
+|--------------|--------------------------------------------------------------------------|
+| Nombre       | Hechizo Ancestral                                                        |
+| Coste        | 2 Nostalgia                                                              |
+| Frecuencia   | Una vez por turno (en la Fase Principal)                                 |
+| Efecto       | Inflige 2 puntos de dano a un objetivo enemigo elegido por el jugador (heroe o Personaje) |
+| Sinergia     | Complementa mazos de desgaste y control; util para rematar Personajes debilitadas |
 
-#### Alternativas de nombre [PENDIENTE DE VALIDACION]
+**Razonamiento de la habilidad**: el dano directo a objetivo refleja el poder de
+manipulacion oscura del Lich. A 2 Nostalgia es eficiente pero no rota la partida;
+funciona tanto para eliminar amenazas como para presionar al heroe rival.
 
-| Opcion              | Justificacion                                             |
-|---------------------|-----------------------------------------------------------|
-| El Flojo (propuesto)| Directo, reconocible, encaja con el arquetipo             |
-| El Vago Supremo     | Mas humoristico, enfatiza el tono casual                  |
-| El Maestro de la Inaccion | Ironico y memorable, mas largo para la UI         |
+### 8.2 Ficha de Heroe — Axel Blaze
 
-### 8.2 Ficha de Heroe — El Aventurero
+| Campo               | Valor                                                            |
+|---------------------|------------------------------------------------------------------|
+| ID                  | HERO-002                                                         |
+| Nombre canonico     | Axel Blaze                                                       |
+| Arquetipo principal | Anime Combate                                                    |
+| Puntos de Vida base | 30                                                               |
+| Universo de referencia | Inazuma Eleven — anime/videojuego                             |
+| Estilo de juego     | Agresivo, buff a personajes aliados, presion constante           |
+| Estetica            | Tonos rojos y naranjas, llamas, energia de combate               |
 
-| Campo               | Valor                                                        |
-|---------------------|--------------------------------------------------------------|
-| ID                  | HERO-002                                                     |
-| Nombre canonico     | El Aventurero                                                |
-| Alternativas de nombre | "El Heroe del Reino", "El Campeon de las Tierras de Ooo" |
-| Arquetipo           | Aventura                                                     |
-| Puntos de Vida base | 30                                                           |
-| Universo de referencia | Hora de Aventuras (Finn y Jake)                         |
-| Estilo de juego     | Agresivo, sinergia tribal, presion constante                |
+**Trasfondo**: Axel Blaze (conocido tambien como Gazelle en otras versiones) es el
+delantero estrella del equipo Inazuma Eleven. Su tecnica firma es "Tornado de Fuego".
+En el multiverso de Crossover Cards representa al luchador fisico que potencia a
+sus aliados con intensidad y determinacion.
 
-#### Habilidad Pasiva: Combo de Aventura
+#### Habilidad Activable: Tornado de Fuego
 
-| Campo        | Valor                                                              |
-|--------------|--------------------------------------------------------------------|
-| Nombre       | Combo de Aventura                                                  |
-| Coste        | 2 mana                                                             |
-| Frecuencia   | Una vez por turno (en la Fase Principal)                          |
-| Efecto base  | Inflige 1 punto de dano al heroe enemigo                          |
-| Efecto combo | Si tienes al menos 1 criatura con arquetipo Aventura en el tablero, inflige 2 puntos de dano en su lugar |
-| Sinergia     | Incentiva mantener criaturas Aventura en el tablero para maximizar el dano directo |
+| Campo        | Valor                                                                    |
+|--------------|--------------------------------------------------------------------------|
+| Nombre       | Tornado de Fuego                                                        |
+| Coste        | 2 Nostalgia                                                              |
+| Frecuencia   | Una vez por turno (en la Fase Principal)                                 |
+| Efecto       | Otorga +2 de ATQ a una Personaje aliada elegida hasta el final del turno |
+| Sinergia     | Potente con Personajes que tienen Cargo o con la sinergia tribal de Anime Combate |
 
-**Razonamiento de la habilidad**: el "combo" refleja la manera en que Finn y Jake
-siempre se complementan. Solos son capaces; juntos son imparables. La condicion del
-tablero hace que el jugador quiera proteger sus criaturas.
-
-#### Alternativas de nombre [PENDIENTE DE VALIDACION]
-
-| Opcion                          | Justificacion                                    |
-|---------------------------------|--------------------------------------------------|
-| El Aventurero (propuesto)       | Generico y reconocible                           |
-| El Heroe del Reino              | Mas tematico, referencia a Ooo                   |
-| El Campeon de las Tierras de Ooo | El mas especifico, puede ser largo para la UI   |
+**Razonamiento de la habilidad**: el buff temporal de ataque refleja el disparo
+potenciado con llamas de Axel. Al ser temporal (solo hasta fin de turno), obliga
+al jugador a atacar con esa Personaje ese turno, creando decision tactica.
 
 ### 8.3 Seleccion de Heroe
 
 El jugador elige su heroe en la pantalla de Seleccion de Heroe antes de comenzar
 la partida. La IA siempre usa el heroe contrario al jugador para garantizar partidas
-asimetricas. Si el jugador elige El Flojo, la IA usa El Aventurero, y viceversa.
+asimetricas. Si el jugador elige El Lich, la IA usa Axel Blaze, y viceversa.
 
----
+| Campo               | Valor                                                        |
 
 ## 9. Mecanicas Innovadoras
 
@@ -535,25 +532,24 @@ asimetricas. Si el jugador elige El Flojo, la IA usa El Aventurero, y viceversa.
 
 #### Descripcion
 
-Las criaturas pertenecen a un arquetipo tribal (Floja, Aventura, Submarino, Deportiva
-o Neutral). Cuando un jugador tiene 2 o mas criaturas del mismo arquetipo en el tablero
-simultaneamente, se activa un bonus de sinergia que afecta a todas las criaturas de
+Las Personajes pertenecen a un arquetipo tribal (Cartoon Clasico, Aventura Magica, Anime Combate, Sobrenatural o Neutral). Cuando un jugador tiene 2 o mas Personajes del mismo arquetipo en el tablero
+simultaneamente, se activa un bonus de sinergia que afecta a todas las Personajes de
 ese arquetipo en el tablero aliado.
 
 #### Reglas de Funcionamiento
 
 1. El sistema comprueba la sinergia tribal al final de cada Fase Principal y al final
    de cada Fase de Combate.
-2. El bonus de sinergia base es: +1 punto de Ataque a cada criatura del arquetipo
-   por cada criatura aliada adicional del mismo arquetipo en el tablero.
-   - Con 2 criaturas del mismo arquetipo: cada una recibe +1 ATQ.
-   - Con 3 criaturas del mismo arquetipo: cada una recibe +2 ATQ.
-   - Con N criaturas del mismo arquetipo: cada una recibe +(N-1) ATQ.
-3. El bonus es dinamico: si una criatura muere, el bonus se recalcula en el siguiente
+2. El bonus de sinergia base es: +1 punto de Ataque a cada Personaje del arquetipo
+   por cada Personaje aliada adicional del mismo arquetipo en el tablero.
+   - Con 2 Personajes del mismo arquetipo: cada una recibe +1 ATQ.
+   - Con 3 Personajes del mismo arquetipo: cada una recibe +2 ATQ.
+   - Con N Personajes del mismo arquetipo: cada una recibe +(N-1) ATQ.
+3. El bonus es dinamico: si una Personaje muere, el bonus se recalcula en el siguiente
    punto de comprobacion.
 4. Algunas cartas tienen efectos adicionales de sinergia tribal especificados en su
    descripcion (ver tabla de cartas, columna Efecto).
-5. Las criaturas con arquetipo Neutral NO participan en los calculos de sinergia tribal.
+5. Las Personajes con arquetipo Neutral NO participan en los calculos de sinergia tribal.
 
 #### Interacciones con Otras Mecanicas
 
@@ -578,13 +574,13 @@ otorga ventajas acumulables que permiten al jugador en desventaja intentar remon
 3. **Indicador visual**: un contador de Momentum es visible permanentemente junto al
    heroe afectado.
 4. **Usos del Momentum**:
-   - **Como mana adicional**: el jugador puede declarar "uso X de Momentum como mana"
-     antes de jugar una carta. El Momentum se consume y el mana disponible ese turno
-     aumenta en X. El Momentum gastado como mana se pierde al final del turno si no
+   - **Como Nostalgia adicional**: el jugador puede declarar "uso X de Momentum como Nostalgia"
+     antes de jugar una carta. El Momentum se consume y el Nostalgia disponible ese turno
+     aumenta en X. El Momentum gastado como Nostalgia se pierde al final del turno si no
      se usa.
    - **Para cartas Furia**: ciertas cartas tienen el tipo especial "Furia" y solo pueden
      jugarse si el jugador gasta la cantidad de Momentum indicada en la carta. El coste
-     en mana de estas cartas es 0 pero requieren Momentum.
+     en Nostalgia de estas cartas es 0 pero requieren Momentum.
 5. **Desactivacion**: si el jugador recupera vida y supera los 15 PV, el contador de
    Momentum deja de incrementarse, pero el Momentum acumulado se conserva.
 6. **Limite de Momentum**: maximo 10 puntos acumulados simultaneamente.
@@ -602,11 +598,11 @@ otorga ventajas acumulables que permiten al jugador en desventaja intentar remon
 
 El tablero se divide en 3 carriles o zonas: Izquierda, Centro y Derecha. Cada zona
 tiene un entorno activo que puede cambiar a lo largo de la partida. Los entornos
-otorgan buffs o debuffs a las criaturas que los ocupan mientras estan activos.
+otorgan buffs o debuffs a las Personajes que los ocupan mientras estan activos.
 
 #### Reglas de Funcionamiento
 
-1. **Zonas del tablero**: cada carril del tablero puede alojar hasta 2-3 criaturas
+1. **Zonas del tablero**: cada carril del tablero puede alojar hasta 2-3 Personajes
    por bando. [PENDIENTE DE VALIDACION: el limite exacto por carril esta sujeto a
    ajuste de balance durante la implementacion.]
 2. **Cambio de entorno**: al inicio del turno 1, las 3 zonas tienen un entorno por
@@ -617,11 +613,11 @@ otorgan buffs o debuffs a las criaturas que los ocupan mientras estan activos.
 | ID Entorno  | Nombre           | Buff/Debuff aplicado                                          |
 |-------------|------------------|---------------------------------------------------------------|
 | ENV-001     | Paisaje Neutro   | Sin modificadores                                             |
-| ENV-002     | Bosque Magico    | +1 VID a todas las criaturas en esta zona                     |
-| ENV-003     | Estadio Deportivo| +1 ATQ a todas las criaturas en esta zona                     |
-| ENV-004     | Cocina Krusty    | Las criaturas en esta zona restauran 1 VID al heroe aliado al atacar |
-| ENV-005     | Tierra de Ooo    | Las criaturas Aventura en esta zona ganan Cargo este turno    |
-| ENV-006     | Parque Municipal | Las criaturas Floja en esta zona cuestan 1 mana menos         |
+| ENV-002     | Bosque Magico    | +1 VID a todas las Personajes en esta zona                     |
+| ENV-003     | Estadio Deportivo| +1 ATQ a todas las Personajes en esta zona                     |
+| ENV-004     | Cocina Krusty    | Las Personajes en esta zona restauran 1 VID al heroe aliado al atacar |
+| ENV-005     | Tierra de Ooo    | Las Personajes de arquetipo Aventura Magica en esta zona ganan Cargo este turno |
+| ENV-006     | Parque Municipal | Las Personajes de arquetipo Cartoon Clasico en esta zona cuestan 1 Nostalgia menos |
 
 4. **Permanencia**: los modificadores de un entorno se aplican mientras el entorno
    este activo. Al cambiar de entorno, los modificadores del anterior desaparecen.
@@ -633,7 +629,7 @@ otorgan buffs o debuffs a las criaturas que los ocupan mientras estan activos.
 #### Descripcion
 
 Las Misiones son un tipo especial de carta que el jugador coloca en una zona especial
-del tablero (la Zona de Mision) por un coste de 0 mana al inicio de su turno. Una vez
+del tablero (la Zona de Mision) por un coste de 0 Nostalgia al inicio de su turno. Una vez
 colocada, la Mision muestra una condicion a cumplir. Al completarse la condicion,
 la Mision se activa automaticamente y otorga una recompensa poderosa.
 
@@ -642,21 +638,20 @@ la Mision se activa automaticamente y otorga una recompensa poderosa.
 1. **Colocacion**: solo se puede colocar una Mision activa a la vez. Si ya hay una
    Mision activa, no se puede colocar otra hasta que la primera se complete o se
    descarte voluntariamente.
-2. **Coste**: 0 mana. Solo pueden colocarse al inicio de la Fase Principal.
-3. **Condicion**: cada carta de Mision define un contador (ej: "Invoca 5 criaturas
-   del arquetipo Aventura"). El sistema incrementa el contador automaticamente.
+2. **Coste**: 0 Nostalgia. Solo pueden colocarse al inicio de la Fase Principal.
+3. **Condicion**: cada carta de Mision define un contador (ej: "Invoca 5 Personajes
+   durante la partida"). El sistema incrementa el contador automaticamente.
 4. **Completar la Mision**: al alcanzarse el contador objetivo, la Mision se marca
    como completada, se activa la recompensa y la carta se envia al cementerio.
 5. **Visibilidad**: el progreso de la Mision es visible para ambos jugadores.
 
 #### Misiones del MVP [PENDIENTE DE VALIDACION]
 
-| ID      | Nombre                     | Condicion                            | Recompensa                                  |
-|---------|----------------------------|--------------------------------------|---------------------------------------------|
-| QST-001 | La Semana de los Vagos     | Juega 4 cartas del arquetipo Floja   | Roba 3 cartas                               |
-| QST-002 | El Gran Combate            | Destruye 4 criaturas enemigas        | Inflige 6 de dano al heroe enemigo          |
-| QST-003 | Expedicion Aventurera      | Invoca 5 criaturas del arquetipo Aventura | Invoca una copia de Marceline la Vampira |
-| QST-004 | Maestro del Mazo           | Roba 8 cartas en una partida         | Juega tu siguiente carta gratis             |
+| ID      | Nombre              | Condicion                                      | Recompensa                                                    |
+|---------|---------------------|------------------------------------------------|---------------------------------------------------------------|
+| QST-001 | El Gran Desfile     | Invoca 5 Personajes durante la partida         | Invoca una Personaje token legendaria 5/5 sin coste           |
+| QST-002 | Maquina de Guerra   | Inflige 15 puntos de dano con Personajes       | El heroe aliado gana +5 PV                                    |
+| QST-003 | Superviviente       | Sobrevive 7 turnos completos                   | Roba 3 cartas y gana 3 puntos de Nostalgia extra este turno   |
 
 ### M5 — Aliado Invitado (Crossover)
 
@@ -664,7 +659,7 @@ la Mision se activa automaticamente y otorga una recompensa poderosa.
 
 Una vez por partida, el jugador puede activar la accion especial "Crossover". Al
 activarla, roba 1 carta aleatoria del mazo visible del oponente y la anade a su
-mano. Esta carta puede jugarse con su coste normal de mana.
+mano. Esta carta puede jugarse con su coste normal de Nostalgia.
 
 #### Reglas de Funcionamiento
 
@@ -677,7 +672,7 @@ mano. Esta carta puede jugarse con su coste normal de mana.
 4. **Visibilidad**: ambos jugadores ven que carta fue "robada" mediante una animacion.
 5. **Propiedad**: la carta robada mantiene su tipo, arquetipo y estadisticas originales.
    Puede activar sinergias del arquetipo del dueno original si el nuevo dueno tiene
-   criaturas del mismo arquetipo.
+   Personajes del mismo arquetipo.
 6. **Limite de mano**: si la mano del jugador activo tiene 10 cartas, la carta robada
    se destruye (se muestra una animacion de carta quemada).
 7. **Interaccion con la IA**: la IA de nivel Medio usa Crossover si su vida esta por
@@ -704,20 +699,20 @@ el maximo valor inmediato sin considerar el estado futuro del tablero.
 **Algoritmo de decision (en prosa)**:
 
 1. **Fase Principal**:
-   a. Recorre la mano de mayor a menor coste de mana.
-   b. Juega la primera carta que pueda pagar con el mana disponible.
+   a. Recorre la mano de mayor a menor coste de Nostalgia.
+   b. Juega la primera carta que pueda pagar con el Nostalgia disponible.
    c. Repite hasta que no pueda jugar ninguna carta mas.
    d. No activa la habilidad de heroe de forma deliberada; la activa solo si
-      no queda ninguna carta jugable y aun tiene mana.
+      no queda ninguna carta jugable y aun tiene Nostalgia.
    e. No usa Crossover de forma proactiva.
    f. No considera sinergias tribales.
 
 2. **Fase de Combate**:
-   a. Si puede atacar al heroe enemigo directamente (sin criaturas con Provocacion
-      enemigas bloqueando), ataca al heroe con la criatura de mayor ATQ.
-   b. Si hay criaturas enemigas con Provocacion, ataca a la de menor VID.
-   c. Si no puede atacar al heroe y no hay criaturas con Provocacion, ataca a la
-      criatura enemiga con menor VID para intentar destruirla.
+   a. Si puede atacar al heroe enemigo directamente (sin Personajes con Provocacion
+      enemigas bloqueando), ataca al heroe con la Personaje de mayor ATQ.
+   b. Si hay Personajes enemigas con Provocacion, ataca a la de menor VID.
+   c. Si no puede atacar al heroe y no hay Personajes con Provocacion, ataca a la
+      Personaje enemiga con menor VID para intentar destruirla.
 
 ### 10.3 Nivel Medio — Threat-aware
 
@@ -728,31 +723,31 @@ es necesario y aprovecha sinergias tribales.
 **Algoritmo de decision (en prosa)**:
 
 1. **Evaluacion de amenazas al inicio del turno**:
-   - Una criatura enemiga es considerada "amenaza" si tiene ATQ >= 4 o si tiene
+   - Una Personaje enemiga es considerada "amenaza" si tiene ATQ >= 4 o si tiene
      habilidades peligrosas (Veneno, Escudo Divino, Cargo).
    - Si hay 2 o mas amenazas en el tablero, prioriza eliminarlas sobre atacar al heroe.
 
 2. **Fase Principal**:
    a. Si su vida es <= 40% (12 PV o menos), considera jugar hechizos defensivos
-      (curacion, control) antes que criaturas.
+      (curacion, control) antes que Personajes.
    b. Evalua si tiene 2+ cartas del mismo arquetipo en mano: si es asi, prioriza
       jugarlas en el mismo turno para activar la sinergia tribal.
    c. Juega la combinacion de cartas que maximiza el valor del tablero, considerando:
       - Sinergia tribal activa.
-      - Entorno/Zona activo que beneficie al arquetipo de sus criaturas.
-   d. Activa la habilidad de heroe si quedan >= 2 mana y no hay cartas mas eficientes.
+      - Entorno/Zona activo que beneficie al arquetipo de sus Personajes.
+   d. Activa la habilidad de heroe si quedan >= 2 Nostalgia y no hay cartas mas eficientes.
    e. Usa Crossover si su vida es <= 40% y tiene <= 3 cartas en mano.
 
 3. **Fase de Combate**:
-   a. Identifica criaturas enemigas con Provocacion y las elimina primero.
-   b. Prioriza atacar criaturas enemigas que constituyen amenazas (ATQ >= 4).
-   c. Usa ataques de criaturas pequenas para eliminar criaturas enemigas debilitadas
-      ("valor trade"): una criatura de 2/1 puede matar a una de 5/1.
+   a. Identifica Personajes enemigas con Provocacion y las elimina primero.
+   b. Prioriza atacar Personajes enemigas que constituyen amenazas (ATQ >= 4).
+   c. Usa ataques de Personajes pequenas para eliminar Personajes enemigas debilitadas
+      ("valor trade"): una Personaje de 2/1 puede matar a una de 5/1.
    d. Solo ataca al heroe enemigo cuando no hay amenazas activas o cuando puede
       infligir suficiente dano para ganar la partida ese turno.
 
 4. **Uso del Momentum** (cuando aplica):
-   - Si acumula >= 3 de Momentum, lo gasta como mana adicional para jugar una
+   - Si acumula >= 3 de Momentum, lo gasta como Nostalgia adicional para jugar una
      carta que de otro modo no podria permitirse ese turno.
 
 ### 10.4 Consideraciones de Implementacion
@@ -822,40 +817,40 @@ Al activarse:
 | RF-008  | El sistema gestiona las fases del turno en orden: Robo, Principal, Combate, Fin | Sistema     | Must      |
 | RF-009  | El sistema roba automaticamente 1 carta para el jugador activo al inicio de la Fase de Robo | Sistema | Must |
 | RF-010  | Si el mazo esta vacio al intentar robar, el jugador recibe 1 danyo por carta no robada | Sistema | Must |
-| RF-011  | El sistema incrementa el mana maximo del jugador activo en 1 al inicio de su turno (tope 10) | Sistema | Must |
-| RF-012  | El sistema recarga el mana del jugador activo al maximo al inicio de su turno | Sistema       | Must      |
-| RF-013  | El jugador puede jugar una carta de Criatura pagando su coste de mana    | Jugador            | Must      |
-| RF-014  | El sistema coloca la criatura jugada en el tablero del jugador           | Sistema            | Must      |
-| RF-015  | El sistema marca la criatura recien jugada como "exhausta" (no puede atacar ese turno) salvo que tenga Cargo | Sistema | Must |
+| RF-011  | El sistema incrementa el Nostalgia maximo del jugador activo en 1 al inicio de su turno (tope 10) | Sistema | Must |
+| RF-012  | El sistema recarga el Nostalgia del jugador activo al maximo al inicio de su turno | Sistema       | Must      |
+| RF-013  | El jugador puede jugar una carta de Personaje pagando su coste de Nostalgia    | Jugador            | Must      |
+| RF-014  | El sistema coloca la Personaje jugada en el tablero del jugador           | Sistema            | Must      |
+| RF-015  | El sistema marca la Personaje recien jugada como "exhausta" (no puede atacar ese turno) salvo que tenga Cargo | Sistema | Must |
 | RF-016  | El jugador puede jugar una carta de Hechizo pagando su coste y seleccionando el objetivo | Jugador | Must |
 | RF-017  | El sistema aplica el efecto del hechizo sobre el objetivo seleccionado   | Sistema            | Must      |
 | RF-018  | El jugador puede jugar una carta de Objeto pagando su coste y seleccionando el objetivo | Jugador | Must |
 | RF-019  | El sistema aplica los modificadores del objeto al objetivo seleccionado  | Sistema            | Must      |
-| RF-020  | El sistema descuenta el coste de mana de la carta jugada del mana disponible | Sistema       | Must      |
-| RF-021  | El jugador puede activar la habilidad del heroe si tiene el mana requerido | Jugador          | Must      |
-| RF-022  | El sistema aplica el efecto de la habilidad del heroe y descuenta el mana | Sistema           | Must      |
+| RF-020  | El sistema descuenta el coste de Nostalgia de la carta jugada del Nostalgia disponible | Sistema       | Must      |
+| RF-021  | El jugador puede activar la habilidad del heroe si tiene el Nostalgia requerido | Jugador          | Must      |
+| RF-022  | El sistema aplica el efecto de la habilidad del heroe y descuenta el Nostalgia | Sistema           | Must      |
 | RF-023  | La habilidad de heroe solo puede activarse una vez por turno             | Sistema            | Must      |
-| RF-024  | El jugador puede seleccionar una criatura propia no exhausta para atacar | Jugador            | Must      |
-| RF-025  | El sistema valida que si hay criaturas enemigas con Provocacion, solo se puede atacar a ellas | Sistema | Must |
-| RF-026  | Al confirmar un ataque entre criatura atacante y objetivo, el sistema aplica el dano mutuo | Sistema | Must |
-| RF-027  | El sistema destruye y envia al cementerio toda criatura con VID <= 0     | Sistema            | Must      |
-| RF-028  | El sistema activa el efecto Ultimo Aliento de una criatura al ser destruida | Sistema         | Must      |
+| RF-024  | El jugador puede seleccionar una Personaje propia no exhausta para atacar | Jugador            | Must      |
+| RF-025  | El sistema valida que si hay Personajes enemigas con Provocacion, solo se puede atacar a ellas | Sistema | Must |
+| RF-026  | Al confirmar un ataque entre Personaje atacante y objetivo, el sistema aplica el dano mutuo | Sistema | Must |
+| RF-027  | El sistema destruye y envia al cementerio toda Personaje con VID <= 0     | Sistema            | Must      |
+| RF-028  | El sistema activa el efecto Ultimo Aliento de una Personaje al ser destruida | Sistema         | Must      |
 | RF-029  | El sistema detecta cuando los PV de un heroe llegan a 0 y termina la partida | Sistema       | Must      |
 | RF-030  | El sistema muestra la pantalla de victoria al jugador humano si gana     | Sistema            | Must      |
 | RF-031  | El sistema muestra la pantalla de derrota al jugador humano si pierde    | Sistema            | Must      |
 | RF-032  | El sistema calcula y aplica bonuses de Sinergia Tribal al final de cada fase | Sistema       | Must      |
 | RF-033  | El sistema activa el estado de Momentum cuando el jugador activo tiene <= 15 PV | Sistema   | Must      |
 | RF-034  | El sistema incrementa el contador de Momentum en 1 al inicio del turno si el jugador esta en Momentum | Sistema | Must |
-| RF-035  | El jugador puede gastar Momentum como mana adicional durante la Fase Principal | Jugador     | Must      |
+| RF-035  | El jugador puede gastar Momentum como Nostalgia adicional durante la Fase Principal | Jugador     | Must      |
 | RF-036  | El sistema cambia el entorno de una zona aleatoria cada 3 turnos completos | Sistema         | Must      |
-| RF-037  | El sistema aplica los buffs/debuffs del entorno activo a las criaturas en esa zona | Sistema | Must |
-| RF-038  | El jugador puede colocar una carta de Mision en la Zona de Mision por 0 mana al inicio de la Fase Principal | Jugador | Must |
+| RF-037  | El sistema aplica los buffs/debuffs del entorno activo a las Personajes en esa zona | Sistema | Must |
+| RF-038  | El jugador puede colocar una carta de Mision en la Zona de Mision por 0 Nostalgia al inicio de la Fase Principal | Jugador | Must |
 | RF-039  | El sistema rastrea el progreso de la Mision activa e incrementa el contador cuando se cumple una accion relevante | Sistema | Must |
 | RF-040  | El sistema activa la recompensa de la Mision al completarse la condicion | Sistema            | Must      |
 | RF-041  | El jugador puede activar Crossover una vez por partida durante la Fase Principal | Jugador    | Must      |
 | RF-042  | Al activar Crossover, el sistema selecciona 1 carta aleatoria del mazo enemigo y la anade a la mano del jugador | Sistema | Must |
 | RF-043  | Si la mano del jugador esta llena (10 cartas) al activar Crossover, la carta se destruye | Sistema | Must |
-| RF-044  | El sistema limita el tablero a un maximo de 7 criaturas por lado         | Sistema            | Must      |
+| RF-044  | El sistema limita el tablero a un maximo de 7 Personajes por lado         | Sistema            | Must      |
 | RF-045  | El sistema limita la mano a un maximo de 10 cartas; las cartas robadas en exceso se destruyen | Sistema | Must |
 | RF-046  | El jugador puede terminar su turno voluntariamente en cualquier momento de la Fase Principal | Jugador | Must |
 | RF-047  | El sistema muestra un tooltip con los detalles de una carta al pasar el cursor sobre ella | Sistema | Should |
@@ -865,14 +860,14 @@ Al activarse:
 
 ### 12.2 Detalle de Requisitos Clave
 
-#### RF-013: Jugar una Carta de Criatura
+#### RF-013: Jugar una Carta de Personaje
 
 | Campo         | Detalle                                                                       |
 |---------------|-------------------------------------------------------------------------------|
 | Actor         | Jugador humano                                                                |
-| Precondicion  | Es la Fase Principal del turno del jugador. La criatura esta en su mano. El jugador tiene mana >= coste de la criatura. El tablero tiene < 7 criaturas del jugador. |
-| Flujo         | 1. El jugador hace clic en la carta de criatura en su mano. 2. La carta se muestra ampliada con confirmacion. 3. El jugador confirma. 4. El sistema descuenta el mana. 5. La carta se retira de la mano. 6. La criatura aparece en el tablero del jugador. 7. Si tiene Grito de Guerra, se activa el efecto. 8. La criatura queda marcada como exhausta. |
-| Postcondicion | La criatura esta en el tablero, el mana se ha reducido, la carta ya no esta en la mano. |
+| Precondicion  | Es la Fase Principal del turno del jugador. La Personaje esta en su mano. El jugador tiene Nostalgia >= coste de la Personaje. El tablero tiene < 7 Personajes del jugador. |
+| Flujo         | 1. El jugador hace clic en la carta de Personaje en su mano. 2. La carta se muestra ampliada con confirmacion. 3. El jugador confirma. 4. El sistema descuenta el Nostalgia. 5. La carta se retira de la mano. 6. La Personaje aparece en el tablero del jugador. 7. Si tiene Grito de Guerra, se activa el efecto. 8. La Personaje queda marcada como exhausta. |
+| Postcondicion | La Personaje esta en el tablero, el Nostalgia se ha reducido, la carta ya no esta en la mano. |
 
 #### RF-029: Deteccion de Fin de Partida
 
@@ -897,7 +892,7 @@ Al activarse:
 | RNF-005 | Usabilidad       | Cada carta muestra un tooltip con sus estadisticas y efecto al pasar el cursor | Inspeccion visual durante pruebas de usuario |
 | RNF-006 | Usabilidad       | El estado del turno activo es visible en todo momento con un indicador claro | Inspeccion visual                            |
 | RNF-007 | Usabilidad       | Las animaciones de transicion de turno duran entre 0.5 y 1.5 segundos     | Medicion de duracion de animacion              |
-| RNF-008 | Usabilidad       | Las acciones invalidas (mana insuficiente, tablero lleno) muestran un mensaje de error claro | Prueba de cada caso invalido      |
+| RNF-008 | Usabilidad       | Las acciones invalidas (Nostalgia insuficiente, tablero lleno) muestran un mensaje de error claro | Prueba de cada caso invalido      |
 | RNF-009 | Accesibilidad    | El contraste de texto sobre fondo cumple al menos WCAG 2.1 nivel AA (4.5:1) | Verificacion con herramienta de contraste     |
 | RNF-010 | Accesibilidad    | El tamano de fuente minimo en la UI del juego es 12px                      | Inspeccion del CSS generado                    |
 | RNF-011 | Internacionalizacion | Todos los textos de la interfaz (cartas, menus, mensajes) estan centralizados en archivos de idioma | Inspeccion del codigo fuente         |
@@ -926,45 +921,45 @@ Al activarse:
 | Flujo alternativo | 3a. El jugador no selecciona heroe y hace clic en "Atras": vuelve al Menu Principal. |
 | Postcondicion     | La partida esta en curso. El jugador activo esta en la Fase Principal de su primer turno. |
 
-### CU-02: Jugar una Criatura
+### CU-02: Jugar una Personaje
 
 | Campo             | Detalle |
 |-------------------|---------|
 | Actor             | Jugador humano |
-| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene en mano al menos una carta de Criatura. El jugador tiene mana suficiente para pagarla. El tablero del jugador tiene menos de 7 criaturas. |
-| Flujo principal   | 1. El jugador hace clic en una carta de Criatura en su mano. 2. La carta se eleva visualmente y se muestra un dialogo de confirmacion con sus estadisticas. 3. El jugador confirma jugando la carta. 4. El sistema descuenta el mana. 5. La carta desaparece de la mano y la criatura aparece en el tablero. 6. Si la criatura tiene Grito de Guerra, se activa su efecto. 7. La criatura queda marcada como exhausta (no puede atacar este turno) salvo que tenga Cargo. 8. El sistema recalcula las sinergias tribales. |
-| Flujo alternativo | 2a. El jugador cancela la seleccion: la carta vuelve a la mano sin coste. 4a. El tablero ya tiene 7 criaturas: el sistema muestra un mensaje de error y cancela la accion. 4b. El jugador no tiene mana suficiente: el sistema muestra un mensaje de error. |
-| Postcondicion     | La criatura esta en el tablero del jugador. El mana disponible se ha reducido. La carta ya no esta en la mano. |
+| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene en mano al menos una carta de Personaje. El jugador tiene Nostalgia suficiente para pagarla. El tablero del jugador tiene menos de 7 Personajes. |
+| Flujo principal   | 1. El jugador hace clic en una carta de Personaje en su mano. 2. La carta se eleva visualmente y se muestra un dialogo de confirmacion con sus estadisticas. 3. El jugador confirma jugando la carta. 4. El sistema descuenta el Nostalgia. 5. La carta desaparece de la mano y la Personaje aparece en el tablero. 6. Si la Personaje tiene Grito de Guerra, se activa su efecto. 7. La Personaje queda marcada como exhausta (no puede atacar este turno) salvo que tenga Cargo. 8. El sistema recalcula las sinergias tribales. |
+| Flujo alternativo | 2a. El jugador cancela la seleccion: la carta vuelve a la mano sin coste. 4a. El tablero ya tiene 7 Personajes: el sistema muestra un mensaje de error y cancela la accion. 4b. El jugador no tiene Nostalgia suficiente: el sistema muestra un mensaje de error. |
+| Postcondicion     | La Personaje esta en el tablero del jugador. El Nostalgia disponible se ha reducido. La carta ya no esta en la mano. |
 
 ### CU-03: Lanzar un Hechizo
 
 | Campo             | Detalle |
 |-------------------|---------|
 | Actor             | Jugador humano |
-| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene en mano al menos un Hechizo. El jugador tiene mana suficiente. Existe al menos un objetivo valido segun el tipo del hechizo. |
-| Flujo principal   | 1. El jugador hace clic en una carta de Hechizo en su mano. 2. Si el hechizo requiere objetivo, el cursor cambia a modo seleccion de objetivo. 3. El jugador hace clic en el objetivo valido (criatura o heroe). 4. El sistema aplica el efecto del hechizo. 5. El sistema descuenta el mana. 6. La carta va al cementerio. |
+| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene en mano al menos un Hechizo. El jugador tiene Nostalgia suficiente. Existe al menos un objetivo valido segun el tipo del hechizo. |
+| Flujo principal   | 1. El jugador hace clic en una carta de Hechizo en su mano. 2. Si el hechizo requiere objetivo, el cursor cambia a modo seleccion de objetivo. 3. El jugador hace clic en el objetivo valido (Personaje o heroe). 4. El sistema aplica el efecto del hechizo. 5. El sistema descuenta el Nostalgia. 6. La carta va al cementerio. |
 | Flujo alternativo | 2a. El hechizo es de area (AoE): no requiere seleccion de objetivo; se aplica directamente al confirmar. 3a. El jugador hace clic en un objetivo invalido: el sistema muestra un mensaje de error y permite reseleccionar. 3b. El jugador presiona Escape o hace clic fuera: cancela la accion sin coste. |
-| Postcondicion     | El efecto del hechizo se ha aplicado. El mana se ha reducido. La carta esta en el cementerio. |
+| Postcondicion     | El efecto del hechizo se ha aplicado. El Nostalgia se ha reducido. La carta esta en el cementerio. |
 
-### CU-04: Atacar con una Criatura
+### CU-04: Atacar con una Personaje
 
 | Campo             | Detalle |
 |-------------------|---------|
 | Actor             | Jugador humano |
-| Precondicion      | Es la Fase de Combate del turno del jugador. El jugador tiene al menos una criatura en el tablero que no este exhausta ni haya atacado este turno. |
-| Flujo principal   | 1. El jugador hace clic en una criatura propia no exhausta. 2. La criatura se resalta y el cursor cambia a modo ataque. 3. Los objetivos validos se resaltan en el tablero enemigo. 4. El jugador hace clic en el objetivo (criatura enemiga o heroe enemigo). 5. El sistema valida el ataque (comprueba Provocacion). 6. El sistema aplica el dano: la criatura atacante recibe el ATQ del defensor y viceversa. 7. Si alguna criatura llega a 0 VID, se destruye y se activa Ultimo Aliento si procede. 8. La criatura atacante queda marcada como "ya ataco este turno". |
-| Flujo alternativo | 3a. El rival tiene criaturas con Provocacion: solo esas criaturas se resaltan como objetivo valido. 4a. El jugador hace clic en un objetivo invalido: el sistema muestra un mensaje. 7a. El heroe enemigo llega a 0 PV: se activa la secuencia de fin de partida (CU-08). |
-| Postcondicion     | El ataque se ha resuelto. Las criaturas han recibido dano. Las destruidas estan en el cementerio. |
+| Precondicion      | Es la Fase de Combate del turno del jugador. El jugador tiene al menos una Personaje en el tablero que no este exhausta ni haya atacado este turno. |
+| Flujo principal   | 1. El jugador hace clic en una Personaje propia no exhausta. 2. La Personaje se resalta y el cursor cambia a modo ataque. 3. Los objetivos validos se resaltan en el tablero enemigo. 4. El jugador hace clic en el objetivo (Personaje enemiga o heroe enemigo). 5. El sistema valida el ataque (comprueba Provocacion). 6. El sistema aplica el dano: la Personaje atacante recibe el ATQ del defensor y viceversa. 7. Si alguna Personaje llega a 0 VID, se destruye y se activa Ultimo Aliento si procede. 8. La Personaje atacante queda marcada como "ya ataco este turno". |
+| Flujo alternativo | 3a. El rival tiene Personajes con Provocacion: solo esas Personajes se resaltan como objetivo valido. 4a. El jugador hace clic en un objetivo invalido: el sistema muestra un mensaje. 7a. El heroe enemigo llega a 0 PV: se activa la secuencia de fin de partida (CU-08). |
+| Postcondicion     | El ataque se ha resuelto. Las Personajes han recibido dano. Las destruidas estan en el cementerio. |
 
 ### CU-05: Activar Habilidad de Heroe
 
 | Campo             | Detalle |
 |-------------------|---------|
 | Actor             | Jugador humano |
-| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene mana suficiente para el coste de la habilidad. La habilidad no ha sido usada este turno. |
-| Flujo principal   | 1. El jugador hace clic en el boton de habilidad de heroe. 2. Si la habilidad requiere objetivo, el cursor cambia a modo seleccion. 3. El jugador selecciona el objetivo (si procede). 4. El sistema aplica el efecto de la habilidad. 5. El sistema descuenta el mana. 6. El boton de habilidad se desactiva hasta el siguiente turno. |
-| Flujo alternativo | 1a. El jugador no tiene mana suficiente: el boton esta deshabilitado y muestra el coste requerido. 1b. La habilidad ya fue usada este turno: el boton esta deshabilitado. |
-| Postcondicion     | El efecto de la habilidad se ha aplicado. El mana se ha reducido. La habilidad no puede usarse de nuevo este turno. |
+| Precondicion      | Es la Fase Principal del turno del jugador. El jugador tiene Nostalgia suficiente para el coste de la habilidad. La habilidad no ha sido usada este turno. |
+| Flujo principal   | 1. El jugador hace clic en el boton de habilidad de heroe. 2. Si la habilidad requiere objetivo, el cursor cambia a modo seleccion. 3. El jugador selecciona el objetivo (si procede). 4. El sistema aplica el efecto de la habilidad. 5. El sistema descuenta el Nostalgia. 6. El boton de habilidad se desactiva hasta el siguiente turno. |
+| Flujo alternativo | 1a. El jugador no tiene Nostalgia suficiente: el boton esta deshabilitado y muestra el coste requerido. 1b. La habilidad ya fue usada este turno: el boton esta deshabilitado. |
+| Postcondicion     | El efecto de la habilidad se ha aplicado. El Nostalgia se ha reducido. La habilidad no puede usarse de nuevo este turno. |
 
 ### CU-06: Activar Mecanica Crossover
 
@@ -982,7 +977,7 @@ Al activarse:
 |-------------------|---------|
 | Actor             | Sistema (automatico) |
 | Precondicion      | El jugador tiene una Mision activa en la Zona de Mision. Se ha realizado una accion que cumple parcial o totalmente la condicion de la Mision. |
-| Flujo principal   | 1. El jugador realiza una accion que avanza el contador de la Mision (ej: invoca una criatura del arquetipo indicado). 2. El sistema incrementa el contador visible de la Mision. 3. Si el contador alcanza el objetivo: a. Se muestra una animacion de "Mision Completada". b. Se activa la recompensa automaticamente. c. La carta de Mision se envia al cementerio. d. La Zona de Mision queda libre. |
+| Flujo principal   | 1. El jugador realiza una accion que avanza el contador de la Mision (ej: invoca una Personaje del arquetipo indicado). 2. El sistema incrementa el contador visible de la Mision. 3. Si el contador alcanza el objetivo: a. Se muestra una animacion de "Mision Completada". b. Se activa la recompensa automaticamente. c. La carta de Mision se envia al cementerio. d. La Zona de Mision queda libre. |
 | Flujo alternativo | 2a. El contador no ha alcanzado el objetivo: el juego continua normalmente. |
 | Postcondicion     | La Mision ha sido completada. La recompensa ha sido aplicada. La Zona de Mision esta libre para una nueva Mision. |
 
@@ -1003,19 +998,19 @@ Al activarse:
 ### M1 — Sinergia Tribal
 
 **CA-M1-01**
-- Dado que el jugador tiene 2 criaturas del arquetipo Floja en el tablero
+- Dado que el jugador tiene 2 Personajes del arquetipo Cartoon Clasico en el tablero
 - Cuando termina la Fase Principal
-- Entonces cada criatura Floja tiene +1 punto de ATQ respecto a su valor base
+- Entonces cada Personaje Cartoon Clasico tiene +1 punto de ATQ respecto a su valor base
 
 **CA-M1-02**
-- Dado que el jugador tiene 3 criaturas del arquetipo Aventura en el tablero
+- Dado que el jugador tiene 3 Personajes del arquetipo Anime Combate en el tablero
 - Cuando se destruye una de ellas durante la Fase de Combate
-- Entonces las 2 criaturas Aventura restantes pasan a tener +1 ATQ (no +2) al inicio del siguiente punto de comprobacion
+- Entonces las 2 Personajes Anime Combate restantes pasan a tener +1 ATQ (no +2) al inicio del siguiente punto de comprobacion
 
 **CA-M1-03**
-- Dado que el jugador tiene una criatura Neutral y una criatura Floja en el tablero
+- Dado que el jugador tiene una Personaje Neutral y una Personaje Sobrenatural en el tablero
 - Cuando termina la Fase Principal
-- Entonces ninguna de las dos recibe bonus tribal (la criatura Neutral no cuenta para el calculo)
+- Entonces ninguna de las dos recibe bonus tribal (la Personaje Neutral no cuenta para el calculo)
 
 ### M2 — Momentum
 
@@ -1030,9 +1025,9 @@ Al activarse:
 - Entonces el contador de Momentum del jugador ha incrementado en 1 y el indicador visual esta activo
 
 **CA-M2-03**
-- Dado que el jugador tiene 3 puntos de Momentum acumulados y 2 puntos de mana disponibles
-- Cuando el jugador declara gastar 2 de Momentum como mana adicional antes de jugar una carta de 4 de mana
-- Entonces el jugador puede jugar la carta (tiene 2+2=4 mana efectivo) y su contador de Momentum baja a 1
+- Dado que el jugador tiene 3 puntos de Momentum acumulados y 2 puntos de Nostalgia disponibles
+- Cuando el jugador declara gastar 2 de Momentum como Nostalgia adicional antes de jugar una carta de 4 de Nostalgia
+- Entonces el jugador puede jugar la carta (tiene 2+2=4 Nostalgia efectivo) y su contador de Momentum baja a 1
 
 ### M3 — Zonas y Entornos Dinamicos
 
@@ -1043,25 +1038,25 @@ Al activarse:
 
 **CA-M3-02**
 - Dado que la zona Centro tiene activo el entorno "Estadio Deportivo" (+1 ATQ)
-- Cuando una criatura con 3 ATQ base entra en esa zona
-- Entonces la criatura tiene efectivamente 4 ATQ mientras permanece en esa zona
+- Cuando una Personaje con 3 ATQ base entra en esa zona
+- Entonces la Personaje tiene efectivamente 4 ATQ mientras permanece en esa zona
 
 **CA-M3-03**
 - Dado que la zona Izquierda cambia de "Bosque Magico" a "Paisaje Neutro"
 - Cuando se resuelve el cambio de entorno
-- Entonces las criaturas en esa zona pierden el +1 VID otorgado por el Bosque Magico y sus PV actuales se recalculan
+- Entonces las Personajes en esa zona pierden el +1 VID otorgado por el Bosque Magico y sus PV actuales se recalculan
 
 ### M4 — Misiones (Quests)
 
 **CA-M4-01**
 - Dado que el jugador no tiene ninguna Mision activa
 - Cuando el jugador coloca una carta de Mision en la Zona de Mision durante la Fase Principal
-- Entonces la carta se coloca por 0 mana, el mana disponible del jugador no cambia, y el contador de la Mision muestra 0/X
+- Entonces la carta se coloca por 0 Nostalgia, el Nostalgia disponible del jugador no cambia, y el contador de la Mision muestra 0/X
 
 **CA-M4-02**
-- Dado que la Mision activa "La Semana de los Vagos" requiere jugar 4 cartas Floja y el contador esta en 3/4
-- Cuando el jugador juega una carta de arquetipo Floja
-- Entonces el contador pasa a 4/4, se activa la animacion de completado, se aplica la recompensa (robo de 3 cartas) y la carta de Mision va al cementerio
+- Dado que la Mision activa "El Gran Desfile" requiere invocar 5 Personajes y el contador esta en 4/5
+- Cuando el jugador juega una Personaje desde la mano
+- Entonces el contador pasa a 5/5, se activa la animacion de completado, se aplica la recompensa (Personaje token 5/5) y la carta de Mision va al cementerio
 
 **CA-M4-03**
 - Dado que el jugador ya tiene una Mision activa en la Zona de Mision
@@ -1211,16 +1206,16 @@ Escenas principales:
 
 | Termino            | Definicion |
 |--------------------|------------|
-| Arquetipo          | Clasificacion tribal de una carta (Floja, Aventura, Submarino, Deportiva, Neutral). Determina la compatibilidad para sinergias tribales. |
-| ATQ                | Abreviatura de Ataque. Valor numerico que indica el dano que una criatura inflige al atacar. |
-| Battlecry          | Habilidad especial de criatura que se activa en el momento de ser jugada desde la mano. |
-| Cargo (Charge)     | Habilidad especial de criatura que le permite atacar el mismo turno en que es jugada. |
+| Arquetipo          | Clasificacion tribal de una carta (Cartoon Clasico, Aventura Magica, Anime Combate, Sobrenatural, Neutral). Determina la compatibilidad para sinergias tribales. |
+| ATQ                | Abreviatura de Ataque. Valor numerico que indica el dano que una Personaje inflige al atacar. |
+| Battlecry          | Habilidad especial de Personaje que se activa en el momento de ser jugada desde la mano. |
+| Cargo (Charge)     | Habilidad especial de Personaje que le permite atacar el mismo turno en que es jugada. |
 | Cementerio         | Zona fuera del tablero donde van las cartas destruidas o hechizos usados. No interactiva en el MVP. |
 | Crossover          | Mecanica M5. Accion unica por partida que permite robar una carta aleatoria del mazo del oponente. |
 | Deathrattle        | Ver Ultimo Aliento. |
-| Escudo Divino      | Habilidad especial de criatura. Ignora la primera fuente de dano que recibe. |
-| Exhausta           | Estado de una criatura recien jugada que le impide atacar ese turno (salvo que tenga Cargo). |
-| Fase de Combate    | Tercera fase del turno. Las criaturas del jugador activo pueden atacar. |
+| Escudo Divino      | Habilidad especial de Personaje. Ignora la primera fuente de dano que recibe. |
+| Exhausta           | Estado de una Personaje recien jugada que le impide atacar ese turno (salvo que tenga Cargo). |
+| Fase de Combate    | Tercera fase del turno. Las Personajes del jugador activo pueden atacar. |
 | Fase de Robo       | Primera fase del turno. El jugador activo roba 1 carta de su mazo. |
 | Fase Principal     | Segunda fase del turno. El jugador activo puede jugar cartas, activar habilidades y acciones especiales. |
 | Fin de Turno       | Cuarta y ultima fase del turno. Se resuelven efectos de fin de turno y el control pasa al otro jugador. |
@@ -1228,20 +1223,30 @@ Escenas principales:
 | Heroe              | El avatar del jugador. Tiene PV, una habilidad activable y un mazo asociado. |
 | IA Greedy          | Nivel de dificultad Facil. La IA elige siempre la carta de mayor coste que puede jugar. |
 | IA Threat-aware    | Nivel de dificultad Medio. La IA evalua amenazas y responde con decisiones mas complejas. |
-| Mana               | Recurso que se gasta para jugar cartas. Se recarga cada turno y su maximo aumenta en 1 por turno hasta 10. |
+| Nostalgia          | Recurso principal del juego, representado por un reloj de bolsillo victoriano en la UI. Se gasta para jugar cartas. Se recarga cada turno y su maximo aumenta en 1 por turno hasta 10. |
 | Mazo               | Coleccion de 30 cartas de un jugador. Se baraja al inicio de la partida. |
 | Mision (Quest)     | Carta especial de coste 0 que otorga una recompensa al cumplir una condicion. Mecanica M4. |
-| Momentum           | Recurso especial que se acumula cuando el jugador tiene <= 15 PV. Puede usarse como mana adicional. Mecanica M2. |
+| Momentum           | Recurso especial que se acumula cuando el jugador tiene <= 15 PV. Puede usarse como Nostalgia adicional. Mecanica M2. |
 | MVP                | Minimum Viable Product. Version minima jugable que incluye todas las funcionalidades Must-Have. |
-| PV                 | Puntos de Vida. Valor numerico de la salud de un heroe o una criatura. |
-| Provocacion (Taunt)| Habilidad especial de criatura. Obliga al rival a atacarla antes que a otras criaturas o al heroe. |
+| PV                 | Puntos de Vida. Valor numerico de la salud de un heroe o una Personaje. |
+| Provocacion (Taunt)| Habilidad especial de Personaje. Obliga al rival a atacarla antes que a otras Personajes o al heroe. |
 | Rareza             | Clasificacion de una carta: Comun, Rara, Epica o Legendaria. Indica su poder y frecuencia de aparicion. |
-| Sinergia Tribal    | Bonus que se activa al tener 2 o mas criaturas del mismo arquetipo en el tablero. Mecanica M1. |
-| Tablero            | Zona de juego donde se colocan las criaturas. Maximo 7 criaturas por lado en el MVP. |
-| Ultimo Aliento     | Habilidad especial de criatura. Activa un efecto cuando la criatura es destruida. |
-| VID                | Abreviatura de Vida. Valor de salud de una criatura. |
-| Vision (Stealth)   | Habilidad especial. La criatura no puede ser objetivo de ataques ni hechizos hasta que ella misma ataque. |
-| Zona / Entorno     | Cada uno de los 3 carriles del tablero. Tiene un entorno activo que puede otorgar buffs o debuffs. Mecanica M3. |
+| Sinergia Tribal    | Bonus que se activa al tener 2 o mas Personajes del mismo arquetipo en el tablero. Mecanica M1. |
+| Tablero            | Zona de juego donde se colocan las Personajes. Maximo 7 Personajes por lado en el MVP. |
+| Ultimo Aliento     | Habilidad especial de Personaje. Activa un efecto cuando la Personaje es destruida. |
+| VID                | Abreviatura de Vida. Valor de salud de una Personaje. |
+| Vision (Stealth)   | Habilidad especial. La Personaje no puede ser objetivo de ataques ni hechizos hasta que ella misma ataque. |
+
+| Anime Combate      | Arquetipo tribal que agrupa Personajes de series de anime con poderes de combate (Goku, Diamantino). |
+| Aventura Magica    | Arquetipo tribal que agrupa Personajes de universos fantasticos y misticos (Jake, Marceline, El Lich). |
+| Axel Blaze         | Heroe HERO-002. Luchador ofensivo de Inazuma Eleven. Habilidad: Tornado de Fuego (+2 ATQ a aliada). |
+| Cartoon Clasico    | Arquetipo tribal que agrupa Personajes comicos y cotidianos de cartoons occidentales. |
+| El Lich            | Heroe HERO-001. Nigromante de Hora de Aventuras. Habilidad: Hechizo Ancestral (2 dano a objetivo). |
+| Escudo Cristalino  | Habilidad especial de Diamantino. La primera vez que recibe dano, lo reduce a la mitad. |
+| Nostalgia          | Recurso principal del juego, representado visualmente por un reloj de bolsillo victoriano. Identico al Mana de Hearthstone: empieza en 1, sube +1 por turno hasta 10, se regenera al inicio de cada turno propio. |
+| Personaje          | Tipo de carta que representa a un personaje animado. Se coloca en el tablero y puede atacar. Equivalente a "Criatura" en otros juegos de cartas. |
+| Sobrenatural       | Arquetipo tribal que agrupa Personajes de universos de horror comico y fenomenos paranormales (Agallas, Fantasma Chocala). |
+
 
 ---
 
@@ -1270,7 +1275,7 @@ definido en AGENTS.md.
 1. **Nombre del juego**: se propone "Crossover Cards" como nombre de trabajo. Pendiente
    de validacion por el equipo.
 2. **Tabla de cartas**: se diseno un set de 20 cartas (10 por mazo) con distribucion
-   equilibrada de tipos (6 criaturas, 2 hechizos, 2 objetos por mazo) y rareza.
+   equilibrada de tipos (6 Personajes, 2 hechizos, 2 objetos por mazo) y rareza.
 3. **Arquitectura de referencia**: se incluyo la seccion 16 por decision del agente,
    al considerarse esencial para el proyecto academico aunque no estaba en el prompt
    original. Se alerto al usuario de esta adicion.
@@ -1279,8 +1284,8 @@ definido en AGENTS.md.
 
 ### Supuestos Adoptados [PENDIENTE DE VALIDACION]
 
-- Nombre canonico de heroes: "El Flojo" y "El Aventurero".
-- Distribucion de cartas por mazo: 6 criaturas + 2 hechizos + 2 objetos por carta unica.
+- Nombres canonicos de heroes: "El Lich" y "Axel Blaze" (confirmados en v1.1.0).
+- Distribucion de cartas por mazo: 6 Personajes + 2 hechizos + 2 objetos por carta unica (confirmado en v1.1.0).
 - Limite por carril en zonas dinamicas: pendiente de ajuste de balance.
 - Opcion de rendicion voluntaria: incluida como pendiente.
 - IA Medio gana >= 40% contra IA Facil: umbral propuesto, pendiente de verificacion empirica.
@@ -1289,4 +1294,11 @@ definido en AGENTS.md.
 ---
 
 *Fin del documento. Version 1.0.0 — 2026-05-19*
-*Siguiente entregable: Documento de Diseno del Sistema (DDS) — Fase de Diseno, Dias 3-4.*
+*Version 1.1.0 — 2026-05-19: refactorizacion de heroes, cartas, arquetipos, recurso Nostalgia y easter egg segun revision del Game Designer (prompt prd-refactor-agent.md).*
+
+
+
+
+
+
+

@@ -312,3 +312,37 @@ especificacion funcional y de producto.
 **Notas**: El documento generado es completamente apto para incluirse como capitulo de
 la memoria PDF final. La generacion en partes por limite de tokens es un patron que se
 documentara en AGENTS.md para futuras interacciones con documentos extensos.
+
+---
+
+### Interaccion #006 — 2026-05-19 (Refactorizacion del PRD)
+
+- **Fase**: Analisis de Requisitos (Dia 2 de la cascada)
+- **Agente**: Game Designer Agent
+- **Herramienta**: Antigravity
+- **Modelo**: Gemini 3.1 Pro
+- **Tokens (entrada ≈ / salida ≈)**: ~15000 / ~3000
+
+**Objetivo**: Realizar una refactorizacion quirurgica del PRD, actualizando heroes, 
+cartas, arquetipos, misiones y el recurso principal (Mana -> Nostalgia) 
+segun instrucciones de Game Design, sin alterar la estructura base del documento.
+
+**Resultado**:
+- Titulo actualizado a "Crossover Cards".
+- Concepto de 'Mana' sustituido masivamente por 'Nostalgia' (reloj victoriano).
+- Heroes antiguos (El Flojo, El Aventurero) sustituidos por 'El Lich' y 'Axel Blaze'.
+- Tabla de 20 cartas completamente redisenada y rebalanceada.
+- Arquetipos actualizados: Cartoon Clasico, Aventura Magica, Anime Combate, Sobrenatural.
+- Zonas dinamicas restablecidas a sus nombres originales.
+- Misiones genéricas insertadas en lugar de misiones especificas de arquetipo.
+- Easter egg redisenado: interaccion con el reloj de Nostalgia.
+- Referencias antiguas y bloques residuales eliminados exitosamente con PowerShell.
+
+**Decisiones clave**:
+- Las habilidades de las cartas nuevas fueron disenyadas para ser viables tecnicamente 
+  en Phaser 4 (evitando mecanicas imposibles).
+- El proceso requirio multiples pases de limpieza con expresiones regulares para 
+  asegurar que ninguna mencion a 'Floja', 'Mana' o heroes antiguos quedara en los 
+  casos de uso o criterios de aceptacion.
+
+**Notas**: El PRD alcanza la version 1.1.0 y se considera listo para la fase de Diseno.
