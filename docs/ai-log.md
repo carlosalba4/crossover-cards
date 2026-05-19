@@ -7,114 +7,158 @@ a destacar, creación o modificación de los json o .md correspondientes".
 
 ---
 
-## Plantilla por interacción
+## Registro
 
-### Interacción #XXX — YYYY-MM-DD HH:MM
+### Interacción #001 — 2026-05-18 (Bootstrap del repositorio)
 
-- **Fase**: [Análisis / Diseño / Implementación / Pruebas / Despliegue / Memoria]
-- **Agente**: [Nombre del agente, ej: PRD-Agent]
-- **Herramienta**: [Antigravity / opencode / Ollama directo / API externa]
-- **Modelo**: [Modelo concreto, ej: claude-sonnet-4.6-thinking, qwen2.5-coder:7b]
-- **Tokens (entrada ≈ / salida ≈)**: [aproximación si la herramienta lo reporta]
+- **Fase**: Configuración previa (anterior a Análisis)
+- **Agente**: Setup-Repo-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Gemini 3 Flash
+- **Tokens (entrada ≈ / salida ≈)**: ~1000 / ~2800
 
-**Objetivo**: [Qué se quería conseguir]
+**Objetivo**: Crear la estructura completa de carpetas del repositorio y los archivos
+base de documentación (README.md, .gitignore, .gitattributes, Grupo.txt). El agente
+no toca todavía la configuración de IA ni el proyecto npm.
 
-**Prompt** (resumen o referencia a `/prompts/...`):
+**Prompt** (ver `prompts/agents/setup-repo-agent.md`):
+> Rol de agente bootstrapping bajo metodología cascada, tarea de crear estructura
+> de carpetas y documentación base. Sin instalar dependencias ni configurar IA.
 
-> [Texto del prompt o ruta al archivo]
+**Resultado**:
+- 21 carpetas creadas (docs, prompts, src, tests, assets y sus subcarpetas).
+- 14 archivos .gitkeep en las carpetas vacías.
+- Grupo.txt, README.md, .gitignore, .gitattributes en raíz.
 
-**Resultado**: [Qué generó la IA — resumen + referencia al artifact si aplica]
+**Decisiones clave**:
+- Modelo Gemini 3 Flash: tarea estructurada, no requiere razonamiento profundo,
+  cuota generosa.
+- .gitattributes con `eol=lf` para evitar problemas CRLF/LF entre Windows y Linux.
+- Política de carpetas vacías con .gitkeep para mantener estructura visible
+  desde el primer commit.
 
-**Decisiones clave**: [Qué se aceptó, qué se rechazó, por qué]
+**Iteraciones**: 1 plan + 1 ejecución, aprobada sin cambios.
 
-**Iteraciones**: [Cuántas veces se reformuló el prompt]
+**Capturas asociadas**:
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-setup-repo-prompt_001a.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-setup-repo-plan_001b.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_repo-estructura-resultado_001c.png`
 
-**Notas**: [Observaciones relevantes]
+**Notas**: El prompt completo está versionado en `prompts/agents/setup-repo-agent.md`.
 
 ---
 
-## Registro
-
-### Interacción #001 — 2026-05-18 (Setup inicial)
+### Interacción #002 — 2026-05-18 (Configuración de infraestructura IA)
 
 - **Fase**: Configuración previa (anterior a Análisis)
-- **Agente**: Asistente de planificación (externo, vía claude.ai)
-- **Herramienta**: claude.ai (chat web)
-- **Modelo**: Claude (no especificado por la plataforma)
-- **Tokens (entrada ≈ / salida ≈)**: N/A
+- **Agente**: AI-Config-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Gemini 3 Flash
+- **Tokens (entrada ≈ / salida ≈)**: ~1400 / ~4200
 
-**Objetivo**: Planificar el proyecto completo, definir stack tecnológico, metodología, fases, agentes IA y entregables. Decidir herramientas (Antigravity + opencode + Ollama) y producir la documentación base del repositorio.
+**Objetivo**: Crear toda la documentación de decisiones de IA (ADR-001 y ADR-002),
+el archivo de registro de interacciones (`ai-log.md`), y la configuración de
+opencode + Ollama para usar modelos locales (Modelfile-qwen-coder, Modelfile-qwen3,
+opencode.json). Versionar también los prompts de agentes en `prompts/agents/`.
 
-**Prompt** (resumen):
-
-> Conversación iterativa de planificación a partir del PDF del enunciado de la asignatura, refinando decisiones técnicas, restricciones de modelos, alcance del MVP y mecánicas innovadoras del juego.
+**Prompt** (ver `prompts/agents/ai-config-agent.md`):
+> Rol de agente de configuración de infraestructura IA. Crea documentación de
+> decisiones, registro de interacciones, configuración de opencode con Ollama,
+> y versiona prompts.
 
 **Resultado**:
-
-- ADR-001 con el stack tecnológico definitivo.
-- Estructura del repositorio.
-- README, .gitignore, Grupo.txt.
-- Configuración de opencode (Modelfile-\*, opencode.json).
-- Sistema de capturas para la memoria.
-- Plan de 14 días dividido en 6 fases.
+- `docs/ai-log.md` con plantilla y sección de registro.
+- `docs/decisions/ADR-001-stack-tecnologico.md` con tabla, justificación y
+  alternativas descartadas (Phaser Editor v5 de pago, VS Code+Continue no agéntico).
+- `docs/decisions/ADR-002-bundle-size.md` preventivo sobre tamaño de bundle.
+- `opencode.json` apuntando a http://localhost:11434/v1 con qwen-coder-agent
+  y qwen3-agent.
+- `Modelfile-qwen-coder` y `Modelfile-qwen3` con num_ctx 16384.
+- Versionado de prompts en `prompts/agents/setup-repo-agent.md` y
+  `prompts/agents/ai-config-agent.md`.
 
 **Decisiones clave**:
+- Antigravity + opencode + Ollama: cumple el requisito del enunciado de usar
+  "tanto opencode como Antigravity ya que se complementan".
+- ADR-001 documenta el descarte razonado de Phaser Editor v5 (12 USD/mes).
+- num_ctx 16384 en Ollama porque el default de 4096 es insuficiente para
+  tareas agénticas con opencode.
+- `tool_call_format: json_fallback` en opencode.json para compatibilidad con
+  modelos Qwen sin tool calling nativo perfecto.
 
-- Descartar Phaser Editor v5 por ser de pago.
-- Combinar Antigravity (alto nivel, cloud) con opencode (bajo nivel, local) tal como pide el enunciado.
-- Sprites de personajes reales pero con repo privado para mitigar IP.
-- Mecánicas innovadoras seleccionadas: sinergia tribal, momentum, zonas dinámicas, misiones, crossover.
-
-**Iteraciones**: ~8 mensajes de ida y vuelta para refinar el plan.
+**Iteraciones**: 1 plan + 1 ejecución, aprobada con un ajuste menor
+(añadir ADR-002 al plan inicial).
 
 **Capturas asociadas**:
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-ai-config-prompt_002a.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-ai-config-plan_002b.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_adr-001-preview_002c.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_opencode-config_002d.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_ollama-modelos-instalados_002e.png`
 
-- `docs/screenshots/01-setup/2026-05-18_01-setup_antigravity-modelos-disponibles_01.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_github-colaboradores_02.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_repo-estructura-inicial_03.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_ollama-modelos-instalados_04.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_antigravity-workspace-abierto_05.png`
+**Notas**: A partir de esta interacción, opencode está listo para ser invocado
+desde la terminal integrada de Antigravity en interacciones posteriores.
 
-**Notas**: Esta interacción inicial fue de planificación pura. Los agentes operativos (PRD-Agent, Architect-Agent, etc.) se lanzarán dentro de Antigravity a partir del Paso 12.
+---
 
-### Interacción #002 — 2026-05-18 (Inicialización del proyecto)
+### Interacción #003 — 2026-05-18 (Inicialización del proyecto Phaser 4)
 
 - **Fase**: Configuración previa (anterior a Análisis)
-- **Agente**: Asistente de planificación (externo, vía claude.ai)
-- **Herramienta**: claude.ai (chat web)
-- **Modelo**: Claude (no especificado por la plataforma)
-- **Tokens (entrada ≈ / salida ≈)**: N/A
+- **Agente**: Project-Init-Agent
+- **Herramienta**: Antigravity (chat de agente + terminal integrada)
+- **Modelo**: Gemini 3 Flash
+- **Tokens (entrada ≈ / salida ≈)**: ~2000 / ~5400
 
-**Objetivo**: Obtener las instrucciones detalladas para inicializar el proyecto Phaser 4 con Vite, TypeScript, Vitest, ESLint y Prettier, alineadas con el ADR-001 y preparadas para la arquitectura en capas.
+**Objetivo**: Inicializar el proyecto Phaser 4 + TypeScript + Vite + Vitest +
+ESLint + Prettier, en modo strict, con paths de alias para arquitectura en capas,
+y verificar que `npm run dev` muestra una escena minimalista en navegador.
 
-**Prompt** (resumen):
-> Solicitud de pasos detallados con comandos exactos y contenido de archivos de configuración para inicializar manualmente el stack tecnológico.
+**Prompt** (ver `prompts/agents/project-init-agent.md`):
+> Rol de agente de bootstrapping técnico con 13 pasos numerados: npm init,
+> instalar dependencias, generar configuración (tsconfig, vite, vitest, eslint,
+> prettier), crear Hello World de Phaser 4, verificación final.
 
-**Resultado**: 
-- `package.json` completo con scripts npm.
-- `tsconfig.json` en modo strict con paths para arquitectura en capas.
-- `vite.config.ts` y `vitest.config.ts`.
-- `.eslintrc.cjs`, `.prettierrc.json`, `.prettierignore`.
-- `index.html` y `src/main.ts` (Hello World de Phaser 4).
-- `tests/smoke.test.ts` (test de humo).
-- Verificación: typecheck, lint, format, test, build y dev funcionando.
+**Resultado**:
+- `package.json` con 13 scripts npm (dev, build, preview, test, test:watch,
+  test:ui, test:coverage, lint, lint:fix, format, format:check, typecheck).
+- `tsconfig.json` en modo strict, sin baseUrl, paths con `./src/...`.
+- `vite.config.ts`, `vitest.config.ts` con alias coherentes.
+- `eslint.config.js` en flat config (ESLint 10), `.prettierrc.json`,
+  `.prettierignore`.
+- `index.html`, `src/main.ts` con BootScene mostrando tres textos.
+- `tests/smoke.test.ts` con 2 tests (matemática básica + jsdom).
+- Verificación: typecheck OK, lint inicial con 62 warnings CRLF resueltos con
+  `npm run format` y `.gitattributes` (ya creado por AI-Config-Agent), 2/2 tests
+  passing, build OK (~1.35 MB con warning aceptable documentado en ADR-002),
+  dev arrancando en localhost:5173.
 
 **Decisiones clave**:
-- Modo strict completo en TypeScript desde el inicio para forzar buenas prácticas.
-- Alias de paths (@domain, @application, @infrastructure, @presentation) anticipando arquitectura en capas.
-- Vitest con jsdom y coverage v8 para que sea sostenible durante todo el desarrollo.
-- Escena BootScene minimalista solo para verificar arranque.
+- TypeScript strict completo: facilita aplicar SOLID y patrones, que la rúbrica
+  valora explícitamente.
+- ESLint flat config porque ESLint 10 ya no soporta `.eslintrc.cjs`.
+- Quitar `baseUrl` de tsconfig por deprecación en TS 7.0; paths con `./`.
+- Aceptar tamaño de bundle (ya documentado en ADR-002).
 
-**Iteraciones**: 1 (pero los archivos derivan de la conversación iterativa de la interacción #001).
+**Iteraciones**: 1 plan + 1 ejecución + 3 ajustes post-verificación:
+  1. Quitar `baseUrl` de tsconfig (deprecation warning).
+  2. Migrar de `.eslintrc.cjs` a `eslint.config.js` (ESLint 10).
+  3. Ejecutar `npm run format` para resolver warnings CRLF de Prettier.
 
 **Capturas asociadas**:
-- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-init-resultado_06.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-install-phaser_07.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_package-json-final_08.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-test-passing_09.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-build-success_10.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_phaser-hello-world_11.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_github-desktop-commit-paso9_12.png`
-- `docs/screenshots/01-setup/2026-05-18_01-setup_github-historial-commits_13.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-project-init-prompt_003a.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_agente-project-init-plan_003b.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-init-resultado_003c.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-install-phaser_003d.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_package-json-final_003e.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-test-passing_003f.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_npm-build-success_003g.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_phaser-hello-world_003h.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_github-desktop-commit_003i.png`
+- `docs/screenshots/01-setup/2026-05-18_01-setup_github-historial-commits_003j.png`
 
-**Notas**: El proyecto queda funcional al final del Paso 9. Próximo paso: configurar opencode dentro de Antigravity (Paso 10).
+**Notas**: Las 3 iteraciones de ajuste reflejan el flujo realista de
+verificación-corrección de un agente. En una ejecución agéntica completamente
+autónoma, el agente habría reintentado los pasos automáticamente; aquí fueron
+ajustados con supervisión humana.
+
+---
