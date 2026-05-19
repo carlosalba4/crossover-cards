@@ -246,3 +246,69 @@ resumirlos, y no alucinó nombres. La precisión mejoró sustancialmente.
 Conclusión: para modelos locales de tamaño medio (≤10B), un AGENTS.md bien 
 formulado tiene impacto comparable a cambiar a un modelo más grande. Esta decisión 
 queda documentada como ADR-003.
+---
+
+### Interaccion #005 — 2026-05-19 (Generacion del PRD)
+
+- **Fase**: Analisis de Requisitos (Dia 2 de la cascada)
+- **Agente**: PRD-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Claude Sonnet (via Google Antigravity)
+- **Tokens (entrada ≈ / salida ≈)**: ~4500 / ~18000
+
+**Objetivo**: Redactar el Product Requirements Document (PRD) completo del juego de
+cartas estrategico por turnos, siguiendo el plan de 19 secciones aprobado por el equipo.
+El documento debe servir como entregable de la fase de Analisis y contener toda la
+especificacion funcional y de producto.
+
+**Prompt** (ver `prompts/agents/prd-agent.md`):
+> Rol de Product Manager senior especializado en juegos de cartas coleccionables. Tarea:
+> redactar un PRD completo, profesional y exhaustivo para el proyecto academico. Se
+> proporciona el concepto del juego, mecanicas, heroes, sistema de cartas, requisitos
+> y restricciones detallados. Formato Markdown, sin codigo, sin emoji.
+
+**Resultado**:
+- `docs/01-prd.md` creado con 1292 lineas y ~80 KB.
+- 19 secciones completas: portada, introduccion, vision, objetivos, restricciones,
+  alcance MVP, concepto de juego, sistema de cartas, heroes, 5 mecanicas innovadoras
+  (M1-M5), IA del oponente, easter egg, 50 requisitos funcionales (RF), 20 requisitos
+  no funcionales (RNF), 8 casos de uso en formato Cockburn, criterios de aceptacion
+  Given/When/Then para las 5 mecanicas, arquitectura de referencia en capas, 8 riesgos
+  identificados, glosario de 25 terminos y apendice de interacciones IA.
+- Tabla de 20 cartas iniciales del MVP (10 por mazo): FLO-001 a FLO-010 y AVE-001 a AVE-010.
+- Fichas detalladas de los 2 heroes con alternativas de nombre razonadas.
+- 8 riesgos con probabilidad, impacto y plan de mitigacion.
+
+**Decisiones clave**:
+- **Nombre del juego**: se propone "Crossover Cards" como nombre de trabajo.
+  Marcado como [PENDIENTE DE VALIDACION].
+- **Generacion en partes**: el documento supero el limite de tokens del modelo (64k)
+  y se genero en 4 bloques consecutivos escritos directamente al fichero, evitando
+  la limitacion de tokens de salida de la API.
+- **Seccion 16 anadida**: arquitectura de referencia en capas incluida por iniciativa
+  del agente al considerarse esencial para el proyecto academico. Comunicado al equipo.
+- **7 supuestos marcados**: se identificaron 7 decisiones de diseno que requieren
+  validacion del equipo antes de comenzar la fase de Diseno.
+- **Patron Strategy para la IA**: documentado en la seccion 10 como guia para la
+  implementacion del patron de diseno en `src/application/`.
+
+**Iteraciones**:
+1. Propuesta de tabla de contenidos (19 secciones) y espera de aprobacion del equipo.
+2. Aprobacion recibida. Generacion del documento completo en 4 bloques por limite de tokens.
+3. Verificacion final: 1292 lineas, 80 KB, todas las secciones presentes.
+
+**Supuestos adoptados [PENDIENTE DE VALIDACION]**:
+- Nombre de heroes: "El Flojo" y "El Aventurero".
+- Limite por carril en zonas dinamicas: pendiente de ajuste de balance.
+- Opcion de rendicion voluntaria del jugador: incluida como pendiente.
+- IA Medio gana >= 40% contra IA Facil: umbral por verificar empiricamente.
+- Las cartas Epicas tienen limite de 2 copias por mazo.
+
+**Capturas asociadas**:
+- `docs/screenshots/02-analisis/2026-05-19_02-analisis_prd-agent-prompt_005a.png`
+- `docs/screenshots/02-analisis/2026-05-19_02-analisis_prd-plan-aprobado_005b.png`
+- `docs/screenshots/02-analisis/2026-05-19_02-analisis_prd-generado-completo_005c.png`
+
+**Notas**: El documento generado es completamente apto para incluirse como capitulo de
+la memoria PDF final. La generacion en partes por limite de tokens es un patron que se
+documentara en AGENTS.md para futuras interacciones con documentos extensos.
