@@ -358,8 +358,10 @@ el nuevo casting, y adaptar zonas, misiones y easter egg al tono nostálgico.
 - Cambios quirúrgicos: solo modificadas las secciones afectadas, el resto del PRD 
   intacto.
 
-**Iteraciones**: [si hubo ajustes, descríbelos brevemente; si no, "1 plan + 1 ejecución
-sin ajustes"].
+**Iteraciones**: 
+1. 1 plan + 1 ejecución.
+2. Revisión manual y completa del documento.
+3. Correcciones quirúrjicas y última ejecución.
 
 **Capturas asociadas**:
 - `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-prompt-pegado_01.png`
