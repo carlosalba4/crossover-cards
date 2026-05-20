@@ -315,34 +315,59 @@ documentara en AGENTS.md para futuras interacciones con documentos extensos.
 
 ---
 
-### Interaccion #006 — 2026-05-19 (Refactorizacion del PRD)
+### Interacción #006 — 2026-05-19 (Refactorización del PRD)
 
-- **Fase**: Analisis de Requisitos (Dia 2 de la cascada)
-- **Agente**: Game Designer Agent
-- **Herramienta**: Antigravity
-- **Modelo**: Gemini 3.1 Pro
+- **Fase**: Análisis de Requisitos (días 1-2)
+- **Agente**: PRD-Refactor-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Claude Sonnet 4.6 Thinking
 - **Tokens (entrada ≈ / salida ≈)**: ~15000 / ~3000
 
-**Objetivo**: Realizar una refactorizacion quirurgica del PRD, actualizando heroes, 
-cartas, arquetipos, misiones y el recurso principal (Mana -> Nostalgia) 
-segun instrucciones de Game Design, sin alterar la estructura base del documento.
+**Objetivo**: Refactorizar el PRD inicial para adaptar el juego al universo
+"Crossover Cards" definitivo: renombrar el recurso de Maná a Nostalgia 
+(representado con reloj de bolsillo), sustituir los héroes por El Lich y 
+Axel Blaze, reemplazar las 20 cartas iniciales por personajes/hechizos/objetos 
+de series de animación (Hora de Aventuras, Regular Show, Bob Esponja, Dragon Ball, 
+Ben 10, Inazuma Eleven, Doraemon, Uncle Grandpa, Gumball, Chowder, Agallas, 
+Fanboy & Chum Chum), redefinir los 4 arquetipos para que sean coherentes con 
+el nuevo casting, y adaptar zonas, misiones y easter egg al tono nostálgico.
+
+**Prompt** (ver `prompts/agents/prd-refactor-agent.md`):
+> Rol de Game Designer senior con tarea de refactorización quirúrgica del PRD, 
+> con trasfondo embebido de cada personaje (sin necesidad de internet), lista 
+> exhaustiva de cambios obligatorios, secciones explícitamente protegidas que 
+> no debe tocar, y formato de plan → aprobación → ejecución.
 
 **Resultado**:
-- Titulo actualizado a "Crossover Cards".
-- Concepto de 'Mana' sustituido masivamente por 'Nostalgia' (reloj victoriano).
-- Heroes antiguos (El Flojo, El Aventurero) sustituidos por 'El Lich' y 'Axel Blaze'.
-- Tabla de 20 cartas completamente redisenada y rebalanceada.
-- Arquetipos actualizados: Cartoon Clasico, Aventura Magica, Anime Combate, Sobrenatural.
-- Zonas dinamicas restablecidas a sus nombres originales.
-- Misiones genéricas insertadas en lugar de misiones especificas de arquetipo.
-- Easter egg redisenado: interaccion con el reloj de Nostalgia.
-- Referencias antiguas y bloques residuales eliminados exitosamente con PowerShell.
+- Plan de cambios propuesto y aprobado.
+- `docs/01-prd.md` actualizado con: 
+  - Título reducido a "Crossover Cards".
+  - Recurso renombrado a Nostalgia con representación visual de reloj de bolsillo.
+  - Héroes El Lich (mago oscuro) y Axel Blaze (luchador físico) con habilidades 
+    "Hechizo Ancestral" y "Disparo Llamarada".
+  - 20 cartas nuevas distribuidas en 2 mazos (10 + 10).
+  - 4 arquetipos nuevos: [rellena los nombres reales que decidió Sonnet].
+  - Zonas genéricas: Zona Caótica, Zona Mágica, Zona de Combate, Zona Misteriosa.
+  - Misiones genéricas independientes de arquetipos.
+  - Easter egg coherente con la nostalgia (a elegir entre tres opciones propuestas).
 
 **Decisiones clave**:
-- Las habilidades de las cartas nuevas fueron disenyadas para ser viables tecnicamente 
-  en Phaser 4 (evitando mecanicas imposibles).
-- El proceso requirio multiples pases de limpieza con expresiones regulares para 
-  asegurar que ninguna mencion a 'Floja', 'Mana' o heroes antiguos quedara en los 
-  casos de uso o criterios de aceptacion.
+- Universo crossover absurdo asumido como pieza narrativa (multiverso colapsado).
+- Trasfondo de personajes embebido en el prompt para evitar dependencia de wikis 
+  externas.
+- Cambios quirúrgicos: solo modificadas las secciones afectadas, el resto del PRD 
+  intacto.
 
-**Notas**: El PRD alcanza la version 1.1.0 y se considera listo para la fase de Diseno.
+**Iteraciones**: [si hubo ajustes, descríbelos brevemente; si no, "1 plan + 1 ejecución
+sin ajustes"].
+
+**Capturas asociadas**:
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-prompt-pegado_01.png`
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-plan-cambios_02.png`
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-aplicando_03.png`
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-cartas-nuevas_04.png`
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-arquetipos_05.png`
+- `docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-heroes_06.png`
+
+**Notas**: Esta refactorización cierra la fase de Análisis. El PRD queda como base 
+estable para el diseño técnico de la siguiente fase.
