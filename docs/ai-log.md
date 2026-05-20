@@ -371,3 +371,47 @@ sin ajustes"].
 
 **Notas**: Esta refactorización cierra la fase de Análisis. El PRD queda como base 
 estable para el diseño técnico de la siguiente fase.
+
+---
+
+### Interacción #007 — 2026-05-20 (Redacción del Documento de Arquitectura)
+
+- **Fase**: Diseño (Días 3-4 de la cascada)
+- **Agente**: Architect-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Gemini 3.1 Pro + Claude Sonnet 4.6 Thinking (vía Google Antigravity)
+- **Tokens (entrada ≈ / salida ≈)**: ~25000 / ~30000
+
+**Objetivo**: Completar y estructurar el documento de Arquitectura Técnica (`docs/02-architecture.md`) resolviendo los puntos de diseño pendientes de la arquitectura del juego (Event Bus, Decorator vs Modifier, distribución de zonas y carriles, etc.).
+
+**Resultado**:
+- `docs/02-architecture.md` completamente redactado con las 16 secciones propuestas en el plan.
+- Integración de diagramas Mermaid para la vista general de capas, la máquina de estados del turno, el patrón de IA y el flujo de dependencias entre capas.
+- Justificación detallada de los patrones aplicados (State, Command, Strategy, Observer/Event Bus, Factory, Repository, Singleton controlado) y de las decisiones pragmáticas sobre bufos (`Modifier[]`) y renderizado en Phaser (tablero único superpuesto).
+
+**Decisiones clave**:
+- Mantener pureza estricta de la capa de Dominio (cero referencias a Phaser).
+- Adoptar array de modificadores `Modifier[]` para bufos en el MVP y reservar el patrón Decorator como mejora futura documentada, a fin de evitar sobre-ingeniería en el ciclo de 14 días.
+- Zonas lógicas integradas sobre el mismo lienzo visual del tablero en Phaser, simplificando la geometría gráfica.
+
+---
+
+### Interacción #008 — 2026-05-20 (Redacción de ADR-004 a ADR-007)
+
+- **Fase**: Diseño (Días 3-4 de la cascada)
+- **Agente**: Architect-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Gemini 3.1 Pro (vía Google Antigravity)
+- **Tokens (entrada ≈ / salida ≈)**: ~12000 / ~15000
+
+**Objetivo**: Redactar los 4 registros de decisiones arquitectónicas (ADRs) restantes propuestos en la sección 16 del documento de arquitectura técnica, siguiendo el formato estricto del proyecto.
+
+**Resultado**:
+- `docs/decisions/ADR-004-patron-state-turnos.md` creado, justificando el patrón State para las fases del turno frente a switch/case procedural o FSM externas.
+- `docs/decisions/ADR-005-event-bus-comunicacion.md` creado, detallando el desacoplamiento entre dominio y Phaser usando un Event Bus propio e Inversión de Dependencias (DIP).
+- `docs/decisions/ADR-006-estrategia-identificadores.md` creado, describiendo el enfoque híbrido de strings legibles para datos estáticos y UUID v4 para instancias en ejecución.
+- `docs/decisions/ADR-007-patron-strategy-ia.md` creado, validando el patrón Strategy para la IA del oponente y la decisión pragmática de utilizar un array simple de `Modifier[]` para buffs/debuffs en lugar de Decorator puro.
+
+**Decisiones clave**:
+- Estricto apego a las convenciones de formato de ADRs previas, incluyendo justificación, consecuencias y alternativas descartadas.
+- Registro coherente de las motivaciones tácticas de simplificación para la entrega del MVP en 14 días sin sacrificar la testabilidad del dominio.
