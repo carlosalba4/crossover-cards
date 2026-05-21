@@ -1,5 +1,5 @@
 ---
-description: Refactoriza el PRD aplicando cambios quirúrgicos del universo Crossover Cards: Nostalgia, héroes El Lich y Axel Blaze, 20 cartas nuevas, 4 arquetipos, zonas y misiones genéricas, easter egg nostálgico.
+description: "Refactoriza el PRD aplicando cambios quirúrgicos del universo Crossover Cards: Nostalgia, héroes El Lich y Axel Blaze, 20 cartas nuevas, 4 arquetipos, zonas y misiones genéricas, easter egg nostálgico."
 ---
 
 # ROL

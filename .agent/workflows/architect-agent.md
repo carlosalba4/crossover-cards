@@ -1,5 +1,5 @@
 ---
-description: Produce el documento de arquitectura técnica con 16 secciones: capas, patrones (State, Command, Strategy, Observer, Factory, Repository), modelo de datos, máquina de estados de turno, SOLID y testing.
+description: "Produce el documento de arquitectura técnica con 16 secciones: capas, patrones (State, Command, Strategy, Observer, Factory, Repository), modelo de datos, máquina de estados de turno, SOLID y testing."
 ---
 
 # ROL

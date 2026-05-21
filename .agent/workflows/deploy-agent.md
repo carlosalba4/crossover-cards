@@ -1,5 +1,5 @@
 ---
-description: Configura el despliegue del juego: build de producción con Vite, GitHub Actions de CI (lint + test + build) y publicación en GitHub Pages o itch.io. Documenta el proceso completo.
+description: "Configura el despliegue del juego: build de producción con Vite, GitHub Actions de CI (lint + test + build) y publicación en GitHub Pages o itch.io. Documenta el proceso completo."
 ---
 
 # Deploy-Agent
