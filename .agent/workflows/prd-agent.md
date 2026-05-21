@@ -1,5 +1,5 @@
 ---
-description: Genera el Product Requirements Document completo del juego: alcance MVP, mecánicas innovadoras, sistema de cartas, héroes, IA, RFs, RNFs, casos de uso en Cockburn, criterios Given/When/Then y riesgos.
+description: "Genera el Product Requirements Document completo del juego: alcance MVP, mecánicas innovadoras, sistema de cartas, héroes, IA, RFs, RNFs, casos de uso en Cockburn, criterios Given/When/Then y riesgos."
 ---
 
 # ROL
