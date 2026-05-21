@@ -46,6 +46,8 @@ no toca todavía la configuración de IA ni el proyecto npm.
 
 **Notas**: El prompt completo está versionado en `prompts/agents/setup-repo-agent.md`.
 
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat (sistema agéntico inicial basado en `prompts/agents/setup-repo-agent.md`). Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo de Antigravity en `.agent/workflows/setup-repo-agent.md` e invocable con `/setup-repo-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
+
 ---
 
 ### Interacción #002 — 2026-05-18 (Configuración de infraestructura IA)
@@ -98,6 +100,8 @@ opencode.json). Versionar también los prompts de agentes en `prompts/agents/`.
 
 **Notas**: A partir de esta interacción, opencode está listo para ser invocado
 desde la terminal integrada de Antigravity en interacciones posteriores.
+
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/ai-config-agent.md` e invocable con `/ai-config-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
 
 ---
 
@@ -160,6 +164,8 @@ y verificar que `npm run dev` muestra una escena minimalista en navegador.
 verificación-corrección de un agente. En una ejecución agéntica completamente
 autónoma, el agente habría reintentado los pasos automáticamente; aquí fueron
 ajustados con supervisión humana.
+
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/project-init-agent.md` e invocable con `/project-init-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
 
 ---
 
@@ -246,6 +252,7 @@ resumirlos, y no alucinó nombres. La precisión mejoró sustancialmente.
 Conclusión: para modelos locales de tamaño medio (≤10B), un AGENTS.md bien 
 formulado tiene impacto comparable a cambiar a un modelo más grande. Esta decisión 
 queda documentada como ADR-003.
+
 ---
 
 ### Interaccion #005 — 2026-05-19 (Generacion del PRD)
@@ -313,6 +320,8 @@ especificacion funcional y de producto.
 la memoria PDF final. La generacion en partes por limite de tokens es un patron que se
 documentara en AGENTS.md para futuras interacciones con documentos extensos.
 
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/prd-agent.md` e invocable con `/prd-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
+
 ---
 
 ### Interacción #006 — 2026-05-19 (Refactorización del PRD)
@@ -374,6 +383,8 @@ el nuevo casting, y adaptar zonas, misiones y easter egg al tono nostálgico.
 **Notas**: Esta refactorización cierra la fase de Análisis. El PRD queda como base 
 estable para el diseño técnico de la siguiente fase.
 
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/prd-refactor-agent.md` e invocable con `/prd-refactor-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
+
 ---
 
 ### Interacción #007 — 2026-05-20 (Redacción del Documento de Arquitectura)
@@ -396,6 +407,8 @@ estable para el diseño técnico de la siguiente fase.
 - Adoptar array de modificadores `Modifier[]` para bufos en el MVP y reservar el patrón Decorator como mejora futura documentada, a fin de evitar sobre-ingeniería en el ciclo de 14 días.
 - Zonas lógicas integradas sobre el mismo lienzo visual del tablero en Phaser, simplificando la geometría gráfica.
 
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/architect-agent.md` e invocable con `/architect-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
+
 ---
 
 ### Interacción #008 — 2026-05-20 (Redacción de ADR-004 a ADR-007)
@@ -417,3 +430,50 @@ estable para el diseño técnico de la siguiente fase.
 **Decisiones clave**:
 - Estricto apego a las convenciones de formato de ADRs previas, incluyendo justificación, consecuencias y alternativas descartadas.
 - Registro coherente de las motivaciones tácticas de simplificación para la entrega del MVP en 14 días sin sacrificar la testabilidad del dominio.
+
+**Nota de actualización (2026-05-20)**: La invocación original se realizó copiando manualmente el contenido del prompt en el chat. Tras la formalización del sistema agéntico (ver Interacción #009), el agente está disponible como Workflow nativo en `.agent/workflows/adr-writer-agent.md` e invocable con `/adr-writer-agent`. La captura del prompt pegado se ha sustituido por una captura equivalente del workflow invocado. El contenido del prompt y el resultado generado no cambian.
+
+---
+
+### Interacción #009 — 2026-05-20 (Formalización del sistema agéntico)
+
+- **Fase**: Diseño (días 3-4)
+- **Agente**: Refactor manual del sistema agéntico (no agente IA)
+- **Herramienta**: Edición manual + Antigravity (verificación visual)
+- **Modelo**: N/A (refactor estructural)
+- **Tokens (entrada ≈ / salida ≈)**: N/A
+
+**Objetivo**: Formalizar el sistema agéntico del proyecto convirtiendo los prompts 
+versionados en sistemas reales de Antigravity (Workflows + Skills + Rules). 
+Detectamos que los `prompts/agents/*.md` originales eran solo documentación 
+copiada manualmente; la formalización los convierte en agentes invocables 
+nativamente con `/` desde cualquier chat.
+
+**Acciones realizadas**:
+- Creada estructura `.agent/workflows/` con 17 workflows (8 ya ejecutados + 9 previstos).
+- Creada estructura `.agent/skills/` con 6 skills cargables bajo demanda:
+  - clean-code, phaser-patterns, solid-principles, testing-vitest, 
+    card-game-mechanics, typescript-strict.
+- `AGENTS.md` ampliado con sección "Sistema agéntico del proyecto".
+- `prompts/agents/` mantenida como documentación legible con README aclaratorio.
+
+**Decisiones clave**:
+- Sistema agéntico real con Workflows + Skills + Rules, no solo prompts manuales.
+- Cumple literalmente la sección del enunciado: "agentes, flujos, skills, rules".
+- Documentación dual: `.agent/workflows/` ejecutable + `prompts/agents/` legible.
+- Skills diseñadas para cargarse bajo demanda según el tipo de tarea, optimizando 
+  uso de contexto del agente.
+
+**Iteraciones**: 1 (formalización completa).
+
+**Capturas asociadas**:
+- `docs/screenshots/03-design/2026-05-20_03-design_antigravity-workflows-cargados_01.png`
+- `docs/screenshots/03-design/2026-05-20_03-design_antigravity-rules-agentsmd_02.png`
+- `docs/screenshots/03-design/2026-05-20_03-design_antigravity-workflows-dropdown_03.png`
+- `docs/screenshots/03-design/2026-05-20_03-design_antigravity-workflow-invocacion_04.png`
+
+**Notas**: Esta refactorización es una mejora del enfoque inicial. Las interacciones 
+#001 a #008 fueron ejecutadas con copia-pega manual de prompts; a partir de #010 
+(Agents-Catalog-Agent) las invocaciones se harán vía `/nombre-agente` aprovechando 
+el sistema agéntico formal. El catálogo completo de agentes en `docs/03-agents.md` 
+documentará este sistema con detalle.
