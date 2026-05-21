@@ -477,3 +477,64 @@ nativamente con `/` desde cualquier chat.
 (Agents-Catalog-Agent) las invocaciones se harán vía `/nombre-agente` aprovechando 
 el sistema agéntico formal. El catálogo completo de agentes en `docs/03-agents.md` 
 documentará este sistema con detalle.
+
+---
+
+### Interacción #010 — 2026-05-21 (Catálogo de Agentes)
+
+- **Fase**: Diseño (días 3-4)
+- **Agente**: Agents-Catalog-Agent
+- **Herramienta**: Antigravity (workflow `/agents-catalog-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~15000 / ~20000
+
+**Objetivo**: Producir el catálogo formal de agentes del proyecto (`docs/03-agents.md`)
+con 19 fichas de agentes, diagrama Mermaid del flujo agéntico, política de gestión de
+tokens, distinción entre Workflows y Custom Agents nativos de Antigravity, inventario
+de skills/rules/MCP y política de revisión humana.
+
+**Prompt** (ver `.agent/workflows/agents-catalog-agent.md`):
+> Rol de AI Operations Engineer senior. Tarea: producir el catálogo formal de agentes
+> del proyecto Crossover Cards con 11 secciones, 19 fichas de agentes y diagrama Mermaid.
+> Requisitos adicionales del profesor: flujo jerárquico con Implementation-Orchestrator-Agent,
+> distinción Workflows vs Custom Agents nativos, skills externas como decisión abierta.
+
+**Resultado**:
+- `docs/03-agents.md` creado con 864 líneas y ~45 KB.
+- 11 secciones completas: introducción, visión general, catálogo (19 fichas), flujo
+  con diagrama Mermaid, política de tokens, tipología de agentes, skills/rules/MCP,
+  revisión humana, trazabilidad, riesgos y conclusiones.
+- 9 fichas de agentes ejecutados (#001–#009) y 10 fichas de agentes previstos (#010–#019).
+- Diagrama Mermaid con flujo jerárquico: Implementation-Orchestrator-Agent delega en
+  Domain-Dev, Phaser-Dev, AI-Opponent y Tester con ciclos de retroalimentación.
+- Sección 6 con distinción explícita Workflows vs Custom Agents nativos (tabla comparativa).
+- Decisión abierta documentada sobre skills externas (Phaser 4 oficial, Anthropic TypeScript).
+
+**Decisiones clave**:
+- 19 agentes en lugar de los 18 del enunciado original: se añade Implementation-Orchestrator-Agent
+  como nuevo agente orquestador, requerido explícitamente por el profesor.
+- Implementation-Orchestrator-Agent implementado como Custom Agent nativo de Antigravity
+  (no como Workflow), dado que requiere memoria persistente entre sesiones y capacidades
+  de delegación extendidas.
+- Documento generado en múltiples bloques consecutivos por el límite de tokens de salida
+  del modelo (64K tokens), siguiendo el patrón ya documentado en la interacción #005.
+
+**Iteraciones**:
+1. Lectura de todos los archivos fuente del repositorio (AGENTS.md, ai-log.md, ADR-001 a ADR-007, prompts).
+2. Propuesta de plan con tabla de contenidos y lista de 19 agentes. Aprobada.
+3. Generación del documento en 4 bloques consecutivos por límite de tokens.
+4. Verificación: 864 líneas, 11 secciones presentes, estructura correcta.
+
+**Capturas asociadas**:
+- `docs/screenshots/03-design/2026-05-21_03-design_agents-catalog-workflow-invocacion_010a.png`
+- `docs/screenshots/03-design/2026-05-21_03-design_agents-catalog-plan-aprobado_010b.png`
+- `docs/screenshots/03-design/2026-05-21_03-design_agents-catalog-documento-generado_010c.png`
+
+**Notas**: El catálogo queda como documento vivo. Se actualizará al inicio de cada fase
+con los datos reales de ejecución. La interacción #009 (formalización del sistema agéntico)
+queda retroactivamente vinculada a este catálogo como su precedente directo.
+
+**Pendientes identificados**:
+- [PENDIENTE] Capturas de pantalla de la sesión (añadir a `docs/screenshots/03-design/`).
+- [PENDIENTE] Actualizar ficha #009 con el número de interacción correcto (#010) una vez
+  que el ai-log quede cerrado.
