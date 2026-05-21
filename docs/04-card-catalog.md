@@ -120,7 +120,7 @@ justifican respecto a ella, no al revés.
 | Charge (Cargo, puede atacar el mismo turno)       | +1                       |
 | Divine Shield (Escudo Divino)                     | +1 a +2                  |
 | Deathrattle potente (buff +2/+2 a aliado)         | +1                       |
-| Battlecry fuerte (destruir criatura, robar carta) | +1                       |
+| Battlecry fuerte (destruir personaje, robar carta) | +1                       |
 | Lifesteal (Drenaje)                               | +1                       |
 | Efecto de área (AoE)                              | +1 a +2                  |
 | Restricción de ataque (cooldown 1 turno)          | -1                       |
@@ -469,7 +469,7 @@ lo que permite romper esta norma conscientemente:
 - **Rareza**: Rara
 - **Coste de Nostalgia**: 3
 - **Habilidad**: Reduce el ATQ y VID de una Personaje enemiga objetivo a la mitad (redondeado hacia abajo) de forma permanente.
-- **Trasfondo narrativo**: la linterna de Jimmy Neutron que reduce el tamano de cualquier objeto o criatura. En el campo de batalla, convierte la amenaza mas poderosa en algo gestionable.
+- **Trasfondo narrativo**: la linterna de Jimmy Neutron que reduce el tamano de cualquier objeto o personaje. En el campo de batalla, convierte la amenaza mas poderosa en algo gestionable.
 - **Justificacion de balance**: formula de control: reduce efectivamente los stats de una Personaje enemiga en ~50%. Para una Personaje de 6/6 la convierte en 3/3, eliminando ~3 de ataque y ~3 de vida. Este control permanente sobre una Personaje cara es equivalente a un hechizo de eliminacion suavizado. El coste 3 es correcto: mas barato que la eliminacion total pero menos impactante.
 - **Sinergias**: combo con Pedo Poderoso (Linterna debilita primero, el AoE destruye). Responde directamente a Goku (si se juega antes de que Goku muera para evitar su resurreccion, al reducirle la vida a 3 el AoE de 2 danyo lo destruye sin activar la resurreccion... si sus PV actuales son <= 2 tras el debuff).
 
