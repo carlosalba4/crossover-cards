@@ -238,7 +238,7 @@ lo que permite romper esta norma conscientemente:
 - **Coste de Nostalgia**: 3
 - **Stats**: Ataque 3 / Vida 2
 - **Habilidad**: Grito de Guerra (Battlecry) - al ser jugado, destruye una Personaje enemiga con 1 VID o menos ("se la come").
-- **Trasfondo narrativo**: Chowder, el aprendiz de chef gloton del mundo de Marziplan, devora literalmente a las Personajes enemigas pequenas. Su hambre insaciable es su mayor arma tactica.
+- **Trasfondo narrativo**: Chowder, el aprendiz de chef gloton del mundo de Marziplan, devora literalmente a los Personajes enemigos pequenas. Su hambre insaciable es su mayor arma tactica.
 - **Justificacion de balance**: stats 3/2 ligeramente sobre vanilla para coste 3 (2.5). El Battlecry de eliminacion es muy situacional (solo Personajes con 1 VID o menos). Valor crece en partidas largas con Personajes debilitadas.
 - **Sinergias**: combo con "Hechizo Ancestral" (2 danyo deja Personaje en 1 VID, Chowder la elimina). Combo con El Poder (AoE 3 danyo configura objetivos para Chowder).
 
@@ -276,7 +276,7 @@ lo que permite romper esta norma conscientemente:
 - **Habilidad**: Cargo (Charge) - puede atacar el mismo turno que es jugado. Restriccion: no puede atacar en el turno inmediatamente siguiente tras haber atacado (cooldown 1 turno).
 - **Trasfondo narrativo**: Rigby, el mapache holgazan del Regular Show, cuando se pone en marcha es imparable... por un momento. Su energia explosiva se agota rapido y necesita recuperarse.
 - **Justificacion de balance**: vanilla coste 2 = 2.5. Stats 3/2 por encima de vanilla + Charge (+1 coste efectivo). La restriccion de cooldown (-1 coste efectivo) los cancela: coste neto 2. Dano burst consistente: 3 danyo garantizado el turno de juego, inactiva el siguiente.
-- **Sinergias**: ideal para rematar Personajes debilitadas o presionar al heroe rival. La sinergia tribal Cartoon Clasico amplifica su ATQ en el turno activo.
+- **Sinergias**: ideal para rematar Personajes debilitados o presionar al heroe rival. La sinergia tribal Cartoon Clasico amplifica su ATQ en el turno activo.
 
 ---
 
@@ -333,7 +333,7 @@ lo que permite romper esta norma conscientemente:
 - **Rareza**: Epica
 - **Coste de Nostalgia**: 3
 - **Durabilidad**: 1 uso
-- **Habilidad**: Se equipa al heroe aliado. Al activarse en Fase Principal, inflige 3 danyo a TODAS las Personajes enemigas del tablero (AoE). El objeto se destruye tras el uso.
+- **Habilidad**: Se equipa al heroe aliado. Al activarse en Fase Principal, inflige 3 danyo a TODAS los Personajes enemigos del tablero (AoE). El objeto se destruye tras el uso.
 - **Trasfondo narrativo**: El Poder, el objeto magico y peligroso del Regular Show que Rigby nunca deberia haber encontrado. Su energia cosmica puede limpiar el tablero de un solo golpe.
 - **Justificacion de balance**: AoE de 3 danyo con activacion diferida y durabilidad 1. Comparado con Pedo Poderoso (coste 4, AoE 2 danyo instantaneo), ofrece +1 danyo de AoE con coste de accion adicional. El coste 3 vs 4 refleja este coste de activacion diferida.
 - **Sinergias**: combo con Chowder (El Poder deja Personajes en 1 VID, Chowder las devora). Activa mision QST-002 si el AoE golpea multiples enemigos.
@@ -454,7 +454,7 @@ lo que permite romper esta norma conscientemente:
 - **Arquetipo**: Neutral
 - **Rareza**: Epica
 - **Coste de Nostalgia**: 4
-- **Habilidad**: Inflige 2 danyo a TODAS las Personajes enemigas del tablero (AoE instantaneo).
+- **Habilidad**: Inflige 2 danyo a TODAS los Personajes enemigos del tablero (AoE instantaneo).
 - **Trasfondo narrativo**: el arma secreta mas vergonzosa y devastadora del universo. Un sonido, un olor y el tablero enemigo queda arrasado. La fisica del multiverso de Crossover Cards permite que su impacto sea... considerable.
 - **Justificacion de balance**: AoE instantaneo sin coste de accion adicional. Comparado con El Poder (coste 3, AoE 3 danyo pero requiere equipar + activar en distintos turnos), Pedo Poderoso es mas eficiente situacionalmente pero hace 1 menos de danyo. El coste 4 refleja la conveniencia del AoE instantaneo sin restricciones de activacion.
 - **Sinergias**: combo con Linterna Minimizadora (reduce stats enemigos a la mitad primero, luego el AoE puede destruir directamente Personajes debilitadas). Activa mision QST-002 si golpea multiples enemigos con el danyo total.
@@ -575,7 +575,7 @@ lo que permite romper esta norma conscientemente:
 | AXE-004 | Diamantino               | Personaje | Anime Combate   | Rara       | 4     | 3   | 5   | Escudo Cristalino: primer danyo recibido se reduce a la mitad |
 | AXE-005 | Chum Chum                | Personaje | Cartoon Clasico | Comun      | 1     | 1   | 2   | Sin habilidad. Unico 1-drop del juego                      |
 | AXE-006 | Agallas el Perro Cobarde | Personaje | Sobrenatural    | Rara       | 3     | 2   | 4   | Taunt inverso; +2 ATQ si es el unico aliado en tablero     |
-| AXE-007 | Pedo Poderoso            | Hechizo   | Neutral         | Epica      | 4     | —   | —   | AoE instantaneo: 2 danyo a todas las Personajes enemigas   |
+| AXE-007 | Pedo Poderoso            | Hechizo   | Neutral         | Epica      | 4     | —   | —   | AoE instantaneo: 2 danyo a todos los Personajes enemigos   |
 | AXE-008 | Linterna Minimizadora    | Hechizo   | Neutral         | Rara       | 3     | —   | —   | Reduce ATQ y VID de enemigo objetivo a la mitad (permanente) |
 | AXE-009 | Bola de Dragon           | Objeto    | Anime Combate   | Legendaria | 5     | —   | —   | Elige: curar 5 PV / 5 danyo al heroe enemigo / 3 Nostalgia extra |
 | AXE-010 | Omnitrix                 | Objeto    | Anime Combate   | Legendaria | 4     | —   | —   | Equipable (dur. 2); reemplaza habilidad de heroe por 3 opciones |
@@ -781,12 +781,12 @@ asume pool separado (coste 0, colocacion al inicio de Fase Principal sin consumi
 ### DV-002: Slot Libre Fuera de Zonas
 
 **Descripcion**: el tablero tiene 7 slots por bando: 6 en zonas (2 por zona x 3 zonas)
-+ 1 slot libre fuera de zonas. Las Personajes en el slot libre no reciben buffs/debuffs
++ 1 slot libre fuera de zonas. Los Personajes en el slot libre no reciben buffs/debuffs
 de entorno ni participan en la sinergia de zona.
 
 **Punto pendiente**: la UI debe aclarar si el jugador puede elegir colocar una Personaje
 en el slot libre voluntariamente o si ese slot solo se usa cuando las 3 zonas estan llenas.
-La sinergia tribal M1 afecta a las Personajes del slot libre igualmente (es tribal, no zonal).
+La sinergia tribal M1 afecta a los Personajes del slot libre igualmente (es tribal, no zonal).
 
 ### DV-003: Interaccion Linterna Minimizadora con Resurreccion de Goku
 
