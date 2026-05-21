@@ -1,17 +1,3 @@
-# PRD-Agent
-
-- **Rol**: Product Manager senior especializado en videojuegos de cartas.
-- **Modelo recomendado**: Claude Sonnet 4.6 Thinking (Antigravity).
-- **Modelo alternativo**: Gemini 3 Flash (si cuota Sonnet agotada).
-- **Fase**: Análisis de Requisitos (días 1-2).
-- **Entrada esperada**: contexto del proyecto, mecánicas y alcance del MVP.
-- **Salida esperada**: documento PRD completo en Markdown.
-- **Skills relevantes**: ninguna específica de Phaser (PRD es funcional, no técnico).
-- **Rules**: AGENTS.md del proyecto.
-
-## Prompt
-
-```
 # ROL
 Eres un Product Manager senior especializado en videojuegos, con experiencia en juegos
 de cartas coleccionables digitales (Hearthstone, MTG Arena, Legends of Runeterra,
@@ -220,4 +206,3 @@ Términos clave del dominio del juego con definición clara y concisa.
   espera aprobación.
 
 Genera ahora el PRD completo siguiendo esta estructura.
-```

@@ -538,3 +538,63 @@ queda retroactivamente vinculada a este catálogo como su precedente directo.
 - [PENDIENTE] Capturas de pantalla de la sesión (añadir a `docs/screenshots/03-design/`).
 - [PENDIENTE] Actualizar ficha #009 con el número de interacción correcto (#010) una vez
   que el ai-log quede cerrado.
+---
+
+### Interaccion #011 - 2026-05-21 (Catalogo de Cartas y Balance)
+
+- **Fase**: Diseno (Dias 3-4 de la cascada)
+- **Agente**: Card-Catalog-Agent
+- **Herramienta**: Antigravity (workflow `/card-catalog-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada aprox / salida aprox)**: ~20000 / ~25000
+
+**Objetivo**: Producir el catalogo numerico definitivo de las 20 cartas del juego
+(`docs/04-card-catalog.md`) con costes de Nostalgia, stats, habilidades formales,
+justificaciones de balance, sinergias, habilidades de heroe definitivas, esquema JSON
+de ejemplo y tests de balance previstos (con rangos numericos) para el Tester-Agent
+y el AI-Opponent-Agent.
+
+**Prompt** (ver `.agent/workflows/card-catalog-agent.md`):
+> Rol de Game Designer senior especializado en balance de CCGs (Hearthstone, MTG Arena,
+> Legends of Runeterra, Marvel Snap). Tarea: producir el catalogo numerico completo
+> de las 20 cartas del MVP con todas las fichas, justificaciones de balance y tests.
+
+**Resultado**:
+- `docs/04-card-catalog.md` creado con ~831 lineas.
+- 11 secciones: introduccion (con cambio terminologico canonico), sistema economico,
+  distribucion por rareza, distribucion por arquetipo, 10 fichas del mazo de El Lich,
+  10 fichas del mazo de Axel Blaze, habilidades de heroe, tabla resumen ejecutiva,
+  esquema JSON de ejemplo (4 cartas), 8 tests de balance con rangos numericos, y
+  5 decisiones [PENDIENTE DE VALIDACION].
+- Resolucion de todas las ambiguedades del plan: Patricio Estrella (6 outcomes RNG
+  inyectable via Modifier[]), 3 Legendarias en Axel Blaze (aceptado para mazos
+  preconstruidos), Sobrenatural como arquetipo situacional, nombre "Tornado de Fuego"
+  como canonico para Axel Blaze, y misiones como pool neutral compartido.
+- Cambio terminologico establecido: "Criatura" -> "Personaje" (es) / "Character" (en).
+
+**Decisiones clave**:
+- La formula vanilla orienta pero no dicta: los stats del PRD se respetan y se
+  justifican retrospectivamente. Ninguna carta fue modificada, solo documentada.
+- Patricio Estrella: el efecto aleatorio se implementa como Modifier fijo asignado
+  al jugarse (no al atacar), con RNG inyectable para tests deterministicos.
+- Documento generado en multiples bloques consecutivos via Add-Content PowerShell
+  por limitaciones del token limit de salida del modelo (64K tokens).
+- La entrada #011 del ai-log cierra la fase de Diseno de documentacion.
+
+**Iteraciones**:
+1. Lectura del PRD, arquitectura, workflow y skill de mecanicas.
+2. Propuesta de plan con curva de Nostalgia, tabla vanilla, distribucion de rareza/arquetipo.
+3. Aprobacion del plan con 5 resoluciones de pendientes y cambio terminologico.
+4. Generacion del documento en 4 bloques por limitacion de tokens.
+5. Verificacion: 831 lineas, 11 secciones, todas las fichas presentes.
+
+**Capturas asociadas**:
+- `docs/screenshots/03-design/2026-05-21_03-design_card-catalog-workflow-invocacion_011a.png`
+- `docs/screenshots/03-design/2026-05-21_03-design_card-catalog-plan-aprobado_011b.png`
+- `docs/screenshots/03-design/2026-05-21_03-design_card-catalog-documento-generado_011c.png`
+
+**Notas**: Este documento es la referencia definitiva de balance para el Domain-Dev-Agent
+(implementacion TypeScript de entidades y datos JSON), el Tester-Agent (tests de balance
+TB-001 a TB-008) y el AI-Opponent-Agent (evaluacion de valor de cartas para GreedyAI
+y ThreatAwareAI). El archivo `assets/data/cards.json` se generara siguiendo el esquema
+JSON de la seccion 9 de este catalogo.
