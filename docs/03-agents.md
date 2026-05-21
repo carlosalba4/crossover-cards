@@ -513,7 +513,7 @@ El catálogo recoge 19 fichas organizadas por fase de la cascada. Las fichas #00
 
 El siguiente diagrama muestra el orden de ejecución de los agentes por fase de la cascada, incluyendo el flujo jerárquico de delegación en la fase de Implementación y el ciclo de retroalimentación del Tester-Agent.
 
-`mermaid
+```mermaid
 graph TD
     subgraph SETUP[Fase Setup]
         A1[Setup-Repo-Agent]
@@ -581,7 +581,7 @@ graph TD
     A16 --> A17
     A17 --> A18
     A18 --> A19
-`
+```
 
 ### 4.2 Flujo jerárquico de la fase de Implementación
 
