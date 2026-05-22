@@ -1,6 +1,12 @@
 # Documento de Arquitectura Tecnica
 ## Crossover Cards — Juego de Cartas Estrategico por Turnos
 
+> **Nota de actualización (2026-05-21)**: en este documento se ha aplicado
+> el cambio terminológico "Criatura → Personaje / Creature → Character"
+> acordado en `docs/04-card-catalog.md`. Mantiene retrocompatibilidad
+> conceptual; las descripciones funcionales y mecánicas son idénticas a
+> versiones anteriores del documento.
+
 ---
 
 | Campo            | Valor                                      |
@@ -1117,7 +1123,7 @@ Al inicio del turno, calcula un score de peligro para cada Personaje enemiga:
 
 **Paso a paso en Fase de Combate**:
 1. Prioriza atacar y eliminar las **Amenazas Criticas** enemigas.
-2. Busca "Value Trades": Atacar a una enemiga con una propia si la enemiga muere pero la propia sobrevive. (Ej. Mi 3/3 ataca a su 3/2 -> yo gano el trade porque mi criatura sobrevive 3/1).
+2. Busca "Value Trades": Atacar a una enemiga con una propia si la enemiga muere pero la propia sobrevive. (Ej. Mi 3/3 ataca a su 3/2 -> yo gano el trade porque mi personaje sobrevive 3/1).
 3. Si hay Provocacion, usa Personajes de bajo ATQ/Vida ("basura") para "romper" Escudos Divinos o sacrificar vida antes de atacar con la Personaje fuerte.
 4. Solo ataca al heroe enemigo si: No hay amenazas criticas en el tablero, o si el dano conjunto en el tablero permite letal (reducir el heroe enemigo a 0).
 

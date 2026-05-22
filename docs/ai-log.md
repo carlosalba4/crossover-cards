@@ -598,3 +598,33 @@ y el AI-Opponent-Agent.
 TB-001 a TB-008) y el AI-Opponent-Agent (evaluacion de valor de cartas para GreedyAI
 y ThreatAwareAI). El archivo `assets/data/cards.json` se generara siguiendo el esquema
 JSON de la seccion 9 de este catalogo.
+
+---
+
+### Interacción #012 — 2026-05-22 (Refactorización Terminológica)
+
+- **Fase**: Diseño / Alineación de Documentación
+- **Agente**: Terminology-Refactor-Agent
+- **Herramienta**: Antigravity (workflow `/terminology-refactor-agent`)
+- **Modelo**: Gemini 3.5 Flash (vía Google Antigravity)
+- **Tokens (entrada aprox / salida aprox)**: ~15000 / ~3000
+
+**Objetivo**: Propagar de forma consistente el cambio de nombre de la entidad "Criatura/Creature" a "Personaje" (español) y "Character" (inglés) en los archivos `docs/01-prd.md` y `docs/02-architecture.md`, añadiendo notas de actualización al inicio de ambos archivos.
+
+**Prompt** (ver `.agent/workflows/terminology-refactor-agent.md`):
+> Procede con el reporte previo de sustituciones en docs/01-prd.md y docs/02-architecture.md. NO toques docs/04-card-catalog.md ni los workflows.
+
+**Resultado**:
+- `docs/01-prd.md` modificado quirúrgicamente en 5 ubicaciones técnicas (cambios de `Creature` -> `Character`, `CreatureCard` -> `CharacterCard`, `SingleCreature` -> `SingleCharacter`, `AllCreatures` -> `AllCharacters`, `addCreature` -> `addCharacter`) y añadiendo la nota de actualización. Se respetó la mención a "Criatura" en el glosario (línea 1247) por ser una explicación comparativa de terminología de otros juegos de cartas.
+- `docs/02-architecture.md` modificado quirúrgicamente en 1 ubicación de prosa en español (línea 1120, cambiando "criatura" -> "personaje") y añadiendo la nota de actualización.
+
+**Decisiones clave**:
+- Respetar el contexto explicativo comparativo en el glosario del PRD.
+- No tocar `docs/04-card-catalog.md` que ya estaba alineado.
+- Mantener la fecha `2026-05-21` en la nota de actualización tal y como se solicita en el formato del workflow.
+
+**Iteraciones**:
+1. Lectura y análisis de ocurrencias en `docs/01-prd.md` y `docs/02-architecture.md`.
+2. Presentación del Reporte Previo de sustituciones y justificaciones de exclusión.
+3. Aprobación del usuario y aplicación de las modificaciones quirúrgicas y adición de notas de actualización.
+

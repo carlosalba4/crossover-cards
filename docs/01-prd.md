@@ -1,5 +1,11 @@
-﻿# Product Requirements Document (PRD)
+# Product Requirements Document (PRD)
 ## Juego de Cartas Estratégico por Turnos — Crossover Animado
+
+> **Nota de actualización (2026-05-21)**: en este documento se ha aplicado
+> el cambio terminológico "Criatura → Personaje / Creature → Character"
+> acordado en `docs/04-card-catalog.md`. Mantiene retrocompatibilidad
+> conceptual; las descripciones funcionales y mecánicas son idénticas a
+> versiones anteriores del documento.
 
 ---
 
@@ -387,14 +393,14 @@ c) [PENDIENTE DE VALIDACION] Opcion de rendicion voluntaria por parte del jugado
 | Atributo        | Tipo      | Descripcion                                                   |
 |-----------------|-----------|---------------------------------------------------------------|
 | effectType      | enum      | Danyo / Curacion / Robo / Buff / Debuff / AoE / Control      |
-| targetType      | enum      | SingleCreature / AllCreatures / Hero / AllEnemies / Self      |
+| targetType      | enum      | SingleCharacter / AllCharacters / Hero / AllEnemies / Self      |
 | effectValue     | integer   | Magnitud del efecto (puntos de dano, curacion, cartas, etc.) |
 
 #### Objetos Modificadores
 
 | Atributo        | Tipo      | Descripcion                                                   |
 |-----------------|-----------|---------------------------------------------------------------|
-| targetType      | enum      | Hero / Creature                                               |
+| targetType      | enum      | Hero / Character                                               |
 | statModifier    | object    | Modificacion de ataque y/o vida                               |
 | abilityGranted  | string    | Habilidad concedida al objetivo (opcional)                    |
 | durability      | integer   | Usos restantes antes de que el objeto se destruya             |
@@ -1106,7 +1112,7 @@ navegador, y facilmente sustituible en sus partes de presentacion o infraestruct
            v           v
 +--------------------------------------------------+
 |          Capa de Dominio                         |
-|  (Entidades: Card, Creature, Hero, Board, Turn   |
+|  (Entidades: Card, Character, Hero, Board, Turn   |
 |   Valor-objetos, Reglas de negocio puras,        |
 |   Interfaces de repositorio)                     |
 +--------------------------------------------------+
@@ -1127,7 +1133,7 @@ Contiene la logica pura del juego. Sin dependencias de Phaser ni de ninguna libr
 externa. Todo lo de esta capa es testeable con Vitest puro.
 
 Responsabilidades principales:
-- Entidades del juego: `Card`, `CreatureCard`, `SpellCard`, `ObjectCard`, `Hero`, `Board`, `GameState`.
+- Entidades del juego: `Card`, `CharacterCard`, `SpellCard`, `ObjectCard`, `Hero`, `Board`, `GameState`.
 - Motor de turnos: `TurnEngine` (implementa el patron State para las fases).
 - Motor de combate: `CombatEngine`.
 - Calculadora de sinergias: `TribalSynergyCalculator`.
@@ -1179,7 +1185,7 @@ Escenas principales:
     -> GameScene emite evento "card-clicked"
     -> GameService.playCard(cardId) (Aplicacion)
     -> PlayCardCommand.execute() (Dominio)
-    -> TurnEngine.validatePlay() + Board.addCreature() (Dominio)
+    -> TurnEngine.validatePlay() + Board.addCharacter() (Dominio)
     -> TribalSynergyCalculator.recalculate() (Dominio)
     -> Event Bus publica "card-played" + "synergy-updated"
     -> GameScene recibe eventos y actualiza visualmente el tablero (Presentacion)
