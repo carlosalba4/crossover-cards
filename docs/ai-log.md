@@ -628,3 +628,82 @@ JSON de la seccion 9 de este catalogo.
 2. Presentación del Reporte Previo de sustituciones y justificaciones de exclusión.
 3. Aprobación del usuario y aplicación de las modificaciones quirúrgicas y adición de notas de actualización.
 
+---
+
+### Interacción #013 — 2026-05-23 (Diseño UI/UX)
+
+- **Fase**: Diseño (Días 3-4 de la cascada)
+- **Agente**: UI-Design-Agent
+- **Herramienta**: Antigravity (workflow `/ui-design-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking (vía Google Antigravity)
+- **Tokens (entrada ≈ / salida ≈)**: ~30000 / ~35000
+
+**Objetivo**: Producir el documento de diseño visual completo del juego (`docs/05-ui-design.md`)
+con 13 secciones: sistema visual base (paleta, tipografía, iconografía, rejilla), wireframes
+ASCII de las 5 escenas (Boot, Menu, HeroSelect, Game, End), 10 componentes UI reutilizables,
+diseño detallado de la carta, estados interactivos, animaciones clave, easter egg completo,
+especificación de assets con nombre exacto de archivo, accesibilidad, diagrama de flujo Mermaid
+y notas de hand-off para el Phaser-Dev-Agent.
+
+**Prompt** (ver `.agent/workflows/ui-design-agent.md`):
+> Workflow UI-Design-Agent invocado con las siguientes decisiones cerradas del equipo:
+> reloj de bolsillo híbrido analógico+digital, sprites de series autorizados para uso académico,
+> cartas en abanico estilo Hearthstone, slot libre con contorno punteado, zona de misión
+> en HUD lateral expansible. Estrategia de assets definitiva: sprites de personajes de Fandom/
+> DeviantArt/Spriters Resource, UI de Kenney.nl, fondos y reloj con Stable Diffusion SDXL,
+> audio de Freesound CC0 + Kenney Audio Pack + Pixabay Music.
+
+**Resultado**:
+- `docs/05-ui-design.md` creado con ~1100 líneas y ~55 KB.
+- 13 secciones completas:
+  - §1 Introducción con principios visuales y referencias.
+  - §2 Sistema visual base: 10 tokens de color semánticos, 5 colores de arquetipo, 4 de rareza,
+    3 de feedback; escala tipográfica de 7 niveles (Bangers + Nunito); 12 iconos con URL;
+    sistema de espaciado 4/8/16/24/32px; rejilla 1280×720 documentada con ASCII.
+  - §3 Wireframes ASCII de las 5 escenas con lista de elementos, estados y transiciones.
+  - §4 10 componentes UI: CardSprite, NostalgiaClockUI, MomentumBar, HeroPortrait,
+    HealthCounter, DeckCounter, EndTurnButton, Tooltip, Toast, Modal.
+  - §5 Diseño de carta en 4 versiones: Anverso Personaje, Anverso Hechizo/Objeto, Reverso,
+    versión tablero.
+  - §6 Tabla de 10 estados interactivos con feedback visual e indicador no-color.
+  - §7 11 animaciones clave con duración exacta y descripción de implementación Phaser.
+  - §8 Easter egg: EasterEggTV con 10 clics, secuencia VHS, filtro sepia 2 turnos, easter
+    egg secundario en BootScene con 3 clics.
+  - §9 Especificación de assets: 20 sprites de personajes, 4 héroes, reloj de Nostalgia,
+    5 marcos de rareza, 5 fondos de escena, 12 iconos HUD, 15 archivos de audio.
+    Cada asset con nombre exacto kebab-case, tipo, resolución, fuente específica, URL y estado.
+  - §10 Accesibilidad: tabla de 7 criterios WCAG 2.1 AA con ratios de contraste calculados.
+  - §11 Diagrama Mermaid stateDiagram-v2 del flujo completo entre escenas.
+  - §12 Notas para Phaser-Dev-Agent: mapeo componente→clase Phaser, atlas de texturas,
+    convenciones de naming, gestión de animaciones y recomendaciones de rendimiento.
+  - §13 6 decisiones [PENDIENTE DE VALIDACIÓN] identificadas (DU-001 a DU-006).
+
+**Decisiones cerradas en esta interacción**:
+- NostalgiaClockUI híbrido: reloj analógico 128×128px con manecillas animadas + indicador
+  digital "X/10" superpuesto. Manecillas avanzan 0.5s al ganar Nostalgia, retroceden 0.3s al gastar.
+- Cartas en mano: abanico ligero (-10° a +10°), hover a rotación 0° + escala 115% + elevación 20px.
+- Sprites de personajes: autorizados para uso académico (repositorio privado, sin distribución
+  comercial). Nota legal a incluir en la memoria.
+- Estrategia de assets definitiva: sprites Fandom/DeviantArt, UI Kenney, fondos SDXL, audio CC0.
+- Slot libre visible con contorno punteado tenue. Zona de misión en HUD lateral expansible.
+
+**Nota legal documentada** (§9 del documento):
+> Los sprites de personajes pertenecen a sus respectivos propietarios (Cartoon Network,
+> Nickelodeon, Toei Animation, Level-5, Man of Action Studios). Su uso es exclusivamente
+> académico, sin fines comerciales, en el marco de la asignatura Desarrollo con IA.
+
+**Iteraciones**:
+1. Lectura de PRD, arquitectura, catálogo de cartas y skill phaser-patterns.
+2. Propuesta del plan (tabla de contenidos, paleta borrador, tipografía propuesta). Aprobado.
+3. Resolución de 5 decisiones pendientes por parte del equipo + estrategia de assets definitiva.
+4. Generación del documento en 4 bloques consecutivos por límite de tokens (64K) del modelo.
+5. Adición de entrada en ai-log.md.
+
+**Capturas asociadas**:
+- `docs/screenshots/03-design/2026-05-23_03-design_ui-design-workflow-invocacion_013a.png`
+- `docs/screenshots/03-design/2026-05-23_03-design_ui-design-plan-aprobado_013b.png`
+- `docs/screenshots/03-design/2026-05-23_03-design_ui-design-documento-generado_013c.png`
+
+**Notas**: El documento `docs/05-ui-design.md` es el entregable de diseño que cierra la fase
+de Diseño (días 3-4) y habilita el inicio de la implementación con el Phaser-Dev-Agent y el
+Domain-Dev-Agent. Los 6 puntos DU-001 a DU-006 deben resolverse antes de iniciar GameScene.
