@@ -707,3 +707,56 @@ y notas de hand-off para el Phaser-Dev-Agent.
 **Notas**: El documento `docs/05-ui-design.md` es el entregable de diseño que cierra la fase
 de Diseño (días 3-4) y habilita el inicio de la implementación con el Phaser-Dev-Agent y el
 Domain-Dev-Agent. Los 6 puntos DU-001 a DU-006 deben resolverse antes de iniciar GameScene.
+
+---
+
+### Interacción #014 — 2026-05-22 (Setup de Fase 3 - Sistema agéntico jerárquico)
+
+- **Fase**: Implementación (días 5-10) - SETUP
+- **Agente**: (Refactor manual del sistema agéntico, sin invocación a modelo)
+- **Herramienta**: Edición manual de workflows en Antigravity
+- **Modelo**: N/A
+- **Tokens (entrada / salida)**: N/A
+
+**Objetivo**: Preparar el sistema agéntico jerárquico para la fase de 
+Implementación según indicación del profesor. Crear el agente orquestador 
+(Implementation-Orchestrator-Agent), rellenar los workflows en esqueleto 
+de los 5 agentes especialistas (Domain-Dev, Phaser-Dev, AI-Opponent, Tester, 
+QA-Reviewer), formalizar el formato YAML estándar de tareas delegadas.
+
+**Acciones realizadas**:
+- Creación de rama `fase-3-implementacion` en git con push a remoto.
+- Creación de carpeta `docs/screenshots/04-implementation/`.
+- Verificación del proyecto local: typecheck, lint, test, dev server arrancando.
+- Creación de `.agent/workflows/implementation-orchestrator-agent.md`.
+- Rellenado de `.agent/workflows/domain-dev-agent.md`.
+- Rellenado de `.agent/workflows/phaser-dev-agent.md`.
+- Rellenado de `.agent/workflows/ai-opponent-agent.md`.
+- Rellenado de `.agent/workflows/tester-agent.md`.
+- Rellenado de `.agent/workflows/qa-reviewer-agent.md`.
+- Copias legibles correspondientes en `prompts/agents/`.
+- Creación de `docs/task-format.md` con formato YAML estándar.
+
+**Decisiones clave**:
+- Flujo jerárquico con orquestador y delegaciones según indicación del 
+  profesor (Rubén).
+- Formato YAML estándar de tareas para consistencia entre agentes.
+- IDs de tareas con prefijo por fase (IMPL, TEST, DEPLOY, MEM).
+- Criterios de aceptación obligatoriamente verificables con comandos.
+- Trabajo en rama dedicada `fase-3-implementacion` con merge a `main` vía PR 
+  al cierre de fase.
+
+**Iteraciones**: 1 (refactor estructural).
+
+**Capturas asociadas**:
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_branch-fase3-creada_01.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_verificacion-inicial_02.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_helloworld-phaser4_03.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_orchestrator-agent-creado_04.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_orchestrator-en-dropdown_05.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_workflows-listos_06.png`
+- `docs/screenshots/04-implementation/2026-05-22_04-implementation_task-format-creado_07.png`
+
+**Notas**: Setup completo del sistema agéntico jerárquico. La próxima interacción 
+(#015) será la primera invocación real del Implementation-Orchestrator-Agent 
+para el bloque "Capa de Dominio parte 1".
