@@ -767,50 +767,76 @@ para el bloque "Capa de Dominio parte 1".
 
 - **Fase**: Implementación (días 5-10)
 - **Agente orquestador**: Implementation-Orchestrator-Agent
-- **Agentes especialistas**: Domain-Dev-Agent (N invocaciones)
+- **Agentes especialistas**: Domain-Dev-Agent (6 invocaciones, una por tarea)
 - **Herramienta**: Antigravity (workflows invocados con `/`)
 - **Modelo del orquestador**: Claude Sonnet 4.6 Thinking
-- **Modelo de los especialistas**: Claude Sonnet 4.6 Thinking
+- **Modelo de los especialistas**: Claude Sonnet 4.6 Thinking (IMPL-001 a IMPL-005) + Gemini 3.1 Pro High (IMPL-006 por agotamiento de cuota Claude)
 - **Tokens (entrada / salida)**: ~[XX] / ~[XX]
 
 **Objetivo**: Implementar la primera parte de la capa de dominio del juego: 
-tipos base (CardType, Rarity, Archetype), entidad base Card, entidades 
-concretas (Character, Spell, Item), Hero y colecciones (Deck, Hand). 
-Cobertura objetivo 80% en cada archivo.
+tipos base (CardType, Rarity, Archetype, Ability), entidad base Card, value 
+object Modifier, entidades concretas Character/Spell/Item, Hero con habilidad 
+pasiva inyectable, y colecciones Deck/Hand. Cobertura objetivo 80% por archivo.
 
-**Plan delegado por el Orchestrator**: [N] tareas atómicas en formato YAML:
-- IMPL-A1: Tipos base (card-types.ts).
-- IMPL-A2: Entidad base Card.
-- IMPL-A3: Character extends Card.
-- IMPL-A4: Spell extends Card.
-- IMPL-A5: Item extends Card.
-- IMPL-A6: Hero.
-- IMPL-A7: Deck.
-- IMPL-A8: Hand.
+**Invocación inicial**: 
+> /implementation-orchestrator-agent + prompt corto solicitando descomposición 
+> en tareas atómicas YAML del bloque IMPL-A.
+
+**Plan delegado por el Orchestrator**: 6 tareas atómicas en formato YAML
+estandarizado (ver `docs/task-format.md`):
+- IMPL-001: Tipos base (card-types.ts).
+- IMPL-002: Entidad base Card + value object Modifier.
+- IMPL-003: Character, Spell, Item (heredan de Card).
+- IMPL-004: Hero con IHeroPower inyectable.
+- IMPL-005: Deck con RNG inyectable para tests deterministas.
+- IMPL-006: Hand con regla de "carta quemada" mediante patrón Result.
+
+**Resoluciones del plan tras revisión humana**:
+- IMPL-005: límite del Deck mantenido en 30 (arquitectónico), comentario MVP 
+  documentando que el tamaño actual del mazo es 10.
+- IMPL-006: cambio de "lanzar error" a patrón Result<T, E> para implementar 
+  correctamente la regla de mano quemada del PRD.
+- IMPL-006: ejecutado con Gemini 3.1 Pro High en lugar de Sonnet 4.6 Thinking 
+  por agotamiento temporal de cuota. Resultado verificado: cumple todos los 
+  criterios de aceptación con el mismo nivel de calidad.
 
 **Resultado**:
-- [N] archivos de código en `src/domain/`.
-- [N] archivos de tests en `tests/domain/`.
-- Cobertura total del bloque: [XX]%.
-- Typecheck, lint y test pasan.
-- [N] commits incrementales en rama `fase-3-implementacion`.
-
-**Decisiones clave**:
-- Orchestrator delegó por orden de dependencias (tipos antes que entidades, 
-  Card antes que sus subclases).
-- Cada tarea con criterios verificables (typecheck + test + cobertura).
-- Modelo Sonnet Thinking para todas las invocaciones (suficiente para 
-  dominio puro).
-- [Si hubo iteraciones correctivas]: describir cuáles.
+- 9 archivos de código en `src/domain/`:
+  - `types/card-types.ts`
+  - `entities/card.ts`, `character.ts`, `spell.ts`, `item.ts`, `hero.ts`, `deck.ts`, `hand.ts`
+  - `value-objects/modifier.ts`
+- 10 archivos de tests en `tests/domain/` (uno por archivo de dominio + smoke test).
+- 230 tests pasando en verde.
+- Cobertura: 100% statements, 95.65% branches, 100% functions, 100% lines.
+- 6+ commits incrementales en rama `fase-3-implementacion`.
 
 **Iteraciones**:
-1. Plan del Orchestrator aprobado.
-2. Ejecución secuencial de las [N] tareas.
-3. Fixes manuales tras ejecutar tests.
+1. Plan del Orchestrator generado y aprobado tras dos aclaraciones humanas.
+2. Ejecución secuencial de las 6 tareas IMPL-001 a IMPL-006.
+3. IMPL-006 ejecutado por cambio de modelo (cuota Claude agotada).
+4. Verificación final con `npm run lint`: 6 errores + 30 warnings detectados.
+   Auto-fix con `npm run lint -- --fix` corrigió 5 errores y 27 warnings.
+   3 fixes manuales adicionales: warnings de `_omit`/`_drop` con 
+   `eslint-disable-next-line`, comparación de enums con cast explícito en 
+   `card-types.test.ts`, y eliminación de `as ItemProps` redundante en 
+   `item.test.ts`.
+5. Verificación final: typecheck + lint + test todos en verde.
+
+**Decisiones clave**:
+- Sistema agéntico jerárquico funcionando: Orchestrator planifica, humano 
+  invoca a los especialistas con tareas YAML estandarizadas.
+- Gestión real de cuota: cambio dinámico de modelo (Sonnet → Gemini Pro) 
+  cuando se agota la cuota principal, manteniendo calidad equivalente.
+- Patrón Result<T, E> aplicado para casos de error controlados (Hand.add 
+  con mano llena).
+- RNG inyectable en Deck para tests deterministas.
+- Cobertura del 100% en la capa de dominio (objetivo era 80%).
 
 **Capturas asociadas**:
-- [Lista de capturas con sus paths]
+- [Lista de capturas que hayas guardado en `docs/screenshots/04-implementation/`]
 
-**Notas**: Primera invocación real del Implementation-Orchestrator-Agent. 
-Sistema agéntico jerárquico funcionando con delegaciones. Próximo bloque: 
-IMPL-B Capa de Dominio parte 2 (TurnEngine, CombatResolver, sistemas).
+**Notas**: Bloque IMPL-A cerrado oficialmente. Primera ejecución completa del 
+flujo agéntico jerárquico del proyecto. Próximo paso: Bloque IMPL-B (Capa de 
+Dominio parte 2 - servicios y sistemas: TurnEngine, CombatResolver, 
+NostalgiaSystem, MomentumSystem, TribalSynergySystem, ZoneManager, 
+QuestManager, CrossoverManager).
