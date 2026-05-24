@@ -760,3 +760,57 @@ QA-Reviewer), formalizar el formato YAML estándar de tareas delegadas.
 **Notas**: Setup completo del sistema agéntico jerárquico. La próxima interacción 
 (#015) será la primera invocación real del Implementation-Orchestrator-Agent 
 para el bloque "Capa de Dominio parte 1".
+
+---
+
+### Interacción #015 — 2026-05-22 (Bloque IMPL-A: Capa de Dominio parte 1)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente orquestador**: Implementation-Orchestrator-Agent
+- **Agentes especialistas**: Domain-Dev-Agent (N invocaciones)
+- **Herramienta**: Antigravity (workflows invocados con `/`)
+- **Modelo del orquestador**: Claude Sonnet 4.6 Thinking
+- **Modelo de los especialistas**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada / salida)**: ~[XX] / ~[XX]
+
+**Objetivo**: Implementar la primera parte de la capa de dominio del juego: 
+tipos base (CardType, Rarity, Archetype), entidad base Card, entidades 
+concretas (Character, Spell, Item), Hero y colecciones (Deck, Hand). 
+Cobertura objetivo 80% en cada archivo.
+
+**Plan delegado por el Orchestrator**: [N] tareas atómicas en formato YAML:
+- IMPL-A1: Tipos base (card-types.ts).
+- IMPL-A2: Entidad base Card.
+- IMPL-A3: Character extends Card.
+- IMPL-A4: Spell extends Card.
+- IMPL-A5: Item extends Card.
+- IMPL-A6: Hero.
+- IMPL-A7: Deck.
+- IMPL-A8: Hand.
+
+**Resultado**:
+- [N] archivos de código en `src/domain/`.
+- [N] archivos de tests en `tests/domain/`.
+- Cobertura total del bloque: [XX]%.
+- Typecheck, lint y test pasan.
+- [N] commits incrementales en rama `fase-3-implementacion`.
+
+**Decisiones clave**:
+- Orchestrator delegó por orden de dependencias (tipos antes que entidades, 
+  Card antes que sus subclases).
+- Cada tarea con criterios verificables (typecheck + test + cobertura).
+- Modelo Sonnet Thinking para todas las invocaciones (suficiente para 
+  dominio puro).
+- [Si hubo iteraciones correctivas]: describir cuáles.
+
+**Iteraciones**:
+1. Plan del Orchestrator aprobado.
+2. Ejecución secuencial de las [N] tareas.
+3. [Si hubo correctivas]: descripción.
+
+**Capturas asociadas**:
+- [Lista de capturas con sus paths]
+
+**Notas**: Primera invocación real del Implementation-Orchestrator-Agent. 
+Sistema agéntico jerárquico funcionando con delegaciones. Próximo bloque: 
+IMPL-B Capa de Dominio parte 2 (TurnEngine, CombatResolver, sistemas).
