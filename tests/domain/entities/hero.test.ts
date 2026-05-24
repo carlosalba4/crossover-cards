@@ -399,8 +399,12 @@ describe("Hero.equipItem() / unequipItem()", () => {
   it("equipItem() debería reemplazar un item ya equipado", () => {
     // Arrange — Héroe equipa un objeto y luego equipa otro distinto
     const hero = new Hero(makeHeroProps());
-    const sword = new Item(makeItemProps({ staticId: "LIC-010", name: "Espada de Sangre de Demonio" }));
-    const omnitrix = new Item(makeItemProps({ staticId: "AXE-010", name: "Omnitrix", durability: 2 }));
+    const sword = new Item(
+      makeItemProps({ staticId: "LIC-010", name: "Espada de Sangre de Demonio" }),
+    );
+    const omnitrix = new Item(
+      makeItemProps({ staticId: "AXE-010", name: "Omnitrix", durability: 2 }),
+    );
     hero.equipItem(sword);
 
     // Act
@@ -482,7 +486,7 @@ describe("IHeroPower — inyección de dependencias", () => {
         name: "Axel Blaze",
         archetype: Archetype.AnimeCombate,
         heroPower: tornadoPower,
-      })
+      }),
     );
 
     // Act / Assert
@@ -495,7 +499,7 @@ describe("IHeroPower — inyección de dependencias", () => {
     // Arrange
     const lich = new Hero(makeHeroProps({ heroPower: hechizoPower }));
     const axel = new Hero(
-      makeHeroProps({ staticId: "HERO-002", name: "Axel Blaze", heroPower: tornadoPower })
+      makeHeroProps({ staticId: "HERO-002", name: "Axel Blaze", heroPower: tornadoPower }),
     );
 
     // Act / Assert
@@ -534,7 +538,7 @@ describe("Hero — casos de uso del catálogo", () => {
         name: "Espada de Sangre de Demonio",
         durability: 3,
         onTurnStartEffect: { type: "DamageOwner", value: 1 },
-      })
+      }),
     );
     lich.equipItem(sword);
 

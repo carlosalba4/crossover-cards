@@ -128,9 +128,7 @@ export class Item extends Card {
     this.abilityGranted = props.abilityGranted;
     this.durability = props.durability;
     this.onTurnStartEffect =
-      props.onTurnStartEffect !== undefined
-        ? { ...props.onTurnStartEffect }
-        : undefined;
+      props.onTurnStartEffect !== undefined ? { ...props.onTurnStartEffect } : undefined;
     this.currentDurability = props.durability;
   }
 

@@ -13,12 +13,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import {
-  CardType,
-  Rarity,
-  Archetype,
-  Ability,
-} from "@domain/types/card-types";
+import { CardType, Rarity, Archetype, Ability } from "@domain/types/card-types";
 import type { CardId, PlayerId } from "@domain/types/card-types";
 
 // ---------------------------------------------------------------------------
@@ -75,7 +70,7 @@ describe("CardType", () => {
     const cardData: Record<string, string> = { type: "character" };
 
     // Act
-    const isCharacter = cardData["type"] === CardType.Character;
+    const isCharacter = cardData["type"] === (CardType.Character as string);
 
     // Assert
     expect(isCharacter).toBe(true);
@@ -86,9 +81,7 @@ describe("CardType", () => {
     const invalidValue = "creature"; // Terminología antigua eliminada
 
     // Act
-    const isValidCardType = Object.values(CardType).includes(
-      invalidValue as CardType
-    );
+    const isValidCardType = Object.values(CardType).includes(invalidValue as CardType);
 
     // Assert
     expect(isValidCardType).toBe(false);
@@ -185,9 +178,7 @@ describe("Archetype", () => {
     ];
 
     // Act
-    const cartoonCharacters = characters.filter(
-      (c) => c.archetype === Archetype.CartoonClasico
-    );
+    const cartoonCharacters = characters.filter((c) => c.archetype === Archetype.CartoonClasico);
 
     // Assert
     expect(cartoonCharacters).toHaveLength(2);
@@ -198,9 +189,7 @@ describe("Archetype", () => {
     const invalidArchetype = "Historico";
 
     // Act
-    const isValid = Object.values(Archetype).includes(
-      invalidArchetype as Archetype
-    );
+    const isValid = Object.values(Archetype).includes(invalidArchetype as Archetype);
 
     // Assert
     expect(isValid).toBe(false);
@@ -285,9 +274,7 @@ describe("Ability", () => {
     const invalidAbility = "poisonous";
 
     // Act
-    const isValid = Object.values(Ability).includes(
-      invalidAbility as Ability
-    );
+    const isValid = Object.values(Ability).includes(invalidAbility as Ability);
 
     // Assert
     expect(isValid).toBe(false);

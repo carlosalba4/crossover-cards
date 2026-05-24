@@ -57,7 +57,7 @@ function makeModifier(
     abilitiesGranted: Ability[];
     duration: number;
     appliedAtTurn: number;
-  }> = {}
+  }> = {},
 ): Modifier {
   return new Modifier({
     source: "test",
@@ -524,7 +524,12 @@ describe("Character.clone()", () => {
   it("el clon debería preservar todos los datos base (staticId, attack, health, abilities)", () => {
     // Arrange
     const char = new Character(
-      makeCharacterProps({ staticId: "AXE-001", attack: 6, health: 6, abilities: [Ability.Resurrection] })
+      makeCharacterProps({
+        staticId: "AXE-001",
+        attack: 6,
+        health: 6,
+        abilities: [Ability.Resurrection],
+      }),
     );
 
     // Act

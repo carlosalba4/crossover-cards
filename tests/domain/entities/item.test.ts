@@ -77,8 +77,9 @@ describe("Item — construcción", () => {
 
   it("onTurnStartEffect debería ser undefined cuando no se proporciona", () => {
     const props = makeItemProps();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { onTurnStartEffect: _omit, ...propsWithout } = props;
-    const item = new Item(propsWithout as ItemProps);
+    const item = new Item(propsWithout);
     expect(item.onTurnStartEffect).toBeUndefined();
   });
 

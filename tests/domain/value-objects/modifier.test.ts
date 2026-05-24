@@ -165,9 +165,7 @@ describe("Modifier — inmutabilidad (copia defensiva)", () => {
 describe("Modifier.isExpired() — duration === -1 (permanente)", () => {
   it("debería devolver false en cualquier turno futuro", () => {
     // Arrange — Modifier permanente: +2 ATQ de Patricio (outcome 1)
-    const modifier = new Modifier(
-      makeProps({ duration: -1, appliedAtTurn: 1 })
-    );
+    const modifier = new Modifier(makeProps({ duration: -1, appliedAtTurn: 1 }));
 
     // Act
     const expiredTurn10 = modifier.isExpired(10, 1);
@@ -180,9 +178,7 @@ describe("Modifier.isExpired() — duration === -1 (permanente)", () => {
 
   it("debería devolver false incluso cuando currentTurn === appliedAtTurn", () => {
     // Arrange
-    const modifier = new Modifier(
-      makeProps({ duration: -1, appliedAtTurn: 3 })
-    );
+    const modifier = new Modifier(makeProps({ duration: -1, appliedAtTurn: 3 }));
 
     // Act
     const result = modifier.isExpired(3, 3);
@@ -199,9 +195,7 @@ describe("Modifier.isExpired() — duration === -1 (permanente)", () => {
 describe("Modifier.isExpired() — duration === 0 (one-shot)", () => {
   it("debería devolver true inmediatamente en el mismo turno de aplicación", () => {
     // Arrange — Battlecry one-shot: roba 1 carta (outcome 6 de Patricio)
-    const modifier = new Modifier(
-      makeProps({ duration: 0, appliedAtTurn: 2 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 0, appliedAtTurn: 2 }));
 
     // Act — Turno actual = turno de aplicación
     const result = modifier.isExpired(2, 2);
@@ -212,9 +206,7 @@ describe("Modifier.isExpired() — duration === 0 (one-shot)", () => {
 
   it("debería devolver true en turnos posteriores al de aplicación", () => {
     // Arrange
-    const modifier = new Modifier(
-      makeProps({ duration: 0, appliedAtTurn: 1 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 0, appliedAtTurn: 1 }));
 
     // Act
     const result = modifier.isExpired(5, 1);
@@ -231,9 +223,7 @@ describe("Modifier.isExpired() — duration === 0 (one-shot)", () => {
 describe("Modifier.isExpired() — duration > 0 (duración finita)", () => {
   it("debería devolver false cuando no ha transcurrido el tiempo de duración", () => {
     // Arrange — Taunt temporal de 1 turno aplicado en turno 3
-    const modifier = new Modifier(
-      makeProps({ duration: 1, appliedAtTurn: 3 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 1, appliedAtTurn: 3 }));
 
     // Act — Todavía en el turno 3 (0 turnos transcurridos)
     const result = modifier.isExpired(3, 3);
@@ -244,9 +234,7 @@ describe("Modifier.isExpired() — duration > 0 (duración finita)", () => {
 
   it("debería devolver true exactamente cuando se alcanza la duración (caso borde)", () => {
     // Arrange — Modifier de 1 turno aplicado en turno 3
-    const modifier = new Modifier(
-      makeProps({ duration: 1, appliedAtTurn: 3 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 1, appliedAtTurn: 3 }));
 
     // Act — Turno 4: currentTurn - appliedAtTurn = 1 >= duration 1 → expirado
     const result = modifier.isExpired(4, 3);
@@ -257,9 +245,7 @@ describe("Modifier.isExpired() — duration > 0 (duración finita)", () => {
 
   it("debería devolver true cuando se supera la duración", () => {
     // Arrange — Modifier de 2 turnos aplicado en turno 1
-    const modifier = new Modifier(
-      makeProps({ duration: 2, appliedAtTurn: 1 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 2, appliedAtTurn: 1 }));
 
     // Act — Turno 5: 5 - 1 = 4 >= 2 → expirado
     const result = modifier.isExpired(5, 1);
@@ -270,9 +256,7 @@ describe("Modifier.isExpired() — duration > 0 (duración finita)", () => {
 
   it("debería devolver false cuando aún quedan turnos de duración", () => {
     // Arrange — Modifier de 3 turnos aplicado en turno 2
-    const modifier = new Modifier(
-      makeProps({ duration: 3, appliedAtTurn: 2 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 3, appliedAtTurn: 2 }));
 
     // Act — Turno 4: 4 - 2 = 2 < 3 → sigue activo
     const result = modifier.isExpired(4, 2);
@@ -284,9 +268,7 @@ describe("Modifier.isExpired() — duration > 0 (duración finita)", () => {
   it("debería respetar appliedAtTurn del parámetro (no el del campo interno)", () => {
     // Arrange — Probamos que el parámetro del método tiene precedencia
     // (diseño deliberado: permite reutilizar el modifier con contextos distintos)
-    const modifier = new Modifier(
-      makeProps({ duration: 1, appliedAtTurn: 1 })
-    );
+    const modifier = new Modifier(makeProps({ duration: 1, appliedAtTurn: 1 }));
 
     // Act — Le pasamos appliedAtTurn = 5, currentTurn = 5 → 0 transcurridos → NO expirado
     const result = modifier.isExpired(5, 5);

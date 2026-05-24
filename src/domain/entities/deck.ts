@@ -115,8 +115,8 @@ export class Deck {
 
       // Intercambio de posiciones
       const temp = this.cards[i];
-      this.cards[i] = this.cards[j] as Card;
-      this.cards[j] = temp as Card;
+      this.cards[i] = this.cards[j];
+      this.cards[j] = temp;
     }
   }
 

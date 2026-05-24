@@ -26,7 +26,7 @@
 import { Card } from "@domain/entities/card";
 import type { CardProps } from "@domain/entities/card";
 import type { Ability } from "@domain/types/card-types";
-import { Modifier } from "@domain/value-objects/modifier";
+import type { Modifier } from "@domain/value-objects/modifier";
 
 // ---------------------------------------------------------------------------
 // Props de construcción
@@ -155,9 +155,7 @@ export class Character extends Card {
    * @param currentTurn - Número del turno actual en la partida.
    */
   removeExpiredModifiers(currentTurn: number): void {
-    this.modifiers = this.modifiers.filter(
-      (m) => !m.isExpired(currentTurn, m.appliedAtTurn)
-    );
+    this.modifiers = this.modifiers.filter((m) => !m.isExpired(currentTurn, m.appliedAtTurn));
   }
 
   /**

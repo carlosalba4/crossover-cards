@@ -62,8 +62,9 @@ describe("Spell — construcción", () => {
   it("drawCount debería ser undefined cuando no se proporciona", () => {
     // Arrange — omitir drawCount del objeto de props
     const base = makeSpellProps();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { drawCount: _drop, ...withoutDraw } = base;
-    const spell = new Spell(withoutDraw as SpellProps);
+    const spell = new Spell(withoutDraw);
     expect(spell.drawCount).toBeUndefined();
   });
 
@@ -77,8 +78,7 @@ describe("Spell — construcción", () => {
   });
 
   it("debería generar un instanceId con formato UUID v4", () => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const spell = new Spell(makeSpellProps());
     expect(spell.instanceId).toMatch(uuidRegex);
   });
@@ -122,8 +122,9 @@ describe("Spell.clone()", () => {
   it("el clon debería preservar drawCount como undefined cuando no existe", () => {
     // Arrange
     const base = makeSpellProps();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { drawCount: _drop, ...withoutDraw } = base;
-    const spell = new Spell(withoutDraw as SpellProps);
+    const spell = new Spell(withoutDraw);
 
     // Act
     const cloned = spell.clone();
