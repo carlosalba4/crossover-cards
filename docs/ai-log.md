@@ -806,7 +806,7 @@ Cobertura objetivo 80% en cada archivo.
 **Iteraciones**:
 1. Plan del Orchestrator aprobado.
 2. Ejecución secuencial de las [N] tareas.
-3. [Si hubo correctivas]: descripción.
+3. Fixes manuales tras ejecutar tests.
 
 **Capturas asociadas**:
 - [Lista de capturas con sus paths]
