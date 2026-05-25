@@ -840,3 +840,138 @@ flujo agéntico jerárquico del proyecto. Próximo paso: Bloque IMPL-B (Capa de
 Dominio parte 2 - servicios y sistemas: TurnEngine, CombatResolver, 
 NostalgiaSystem, MomentumSystem, TribalSynergySystem, ZoneManager, 
 QuestManager, CrossoverManager).
+---
+
+### Interacción #016 — 2026-05-25 (Bloque IMPL-B: Capa de Dominio parte 2 - Tarea IMPL-007)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow /domain-dev-agent)
+- **Modelo del especialista**: Claude Sonnet 4.6 (Thinking) -> Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-007 del orquestador: definir el enum GameEvent con los 22 eventos de la arquitectura y sus tipos de payload tipados en src/domain/events/game-event.ts, y crear sus respectivos tests en 	ests/domain/events/game-event.test.ts.
+
+**Resultado**:
+- Creado archivo src/domain/events/game-event.ts con enum GameEvent exhaustivo (24 eventos) y payloads correspondientes.
+- Creado GameEventPayloadMap para relacionar cada evento con su payload, clave para la futura implementación del IEventBus.
+- Creado archivo 	ests/domain/events/game-event.test.ts con tests unitarios verificando:
+  - Existencia de 24 claves en el enum.
+  - Exhaustividad del mapa GameEventPayloadMap.
+  - Tests para cada payload verificando la estructura.
+- Verificación en verde: 
+pm run typecheck y 
+pm test tests/domain/events/game-event.test.ts.
+
+**Decisiones clave**:
+- Sin uso de interfaces de Phaser o infraestructura: los eventos de dominio se limitan a los tipos e IDs ya existentes en el dominio.
+- GameEvent contiene 24 eventos reales listados en la arquitectura, corrigiendo el enunciado de la tarea que mencionaba 22.
+- Corrección de TS6133 en game-event.test.ts añadiendo assertions y descripciones específicas para cada payload (como TurnEndedPayload, AttackDeclaredPayload, etc.) logrando el 100% de tipos y tests en verde.
+- El agente debió cambiar al modelo Gemini 3.1 Pro High por un cambio de settings durante la interacción final.
+
+**Iteraciones**:
+1. Exploración de archivos del dominio (entities, types, value-objects).
+2. Generación del código fuente.
+3. Generación de los tests.
+4. Fallo en 	ypecheck por variables no leídas y fallo en tests por conteo de eventos (24 en lugar de 22).
+5. Corrección quirúrgica aplicando uso a los payloads y ajustando la expectativa de los tests a 24. 
+6. Ejecución exitosa de 	ypecheck y 	est.
+
+---
+
+### Interacción #017 — 2026-05-25 (Bloque IMPL-B: Capa de Dominio parte 2 - Tarea IMPL-008)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow /domain-dev-agent)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-008 del orquestador: definir la interfaz del IEventBus (src/domain/events/event-bus.ts) y su test unitario simulando una implementación con mock (	ests/domain/events/event-bus.test.ts), manteniendo un desacoplamiento estricto de Phaser e Inversión de Dependencias.
+
+**Resultado**:
+- Creado archivo src/domain/events/event-bus.ts definiendo el contrato estricto de la interfaz IEventBus (on, emit, off, clear) y el tipo Unsubscribe.
+- Configurado tipado estricto en los genéricos que vincula el enum GameEvent con su GameEventPayloadMap.
+- Creado archivo 	ests/domain/events/event-bus.test.ts con una clase MockEventBus para probar que la interfaz es implementable y resuelve correctamente los tipos.
+- Verificación en verde: 
+pm run typecheck, 
+pm test tests/domain/events/event-bus.test.ts y 
+pm run lint.
+
+**Decisiones clave**:
+- La interfaz no implementa comportamiento real. Cumple el Principio de Inversión de Dependencias (DIP): la capa de presentación dependerá de la abstracción (IEventBus) y la capa de infraestructura proveerá el Singleton.
+- Resolución de tipo Function no permitida por @typescript-eslint/no-unsafe-function-type en los tests usando el tipo local AnyHandler = (payload: unknown) => void y casteos de tipo genérico handler as AnyHandler en el archivo de test para un tipado robusto.
+- Se ha documentado la exportación de Unsubscribe para desuscribir eventos devolviendo una función callback simplificada.
+
+**Iteraciones**:
+1. Lectura del ADR-005 para contexto.
+2. Generación del contrato del Event Bus.
+3. Generación de los tests de simulación mockeada de Event Bus.
+4. Fallos en lint por problemas de tipado genérico de funciones y retornos en ESLint.
+5. Fix de los tipos de ESLint usando AnyHandler = (payload: unknown) => void y el comando 
+pm run lint -- --fix para arreglar el estilo del Prettier.
+6. Ejecución final limpia de 	ypecheck, lint y 	est.
+
+---
+
+### Interacción #018 — 2026-05-25 (Bloque IMPL-B: Capa de Dominio parte 2 - Tarea IMPL-009)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow /domain-dev-agent)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-009 del orquestador: desarrollar la máquina de estados del motor de turnos (TurnEngine) empleando el patrón State de acuerdo al ADR-004. Requería la interfaz ITurnPhase, sus fases concretas (Draw, Main, Combat, End), la clase de contexto (TurnEngine) y suites de test unitarios.
+
+**Resultado**:
+- Creados los archivos del motor: 	urn-phase.ts, 	urn-engine.ts, draw-phase.ts, main-phase.ts, combat-phase.ts y end-phase.ts en src/domain/states/ y src/domain/services/.
+- Creados 5 archivos de tests correspondientes en 	ests/domain/states/ y 	ests/domain/services/.
+- TurnEngine comparte su instancia de IEventBus a través de los constructores de fases y lanza correctamente eventos de dominio (TurnStarted, PhaseChanged, TurnEnded, MatchStarted).
+- En la clase EndPhase, se invoca obligatoriamente a TurnEngine.endTurn(), lo que dispara la rotación del jugador activo, asegurando que los turnos alternen de acuerdo a los requerimientos del PRD.
+- Todas las fases evalúan acciones de tipo TurnAction, delegando comportamiento y lanzando PhaseViolationError cuando la acción actualiza reglas que no competen a la fase actual (ej. PLAY_CARD en combat-phase).
+- Verificación en verde: 
+pm run typecheck, 21 tests de Vitest, y 
+pm run lint limpios (sin ny y usando TypeScript strict).
+
+**Decisiones clave**:
+- Las clases de estado tienen un diseño en el cual instancian el siguiente estado por medio de transiciones explícitas enviadas a TurnEngine.transitionTo. Esto cumple con el patrón State descentralizado.
+- Ningún archivo depende de Phaser, ni siquiera para constantes temporales.
+- El objeto mock del IEventBus del test anterior fue reescrito de forma ligera para los tests de las fases y del motor.
+
+**Iteraciones**:
+1. Lectura del ADR-004 y secciones del documento de Arquitectura 4.1, 6.1, 6.2.
+2. Definición del contrato ITurnPhase y abstracción BaseTurnPhase en 	urn-phase.ts.
+3. Implementación de TurnEngine y las 4 fases.
+4. Generación y ejecución concurrente de las suites de prueba (5 archivos de tests).
+5. Corrección de warning TS6133 en archivo draw-phase.test.ts (import de MainPhase sin uso).
+6. Ejecución final de 	ypecheck, lint --fix y 	est, todos pasando exitosamente.
+
+---
+
+### Interacción #019 — 2026-05-25 (Bloque IMPL-B: Capa de Dominio parte 2 - Tarea IMPL-010)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow /domain-dev-agent)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-010 del orquestador: desarrollar el servicio de resolución de combates (CombatResolver) y sus pruebas unitarias. Incluir lógica de emisión de eventos de daño y destrucción, además del manejo de mecánicas clave (DivineShield, Poisonous, Stealth).
+
+**Resultado**:
+- Creado src/domain/services/combat-resolver.ts que implementa la lógica de combate mutuo basándose en stats efectivos y emitiendo AttackDeclared, AttackResolved, CharacterDestroyed y HeroDamaged.
+- Modificado src/domain/types/card-types.ts para agregar Poisonous y Stealth al enum Ability, ya que eran requeridos por la lógica y no existían en la definición base.
+- Implementado sistema funcional de rotura de Escudo Divino y de Sigilo en combate, accediendo a mutar el array de habilidades base vía casteo temporal.
+- Creada suite de test unitario 	ests/domain/services/combat-resolver.test.ts con cobertura de todos los escenarios previstos (Personaje vs Personaje, Personaje vs Héroe, Exhaustion, mecánicas especiales).
+- Verificación en verde: 
+pm run typecheck, 8 tests de Vitest, y 
+pm run lint limpios.
+
+**Decisiones clave**:
+- La validación del Taunt no se realiza en este servicio, asumiendo que la capa de Comandos es quien filtra que el jugador solo puede elegir targets obligatorios al momento de ordenar el ataque (cumpliendo estipulación PRD/Arquitectura de mantener SRP).
+- El estado mutable de Abilities (Stealth, DivineShield) se elimina con una función privada en el resolver. Técnicamente esto rompe temporalmente la propiedad eadonly pero es el único modo coherente de consumir efectos de un solo uso sin reestructurar todo el sistema de entidades existente.
+
+**Iteraciones**:
+1. Lectura de las entidades Character y Hero y eventos para entender la firma.
+2. Descubierto que Poisonous y Stealth faltaban en el enum Ability. Añadidos usando reemplazo en vivo del archivo de tipos.
+3. Creación de combat-resolver.ts.
+4. Creación de combat-resolver.test.ts mockeando el EventBus y construyendo entidades complejas a mano en las funciones helpers.
+5. Fix de error en Typecheck por uso estricto de enum (CardType.Character en lugar de string literal).
+6. Ejecución final y exitosa de las comprobaciones.

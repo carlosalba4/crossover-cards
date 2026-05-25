@@ -113,4 +113,6 @@ export enum Ability {
   InverseTaunt = "inverseTaunt",
   CrystalShield = "crystalShield",
   Resurrection = "resurrection",
+  Poisonous = "poisonous",
+  Stealth = "stealth",
 }
