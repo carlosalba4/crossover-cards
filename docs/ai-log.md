@@ -1280,3 +1280,46 @@ estáticos `assets/data/decks.json` con los 2 mazos preconstruidos del juego.
 
 **Notas**: Este JSON es consumido por el CardRepository (próximas tareas IMPL-C)
 para construir los objetos Deck en memoria al iniciar una partida.
+
+---
+
+### Interacción #029 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación/Infraestructura - Tarea IMPL-021)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-021 del orquestador: crear las interfaces puras de 
+representación de datos JSON (`CardData`, `CharacterData`, `SpellData`, `ItemData`), la clase de 
+error `DomainError`, la clase de fábrica `CardFactory` y las interfaces de los repositorios 
+(`ICardRepository`, `IDeckRepository`, `IHeroRepository`) aislados de la infraestructura.
+
+**Resultado**:
+- Creado `src/domain/types/card-data.ts` con interfaces y el tipo unión `CardData` que tipan estrictamente 
+  los esquemas de los archivos JSON (`cards.json`, `decks.json`, `heroes.json`).
+- Creado `src/domain/errors/domain-error.ts` implementando la excepción base del dominio.
+- Creado `src/domain/factories/card-factory.ts` con el método `createCard(data: CardData): Card`
+  capaz de instanciar correctamente clases base (`Character`, `Spell`, `Item`) aislando el parseo.
+- Creados `src/domain/repositories/i-card-repository.ts`, `i-deck-repository.ts` e `i-hero-repository.ts` 
+  como interfaces (promesas de lectura DTO) cumpliendo Inversión de Dependencias (DIP) sin atar al sistema 
+  de archivos real ni usar Phaser.
+- Creado `tests/domain/factories/card-factory.test.ts` que valida las correctas construcciones de los 
+  tres tipos principales y el error controlado `DomainError` cuando el tipo es extraño.
+
+**Decisiones clave**:
+- Las propiedades especiales del JSON (`abilityMeta`, `onPlayChoiceEffect`, etc.) se integraron 
+  al tipado DTO y son absorbidas transparentemente.
+- Las Interfaces de Repositorios retornan directamente el DTO (ej. `CardData`, `DeckData`) 
+  en Promises, garantizando asincronía obligatoria útil para futuros adaptadores asíncronos reales 
+  o mockeables.
+
+**Iteraciones**:
+1. Inspección de `card.ts`, `character.ts`, `spell.ts`, `item.ts` para mapear las firmas `Props`
+   que debe satisfacer la `CardFactory`.
+2. Generación del tipo unión `CardData` y exportación de todos los tipos implicados.
+3. Creación de las interfaces para `ICardRepository`, `IDeckRepository`, `IHeroRepository`.
+4. Ejecución del test suite: 4 tests en verde para CardFactory. Typecheck y linter limpios.
+
+**Notas**: Completado el diseño del Factory central del dominio para la instanciación desde los assets, 
+así como los contratos para inyección de repositorios del Bloque C.
