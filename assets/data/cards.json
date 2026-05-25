@@ -1,0 +1,387 @@
+[
+  {
+    "id": "LIC-001",
+    "name": "Pops el Gentil",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 2,
+    "rarity": "Rara",
+    "description": "Ultimo Aliento: al ser destruido, otorga +2 ATQ y +2 VID a una Personaje aliada aleatoria en el tablero.",
+    "spriteKey": "pops_card",
+    "greetingText": "La bondad nunca muere, querido amigo.",
+    "attack": 1,
+    "health": 4,
+    "abilities": ["deathrattle"],
+    "abilityMeta": {
+      "deathrattleEffect": {
+        "type": "BuffRandomAlly",
+        "attackBonus": 2,
+        "healthBonus": 2
+      }
+    }
+  },
+  {
+    "id": "LIC-002",
+    "name": "Darwin Watterson",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 2,
+    "rarity": "Comun",
+    "description": "Grito de Guerra: al ser jugado, si hay otra Personaje aliada en el tablero, esta Personaje gana +1 ATQ y +1 VID permanentemente.",
+    "spriteKey": "darwin_card",
+    "greetingText": "El equipo va primero!",
+    "attack": 2,
+    "health": 3,
+    "abilities": ["battlecry"],
+    "abilityMeta": {
+      "battlecryEffect": {
+        "type": "BuffSelfIfAlly",
+        "attackBonus": 1,
+        "healthBonus": 1,
+        "condition": "hasAllyOnBoard"
+      }
+    }
+  },
+  {
+    "id": "LIC-003",
+    "name": "Chowder",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 3,
+    "rarity": "Comun",
+    "description": "Grito de Guerra: al ser jugado, destruye una Personaje enemiga con 1 VID o menos.",
+    "spriteKey": "chowder_card",
+    "greetingText": "Tengo hambre! Y ese Personaje tiene mala pinta...",
+    "attack": 3,
+    "health": 2,
+    "abilities": ["battlecry"],
+    "abilityMeta": {
+      "battlecryEffect": {
+        "type": "DestroyEnemyIfHealthAtMost",
+        "healthThreshold": 1
+      }
+    }
+  },
+  {
+    "id": "LIC-004",
+    "name": "Patricio Estrella",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 3,
+    "rarity": "Comun",
+    "description": "Al ser jugado, recibe un Modifier aleatorio fijo de 6 outcomes posibles (RNG inyectable con seed determinista).",
+    "spriteKey": "patricio_card",
+    "greetingText": "Que esta pasando?",
+    "attack": 4,
+    "health": 3,
+    "abilities": ["randomModifier"],
+    "abilityMeta": {
+      "modifierPool": [
+        { "source": "patricio_random", "attackBonus": 2, "healthBonus": 0, "duration": -1 },
+        { "source": "patricio_random", "attackBonus": -1, "healthBonus": 0, "duration": -1 },
+        { "source": "patricio_random", "attackBonus": 0, "healthBonus": 1, "duration": -1 },
+        { "source": "patricio_random", "attackBonus": 0, "healthBonus": -1, "duration": -1 },
+        { "source": "patricio_random", "attackBonus": 0, "healthBonus": 0, "abilitiesGranted": ["taunt"], "duration": 1 },
+        { "source": "patricio_random", "attackBonus": 0, "healthBonus": 0, "abilitiesGranted": [], "oneShot": "drawCard", "duration": 0 }
+      ]
+    }
+  },
+  {
+    "id": "LIC-005",
+    "name": "Rigby",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 2,
+    "rarity": "Rara",
+    "description": "Charge. No puede atacar el turno siguiente tras haber atacado (cooldown 1 turno).",
+    "spriteKey": "rigby_card",
+    "greetingText": "YA VOOOY!",
+    "attack": 3,
+    "health": 2,
+    "abilities": ["charge"],
+    "abilityMeta": {
+      "chargeCooldownTurns": 1
+    }
+  },
+  {
+    "id": "LIC-006",
+    "name": "Jake el Perro",
+    "type": "character",
+    "archetype": "AventuraMagica",
+    "nostalgyCost": 4,
+    "rarity": "Epica",
+    "description": "Battlecry: al jugarse, el jugador elige forma permanente. Forma Ofensiva: 6 ATQ / 2 VID. Forma Defensiva: 2 ATQ / 6 VID.",
+    "spriteKey": "jake_card",
+    "greetingText": "Matematicas!",
+    "attack": 0,
+    "health": 0,
+    "abilities": ["battlecry", "chooseForm"],
+    "abilityMeta": {
+      "forms": [
+        { "id": "offensive", "attack": 6, "health": 2 },
+        { "id": "defensive", "attack": 2, "health": 6 }
+      ]
+    }
+  },
+  {
+    "id": "LIC-007",
+    "name": "Superbocata",
+    "type": "spell",
+    "archetype": "Neutral",
+    "nostalgyCost": 4,
+    "rarity": "Rara",
+    "description": "Restaura 6 PV al heroe aliado.",
+    "spriteKey": "superbocata_card",
+    "greetingText": "El sabor de la victoria... y del jamon.",
+    "effectType": "Heal",
+    "targetType": "Self",
+    "effectValue": 6
+  },
+  {
+    "id": "LIC-008",
+    "name": "Cangreburger",
+    "type": "spell",
+    "archetype": "Neutral",
+    "nostalgyCost": 2,
+    "rarity": "Comun",
+    "description": "Restaura 3 PV al heroe aliado y roba 1 carta.",
+    "spriteKey": "cangreburger_card",
+    "greetingText": "El sabor secreto!",
+    "effectType": "HealAndDraw",
+    "targetType": "Self",
+    "effectValue": 3,
+    "drawCount": 1
+  },
+  {
+    "id": "LIC-009",
+    "name": "El Poder",
+    "type": "item",
+    "archetype": "Neutral",
+    "nostalgyCost": 3,
+    "rarity": "Epica",
+    "description": "Equipable al heroe aliado. Al activarse en Fase Principal, inflige 3 danyo a TODOS los Personajes enemigos del tablero (AoE). Durabilidad 1.",
+    "spriteKey": "el_poder_card",
+    "greetingText": "El PODER!!! Que miedo...",
+    "targetType": "Hero",
+    "statModifier": {
+      "attackBonus": 0,
+      "healthBonus": 0
+    },
+    "abilityGranted": "aoeActivation",
+    "durability": 1,
+    "onActivateEffect": {
+      "type": "AoEDamageEnemies",
+      "value": 3
+    }
+  },
+  {
+    "id": "LIC-010",
+    "name": "Espada de Sangre de Demonio",
+    "type": "item",
+    "archetype": "AventuraMagica",
+    "nostalgyCost": 5,
+    "rarity": "Legendaria",
+    "description": "+5 ATQ al heroe. Al inicio de cada turno propio, el heroe recibe 1 danyo. Durabilidad 3.",
+    "spriteKey": "demon_sword_card",
+    "greetingText": "Este poder tiene un precio...",
+    "targetType": "Hero",
+    "statModifier": {
+      "attackBonus": 5,
+      "healthBonus": 0
+    },
+    "abilityGranted": null,
+    "durability": 3,
+    "onTurnStartEffect": {
+      "type": "DamageOwner",
+      "value": 1
+    }
+  },
+  {
+    "id": "AXE-001",
+    "name": "Goku",
+    "type": "character",
+    "archetype": "AnimeCombate",
+    "nostalgyCost": 7,
+    "rarity": "Legendaria",
+    "description": "Al recibir danyo que lo dejaria a 0 VID o menos, en lugar de morir, vuelve con 4 ATQ / 4 VID y gana Charge ese turno. Solo ocurre una vez por partida.",
+    "spriteKey": "goku_card",
+    "greetingText": "Kakaroto... no, espera, soy yo.",
+    "attack": 6,
+    "health": 6,
+    "abilities": ["resurrection"],
+    "abilityMeta": {
+      "resurrectionEffect": {
+        "attackAfter": 4,
+        "healthAfter": 4,
+        "grantsCharge": true,
+        "maxTimesPerGame": 1
+      }
+    }
+  },
+  {
+    "id": "AXE-002",
+    "name": "Marceline",
+    "type": "character",
+    "archetype": "AventuraMagica",
+    "nostalgyCost": 5,
+    "rarity": "Epica",
+    "description": "Drenaje (Lifesteal): al atacar a una Personaje, el heroe aliado recupera PV iguales al danyo infligido.",
+    "spriteKey": "marceline_card",
+    "greetingText": "Soy la Reina de los Vampiros, y esto me pertenece.",
+    "attack": 4,
+    "health": 5,
+    "abilities": ["lifesteal"]
+  },
+  {
+    "id": "AXE-003",
+    "name": "Fantasma Chocala",
+    "type": "character",
+    "archetype": "Sobrenatural",
+    "nostalgyCost": 3,
+    "rarity": "Rara",
+    "description": "Grito de Guerra: otorga +1 ATQ y +1 VID a una Personaje aliada aleatoria. Ademas, es inmune a hechizos enemigos durante el turno en que es jugado.",
+    "spriteKey": "fantasma_chocala_card",
+    "greetingText": "CHOCALA!",
+    "attack": 2,
+    "health": 3,
+    "abilities": ["battlecry", "spellImmunityOnPlay"],
+    "abilityMeta": {
+      "battlecryEffect": {
+        "type": "BuffRandomAlly",
+        "attackBonus": 1,
+        "healthBonus": 1
+      },
+      "spellImmunityTurns": 1
+    }
+  },
+  {
+    "id": "AXE-004",
+    "name": "Diamantino",
+    "type": "character",
+    "archetype": "AnimeCombate",
+    "nostalgyCost": 4,
+    "rarity": "Rara",
+    "description": "Escudo Cristalino: la primera vez que recibe danyo, ese danyo se reduce a la mitad (redondeado hacia abajo). Solo se activa una vez.",
+    "spriteKey": "diamantino_card",
+    "greetingText": "Mi cuerpo es como el diamante!",
+    "attack": 3,
+    "health": 5,
+    "abilities": ["crystalShield"],
+    "abilityMeta": {
+      "crystalShieldEffect": {
+        "damageReduction": 0.5,
+        "maxActivations": 1
+      }
+    }
+  },
+  {
+    "id": "AXE-005",
+    "name": "Chum Chum",
+    "type": "character",
+    "archetype": "CartoonClasico",
+    "nostalgyCost": 1,
+    "rarity": "Comun",
+    "description": "Sin habilidad. Unico 1-drop del juego.",
+    "spriteKey": "chumchum_card",
+    "greetingText": "Soy Chum Chum! Y esto es INCREIBLE!",
+    "attack": 1,
+    "health": 2,
+    "abilities": []
+  },
+  {
+    "id": "AXE-006",
+    "name": "Agallas el Perro Cobarde",
+    "type": "character",
+    "archetype": "Sobrenatural",
+    "nostalgyCost": 3,
+    "rarity": "Rara",
+    "description": "Taunt inverso: no puede ser objetivo de ataques mientras haya otra Personaje aliada en tablero. Si es el unico aliado, gana +2 ATQ permanentemente.",
+    "spriteKey": "agallas_card",
+    "greetingText": "No me hagais daaaaanyo!",
+    "attack": 2,
+    "health": 4,
+    "abilities": ["inverseTaunt"],
+    "abilityMeta": {
+      "inverseTauntEffect": {
+        "bonusAttackWhenAlone": 2
+      }
+    }
+  },
+  {
+    "id": "AXE-007",
+    "name": "Pedo Poderoso",
+    "type": "spell",
+    "archetype": "Neutral",
+    "nostalgyCost": 4,
+    "rarity": "Epica",
+    "description": "Inflige 2 danyo a TODOS los Personajes enemigos del tablero (AoE instantaneo).",
+    "spriteKey": "pedo_poderoso_card",
+    "greetingText": "...Lo siento. No lo era.",
+    "effectType": "AoEDamage",
+    "targetType": "AllEnemyCharacters",
+    "effectValue": 2
+  },
+  {
+    "id": "AXE-008",
+    "name": "Linterna Minimizadora",
+    "type": "spell",
+    "archetype": "Neutral",
+    "nostalgyCost": 3,
+    "rarity": "Rara",
+    "description": "Reduce el ATQ y VID de una Personaje enemiga objetivo a la mitad (redondeado hacia abajo) de forma permanente.",
+    "spriteKey": "linterna_minimizadora_card",
+    "greetingText": "Ahora eres... gestionable.",
+    "effectType": "HalveStats",
+    "targetType": "SingleEnemy",
+    "effectValue": 0.5
+  },
+  {
+    "id": "AXE-009",
+    "name": "Bola de Dragon",
+    "type": "item",
+    "archetype": "AnimeCombate",
+    "nostalgyCost": 5,
+    "rarity": "Legendaria",
+    "description": "Al jugarse, elige UNO: curar 5 PV al heroe aliado / infligir 5 danyo al heroe enemigo / ganar 3 Nostalgia extra este turno. Uso unico.",
+    "spriteKey": "bola_dragon_card",
+    "greetingText": "Que deseo concedemos hoy?",
+    "targetType": "Self",
+    "statModifier": {
+      "attackBonus": 0,
+      "healthBonus": 0
+    },
+    "abilityGranted": "wishChoice",
+    "durability": 1,
+    "onPlayChoiceEffect": {
+      "type": "ChooseOne",
+      "options": [
+        { "id": "heal_hero", "type": "HealHero", "value": 5 },
+        { "id": "damage_enemy_hero", "type": "DamageEnemyHero", "value": 5 },
+        { "id": "gain_nostalgy", "type": "GainNostalgy", "value": 3 }
+      ]
+    }
+  },
+  {
+    "id": "AXE-010",
+    "name": "Omnitrix",
+    "type": "item",
+    "archetype": "AnimeCombate",
+    "nostalgyCost": 4,
+    "rarity": "Legendaria",
+    "description": "Equipable al heroe (dur. 2). Al usar habilidad de heroe con el Omnitrix equipado, elige: 3 danyo a objetivo / Escudo Divino al heroe hasta el siguiente turno / robar 2 cartas. Consume 1 durabilidad por uso.",
+    "spriteKey": "omnitrix_card",
+    "greetingText": "Es hora de ser un heroe!",
+    "targetType": "Hero",
+    "statModifier": {
+      "attackBonus": 0,
+      "healthBonus": 0
+    },
+    "abilityGranted": "heroAbilityOverride",
+    "durability": 2,
+    "heroAbilityOverrideOptions": [
+      { "id": "deal_damage", "type": "DamageTarget", "value": 3 },
+      { "id": "divine_shield", "type": "GrantDivineShield", "durationTurns": 1 },
+      { "id": "draw_cards", "type": "DrawCards", "value": 2 }
+    ]
+  }
+]

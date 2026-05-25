@@ -1181,3 +1181,62 @@ o-unused-vars).
 esolveAttack() con los parámetros ampliados (incluyendo IDs de los jugadores para emisión de eventos exactos).
 3. Purgado de configuraciones eslint y resolución de errores de inyección del mock de HeroPower en las interfaces TypeScript.
 4. Validación definitiva: Typecheck limpio, Vitest pasando los tests al 100% integrando todo el Dominio, y eslint --fix asegurando zero-warnings.
+
+---
+
+### Interacción #027 — 2026-05-25 (Bloque IMPL-C: Assets JSON - Tarea IMPL-018)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Claude Sonnet 4.6 Thinking
+
+**Objetivo**: Implementar la Tarea IMPL-018 del orquestador: crear el archivo de datos estáticos
+`assets/data/cards.json` con las 20 cartas del catálogo definitivo del juego Crossover Cards,
+siguiendo el esquema JSON de la sección 9 de `docs/04-card-catalog.md` y la estrategia de
+identificadores del ADR-006.
+
+**Resultado**:
+- `assets/data/cards.json` creado (388 líneas, ~12 KB) con los 20 objetos de carta.
+- Mazo El Lich: LIC-001 (Pops el Gentil), LIC-002 (Darwin Watterson), LIC-003 (Chowder),
+  LIC-004 (Patricio Estrella), LIC-005 (Rigby), LIC-006 (Jake el Perro), LIC-007 (Superbocata),
+  LIC-008 (Cangreburger), LIC-009 (El Poder), LIC-010 (Espada de Sangre de Demonio).
+- Mazo Axel Blaze: AXE-001 (Goku), AXE-002 (Marceline), AXE-003 (Fantasma Chocala),
+  AXE-004 (Diamantino), AXE-005 (Chum Chum), AXE-006 (Agallas el Perro Cobarde),
+  AXE-007 (Pedo Poderoso), AXE-008 (Linterna Minimizadora), AXE-009 (Bola de Dragon),
+  AXE-010 (Omnitrix).
+- Todos los 20 IDs son únicos y siguen el patrón estático del ADR-006 (`LIC-XXX` / `AXE-XXX`).
+- Campo `type` en minúsculas (`"character"` | `"spell"` | `"item"`) según nomenclatura canónica.
+- Valores numéricos (`nostalgyCost`, `attack`, `health`, `durability`, `effectValue`, etc.)
+  representados como `number`, no como `string`.
+- Campos `spriteKey` y `greetingText` presentes en todas las cartas.
+- `abilityMeta` de Patricio Estrella con pool de 6 modificadores (RNG inyectable) copiado
+  literalmente del esquema JSON de la sección 9.4 del catálogo.
+- Objetos equipables (LIC-009, LIC-010, AXE-009, AXE-010) con campos `durability`,
+  `targetType`, `statModifier` y efectos de activación/turno según sus fichas.
+
+**Decisiones clave**:
+- IDs estáticos en formato `LIC-XXX` / `AXE-XXX` según ADR-006 (entidades estáticas de
+  configuración JSON = strings legibles por humanos). Las instancias dinámicas en partida
+  recibirán UUID v4 al instanciarse (no en el JSON).
+- Jake el Perro (LIC-006): `attack: 0, health: 0` porque los stats reales se fijan en
+  tiempo de juego al elegir forma. El CardFactory leerá `abilityMeta.forms`.
+- `effectValue: 0.5` en Linterna Minimizadora (número decimal) representa el factor de
+  reducción del 50% aplicado al ATQ y VID del objetivo.
+- Habilidad `spellImmunityOnPlay` de Fantasma Chocala modelada como ability string;
+  duración concreta en `abilityMeta.spellImmunityTurns: 1`.
+
+**Iteraciones**:
+1. Lectura de `docs/04-card-catalog.md` (secciones 5, 6, 8 y 9) y
+   `docs/decisions/ADR-006-estrategia-identificadores.md`.
+2. Verificación de estructura de `assets/` para localizar el directorio destino.
+3. Generación del JSON completo con las 20 cartas en un único bloque.
+4. Verificación visual del archivo creado: 388 líneas, 20 objetos, IDs únicos.
+
+**Capturas asociadas**:
+- (pendiente de captura manual del archivo generado en VS Code)
+
+**Notas**: Este JSON es la fuente de verdad de datos estáticos para el CardFactory
+(próximas tareas del bloque IMPL-C). Cualquier agente que importe cartas debe leer
+este archivo, nunca hardcodear datos de carta en TypeScript. El test de validación
+de IDs únicos (previsto en ADR-006) se generará en la tarea del Tester-Agent.
