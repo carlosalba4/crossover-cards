@@ -115,4 +115,5 @@ export enum Ability {
   Resurrection = "resurrection",
   Poisonous = "poisonous",
   Stealth = "stealth",
+  HealHeroOnAttack = "healHeroOnAttack",
 }

@@ -253,7 +253,7 @@ describe("Ability", () => {
     const uniqueValues = new Set(values);
 
     // Assert
-    expect(uniqueValues.size).toBe(11);
+    expect(uniqueValues.size).toBe(14);
   });
 
   it("debería permitir comprobar si un Personaje tiene Charge (caso de uso real)", () => {
@@ -269,13 +269,11 @@ describe("Ability", () => {
     expect(hasTaunt).toBe(false);
   });
 
-  it("no debería incluir 'poisonous' como habilidad válida (caso borde)", () => {
+  it("no debería incluir un valor inexistente como habilidad válida (caso borde)", () => {
     // Arrange
-    const invalidAbility = "poisonous";
-
+    const invalidAbility = "mindControl";
     // Act
     const isValid = Object.values(Ability).includes(invalidAbility as Ability);
-
     // Assert
     expect(isValid).toBe(false);
   });
