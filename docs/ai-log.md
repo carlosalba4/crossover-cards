@@ -1240,3 +1240,43 @@ identificadores del ADR-006.
 (próximas tareas del bloque IMPL-C). Cualquier agente que importe cartas debe leer
 este archivo, nunca hardcodear datos de carta en TypeScript. El test de validación
 de IDs únicos (previsto en ADR-006) se generará en la tarea del Tester-Agent.
+
+---
+
+### Interacción #028 — 2026-05-25 (Bloque IMPL-C: Assets JSON - Tarea IMPL-019)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Claude Sonnet 4.6 Thinking
+
+**Objetivo**: Implementar la Tarea IMPL-019 del orquestador: crear el archivo de datos
+estáticos `assets/data/decks.json` con los 2 mazos preconstruidos del juego.
+
+**Verificación previa**: Se confirmó que los 20 cardId referenciados existen en
+`assets/data/cards.json`: LIC-001..LIC-010 y AXE-001..AXE-010.
+
+**Resultado**:
+- `assets/data/decks.json` creado con 2 objetos de mazo:
+  - `DECK-LICH-01` (heroId: HERO-001): 10 cartas LIC-001 a LIC-010, quantity: 1 cada una.
+  - `DECK-AXEL-01` (heroId: HERO-002): 10 cartas AXE-001 a AXE-010, quantity: 1 cada una.
+- Estructura de cada carta en el mazo: `{ cardId: string, quantity: number }`.
+- Todos los `cardId` referencian IDs estáticos existentes en `cards.json` (verificado).
+- `quantity: 1` para todas las cartas (mazos preconstruidos cerrados sin duplicados).
+
+**Decisiones clave**:
+- `quantity` representado como `number`, no como `string`, por coherencia con el esquema.
+- IDs de mazo con prefijo `DECK-` siguiendo el patrón estático del ADR-006.
+- `heroId` referencia los IDs estáticos de héroes (`HERO-001`, `HERO-002`) que se
+  definirán en `assets/data/heroes.json` en la siguiente tarea del bloque IMPL-C.
+
+**Iteraciones**:
+1. Verificación de los 20 IDs en `assets/data/cards.json`.
+2. Generación del JSON completo con los 2 mazos.
+3. Verificación visual del archivo creado.
+
+**Capturas asociadas**:
+- (pendiente de captura manual del archivo generado en VS Code)
+
+**Notas**: Este JSON es consumido por el CardRepository (próximas tareas IMPL-C)
+para construir los objetos Deck en memoria al iniciar una partida.

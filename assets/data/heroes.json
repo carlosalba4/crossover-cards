@@ -1,0 +1,29 @@
+[
+  {
+    "id": "HERO-001",
+    "name": "El Lich",
+    "archetype": "AventuraMagica",
+    "maxHealth": 30,
+    "heroPower": {
+      "name": "Hechizo Ancestral",
+      "cost": 2,
+      "effectType": "Damage",
+      "targetType": "Any",
+      "value": 2
+    }
+  },
+  {
+    "id": "HERO-002",
+    "name": "Axel Blaze",
+    "archetype": "AnimeCombate",
+    "maxHealth": 30,
+    "heroPower": {
+      "name": "Tornado de Fuego",
+      "cost": 2,
+      "effectType": "BuffAttack",
+      "targetType": "AllyCharacter",
+      "value": 2,
+      "duration": "EndOfTurn"
+    }
+  }
+]
