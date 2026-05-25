@@ -1465,3 +1465,56 @@ tanto para el Dominio como para la Aplicación, y definir la interfaz principal 
 4. QA Exitosa: Typecheck en verde. Linter sin incidencias.
 
 **Notas**: A partir de este momento, todos los Casos de Uso (PlayCard, EndTurn, UseHeroPower) que se generarán tendrán una interfaz Command y resultados tipados y estructurados.
+
+---
+
+### Interacción #034 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación - Tarea IMPL-027)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Claude Sonnet 4.6 (Thinking)
+
+**Objetivo**: Implementar la Tarea IMPL-027 del orquestador: desarrollar `PlayCardCommand`
+como el primer caso de uso concreto del patrón Command, cubriendo la acción de jugar una
+carta desde la mano del jugador activo.
+
+**Resultado**:
+- Creado `src/domain/entities/match.ts` como aggregate raíz de estado de la partida.
+  Contiene `PlayerState` (mano, tablero, vida del héroe) para ambos jugadores,
+  la fase actual y el jugador activo. Expone helpers `getActivePlayer()`, 
+  `getTotalBoardCount()` y `addCharacterToBoard()`.
+- Creado `src/application/commands/play-card-command.ts` implementando `ICommand`.
+  La secuencia de validaciones sigue un "guard clause" estricto:
+  1. Fase activa debe ser "main" → lanza `PhaseViolationError`.
+  2. Carta encontrada en mano → lanza `CardNotInHandError`.
+  3. Nostalgia disponible suficiente → lanza `InsufficientNostalgiaError`.
+  4. Tablero no lleno (Character) → lanza `BoardFullError`.
+  Si todo pasa: retira carta de mano, descuenta Nostalgia, coloca en tablero
+  (Character) o emite evento de Spell/Item, y retorna `CommandResult` con éxito.
+- Creado `tests/application/commands/play-card-command.test.ts` con 7 tests AAA:
+  - Éxito jugando Character (emite CardPlayed + CharacterSummoned + NostalgiaChanged).
+  - Éxito con Character con Charge (no queda exhausto).
+  - Éxito jugando Spell (emite SpellCast, no ocupa tablero).
+  - Fallo por fase incorrecta (PhaseViolationError).
+  - Fallo por Nostalgia insuficiente (InsufficientNostalgiaError).
+  - Fallo por tablero lleno (BoardFullError).
+  - Fallo por carta no en mano (CardNotInHandError).
+
+**Decisiones clave**:
+- `Match` se creó como aggregate de estado (no service) en el dominio, para que
+  los comandos puedan leer y mutar el estado de manera directa y sincrónica.
+- La resolución de efectos de Spell e Item solo emite eventos; la lógica real
+  se delega a servicios especializados (separación de responsabilidades, SRP).
+- Se usó `vi.mocked(eventBus.emit)` con `// eslint-disable-next-line` puntual
+  para cumplir con la regla `@typescript-eslint/unbound-method` sin comprometer
+  la legibilidad del test.
+
+**Iteraciones**:
+1. Exploración de entidades existentes (Character, Spell, Item, Hand, TurnEngine).
+2. Creación de `Match` como aggregate raíz con helpers de acceso.
+3. Implementación del comando con guardas en cascada.
+4. Tests con mock del IEventBus y NostalgiaSystem real.
+5. Corrección de `import type` vs `import` en el comando.
+6. Corrección de `unbound-method` con `vi.mocked()` y directiva puntual.
+7. QA final limpia: 7 tests en verde, typecheck y lint sin errores.
