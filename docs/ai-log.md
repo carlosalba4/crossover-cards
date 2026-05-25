@@ -1394,3 +1394,40 @@ una implementación concreta de la interfaz `IDeckRepository`, recuperando los m
 3. Ejecución de suite de testeo exitosa y autoformateo mínimo sugerido por ESLint/Prettier.
 
 **Notas**: Con esta pieza el motor tiene la capacidad para instanciar mazos completos en la memoria de la partida.
+
+---
+
+### Interacción #032 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación/Infraestructura - Tarea IMPL-024)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-024 del orquestador: desarrollar `JsonHeroRepository` como
+una implementación concreta de la interfaz `IHeroRepository`, consumiendo los datos de `assets/data/heroes.json`.
+
+**Resultado**:
+- Creado `src/infrastructure/repositories/json-hero-repository.ts` implementando la lectura e hidratación
+  de héroes (`HeroData`).
+- Preservada la convención de caché en memoria usada en los demás repositorios para mitigar cuellos 
+  de botella en la serialización repetitiva de los recursos estáticos.
+- Creado `tests/infrastructure/repositories/json-hero-repository.test.ts` que simula la función global
+  `fetch` inyectando estáticamente las identidades ("El Lich" y "Axel Blaze").
+- Confirmado exitosamente que `getById("HERO-001")` retorna al héroe "El Lich" incluyendo el mapeo estricto
+  del `heroPower` con los campos necesarios (coste de nostalgia, tipos de efecto y objetivo, duración, etc).
+- Validado el robusto manejo de errores HTTP y problemas de red levantando `InfrastructureError`.
+
+**Decisiones clave**:
+- La respuesta HTTP obtenida en el JSON crudo fue casteada directamente con seguridad `as unknown as HeroData[]` 
+  para evitar problemas de strict-typechecking (`no-unsafe-assignment`) que reporta ESLint.
+
+**Iteraciones**:
+1. Implementación de la clase `JsonHeroRepository` y suite de pruebas `vitest`.
+2. Ejecución automatizada de QA (`typecheck`, `test`, `lint`).
+3. Autoformateo menor ejecutado mediante el CLI de linter (`prettier`).
+4. Aprobación final: Zero advertencias. 4 tests en verde en menos de 10 milisegundos.
+
+**Notas**: Con la finalización de esta tarea, la triada de dependencias principales del Bloque C está completada
+(`CardRepository`, `DeckRepository` y `HeroRepository`). Todo preparado para inyectar estos adaptadores en la 
+lógica de la partida (como `Match` o un eventual `GameController`).
