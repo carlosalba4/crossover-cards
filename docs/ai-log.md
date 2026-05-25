@@ -1518,3 +1518,36 @@ carta desde la mano del jugador activo.
 5. Corrección de `import type` vs `import` en el comando.
 6. Corrección de `unbound-method` con `vi.mocked()` y directiva puntual.
 7. QA final limpia: 7 tests en verde, typecheck y lint sin errores.
+
+---
+
+### Interacción #035 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación - Tarea IMPL-028)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-028 del orquestador: desarrollar `AttackCommand` y `EndTurnCommand` en la capa de aplicación, encargándose de las validaciones contextuales de turno y orquestando las llamadas a los servicios del dominio.
+
+**Resultado**:
+- Creado `src/application/commands/attack-command.ts` que implementa `ICommand`.
+  - Verifica que la fase sea "combat".
+  - Verifica exhaustividad del atacante (si tiene charge/ha atacado).
+  - Verifica condición de "Taunt" / Provocación (impide atacar objetivos regulares si hay Taunt enemigo en el tablero).
+  - Delega el cálculo y resolución del daño al `CombatResolver`.
+  - Limpia muertos del tablero mutando la entidad `Match`.
+- Creado `src/application/commands/end-turn-command.ts` que implementa `ICommand`.
+  - Verifica que estemos en fase "main" o "combat".
+  - Verifica pertenencia del turno (solo el jugador activo lo puede pasar).
+  - Efectúa la transición de la state-machine forzando a `EndPhase` y enviando la acción `END_TURN`.
+- Creados sendos archivos de tests en `tests/application/commands/` cubriendo los casos AAA exitosos y las ramificaciones de validaciones semánticas fallidas.
+- Linter limpiado de "unused parameters" a través de prefijos con `_`.
+
+**Iteraciones**:
+1. Inspección de `CombatResolver` y `Match` para entender la API.
+2. Expansión de `Match` agregando helpers utilitarios como `findCharacterOnBoard`, `getAllBoardCharacters` y `removeCharacterFromBoard`.
+3. Implementación pura de ambos comandos.
+4. Generación de dos suites de testing rigurosas.
+5. Pase QA resolviendo pequeñas advertencias del Linter por dependencias/parámetros inutilizados pero provistos para el contrato de la interfaz.
+

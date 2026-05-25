@@ -77,4 +77,31 @@ export class Match {
   ): void {
     player.board[zone].push(character);
   }
+
+  /**
+   * Busca un Personaje por instanceId en el tablero de un jugador.
+   */
+  findCharacterOnBoard(player: PlayerState, instanceId: string): Character | null {
+    for (const zone of ["left", "center", "right"] as (keyof PlayerBoard)[]) {
+      const found = player.board[zone].find((c) => c.instanceId === instanceId);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  /**
+   * Devuelve todos los Personajes del tablero de un jugador (todas las zonas).
+   */
+  getAllBoardCharacters(player: PlayerState): Character[] {
+    return [...player.board.left, ...player.board.center, ...player.board.right];
+  }
+
+  /**
+   * Elimina un Personaje destruido del tablero de un jugador.
+   */
+  removeCharacterFromBoard(player: PlayerState, instanceId: string): void {
+    for (const zone of ["left", "center", "right"] as (keyof PlayerBoard)[]) {
+      player.board[zone] = player.board[zone].filter((c) => c.instanceId !== instanceId);
+    }
+  }
 }
