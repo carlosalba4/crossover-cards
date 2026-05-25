@@ -1366,3 +1366,31 @@ cartas mediante fetch al asset `assets/data/cards.json` optimizado con una cach�
 
 **Notas**: Con esta implementación, la infraestructura es capaz de dotar a los motores de juego y lógica con la
 verdad estática del JSON. El siguiente paso natural es crear repositorios análogos para Decks y Heroes.
+
+---
+
+### Interacción #031 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación/Infraestructura - Tarea IMPL-023)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-023 del orquestador: desarrollar `JsonDeckRepository` como
+una implementación concreta de la interfaz `IDeckRepository`, recuperando los mazos desde `assets/data/decks.json`.
+
+**Resultado**:
+- Creado `src/infrastructure/repositories/json-deck-repository.ts` implementando la lectura de `decks.json`.
+- Mantiene, al igual que el repositorio de cartas, un buffer interno en memoria (`cache`) que ahorra futuras llamadas de red.
+- Creado `tests/infrastructure/repositories/json-deck-repository.test.ts` que simula (mock) las peticiones `fetch`.
+- Los tests avalan la correcta lectura, el filtro exitoso con `getById()` y el comportamiento resiliente si el `fetch` falla, arrojando el correspondiente `InfrastructureError`.
+
+**Decisiones clave**:
+- La técnica de casteo de tipos para la lectura del JSON fue aplicada directamente a `unknown` mitigando advertencias tempranas del linter.
+
+**Iteraciones**:
+1. Implementación de la clase repositora imitando la estructura asíncrona de `JsonCardRepository`.
+2. Mockeo global de la función fetch para inyectar JSON controlados (`mockDecks`).
+3. Ejecución de suite de testeo exitosa y autoformateo mínimo sugerido por ESLint/Prettier.
+
+**Notas**: Con esta pieza el motor tiene la capacidad para instanciar mazos completos en la memoria de la partida.
