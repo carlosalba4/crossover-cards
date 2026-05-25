@@ -1323,3 +1323,46 @@ error `DomainError`, la clase de fábrica `CardFactory` y las interfaces de los 
 
 **Notas**: Completado el diseño del Factory central del dominio para la instanciación desde los assets, 
 así como los contratos para inyección de repositorios del Bloque C.
+
+---
+
+### Interacción #030 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación/Infraestructura - Tarea IMPL-022)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-022 del orquestador: desarrollar `JsonCardRepository` como
+una implementación concreta de la interfaz `ICardRepository`, encargada de recuperar el pool de 
+cartas mediante fetch al asset `assets/data/cards.json` optimizado con una caché interna en memoria.
+
+**Resultado**:
+- Creado `src/infrastructure/errors/infrastructure-error.ts` para capturar explícitamente fallos 
+  técnicos fuera del alcance del dominio (ej. errores de red o parseo).
+- Implementado `src/infrastructure/repositories/json-card-repository.ts` que cumple con la interfaz.
+  - Al invocar `getAll()`, lanza un fetch HTTP nativo la primera vez y guarda el resultado en `cache`.
+  - Las invocaciones subsecuentes a `getAll()`, `getById()` y `getByArchetype()` reutilizan la caché.
+  - Emite excepciones `InfrastructureError` si la respuesta HTTP no es exitosa (`!response.ok`) o 
+    si el fetch es rechazado (sin red).
+- Creado `tests/infrastructure/repositories/json-card-repository.test.ts` con 5 tests unitarios.
+  - Simulada exitosamente la carga asíncrona mediante un stub sobre la función global `fetch` 
+    (`vi.stubGlobal('fetch', ...)`).
+  - Verificada la no duplicidad de llamadas gracias a la caché interna.
+
+**Decisiones clave**:
+- La caché en memoria no necesita purgarse en el ciclo de vida del juego (las cartas estáticas son inmutables 
+  por definición según arquitectura).
+- Se garantizó la estricta tipificación mitigando todo uso de `any` no seguro reportado por `@typescript-eslint` 
+  con conversiones cuidadosas a `unknown` y validación tipada.
+
+**Iteraciones**:
+1. Creación de la clase de error base `InfrastructureError`.
+2. Implementación completa del repositorio `JsonCardRepository`.
+3. Creación del suite de test de infraestructura con stubs globales.
+4. Resolución y ajuste de varios errores del linter (`@typescript-eslint/no-unsafe-assignment`) que fallaron en
+   la compilación inicial, reemplazando `any` con `unknown` o limitando los chequeos en tests de estrés forzado.
+5. Verificación final: todos los checks (Typecheck, Vitest y Eslint) ejecutan y pasan al 100%.
+
+**Notas**: Con esta implementación, la infraestructura es capaz de dotar a los motores de juego y lógica con la
+verdad estática del JSON. El siguiente paso natural es crear repositorios análogos para Decks y Heroes.

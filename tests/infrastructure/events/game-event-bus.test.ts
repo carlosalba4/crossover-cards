@@ -11,7 +11,7 @@ describe("GameEventBus (Infrastructure)", () => {
     // Aseguramos un estado limpio invocando el reset
     GameEventBus.resetInstance();
     eventBus = GameEventBus.getInstance();
-    
+
     // Suprimimos console.warn y console.error para no ensuciar la salida del test,
     // ya que algunos tests generarán estos logs intencionalmente.
     vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -49,7 +49,7 @@ describe("GameEventBus (Infrastructure)", () => {
     // Arrange
     const handler = vi.fn();
     const payload: TurnEndedPayload = { playerId: "player-1", turnNumber: 2 };
-    
+
     // Act
     const unsubscribe = eventBus.on(GameEvent.TurnEnded, handler);
     unsubscribe(); // Equivalente a eventBus.off(GameEvent.TurnEnded, handler)
@@ -83,9 +83,9 @@ describe("GameEventBus (Infrastructure)", () => {
     // Arrange
     const handler = vi.fn();
     const payload: TurnEndedPayload = { playerId: "player-1", turnNumber: 2 };
-    
+
     eventBus.on(GameEvent.TurnEnded, handler);
-    
+
     // Act
     GameEventBus.resetInstance(); // Internamente llama a clear()
     const newBus = GameEventBus.getInstance();
@@ -98,7 +98,7 @@ describe("GameEventBus (Infrastructure)", () => {
   it("debería bloquear emisiones recursivas dentro de un handler sin lanzar excepción", () => {
     // Arrange
     const payload: TurnEndedPayload = { playerId: "player-1", turnNumber: 2 };
-    
+
     const recursiveHandler = vi.fn(() => {
       // Intento de emitir mientras ya se está procesando una emisión
       eventBus.emit(GameEvent.TurnEnded, payload);

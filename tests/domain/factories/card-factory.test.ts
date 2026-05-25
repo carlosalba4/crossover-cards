@@ -76,8 +76,8 @@ describe("CardFactory", () => {
       durability: 3,
       onTurnStartEffect: {
         type: "DamageOwner",
-        value: 1
-      }
+        value: 1,
+      },
     };
 
     const card = CardFactory.createCard(data);
@@ -91,7 +91,8 @@ describe("CardFactory", () => {
   });
 
   it("debería lanzar un DomainError si el tipo es desconocido", () => {
-    const data = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = {
       id: "ERR-001",
       name: "Error Card",
       type: "invalid_type",
@@ -101,9 +102,11 @@ describe("CardFactory", () => {
       description: "Test",
       spriteKey: "test",
       greetingText: "test",
-    } as any;
+    };
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     expect(() => CardFactory.createCard(data)).toThrowError(DomainError);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     expect(() => CardFactory.createCard(data)).toThrowError("Unknown card type: invalid_type");
   });
 });

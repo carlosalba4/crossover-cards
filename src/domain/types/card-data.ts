@@ -1,4 +1,4 @@
-import { CardType, Archetype, Rarity, Ability } from "./card-types";
+import type { CardType, Archetype, Rarity, Ability } from "./card-types";
 
 export interface BaseCardData {
   id: string;
@@ -17,7 +17,7 @@ export interface CharacterData extends BaseCardData {
   attack: number;
   health: number;
   abilities: Ability[];
-  abilityMeta?: Record<string, any>;
+  abilityMeta?: Record<string, unknown>;
 }
 
 export interface SpellData extends BaseCardData {
@@ -41,9 +41,9 @@ export interface ItemData extends BaseCardData {
     type: string;
     value: number;
   };
-  onPlayChoiceEffect?: Record<string, any>;
-  onActivateEffect?: Record<string, any>;
-  heroAbilityOverrideOptions?: any[];
+  onPlayChoiceEffect?: Record<string, unknown>;
+  onActivateEffect?: Record<string, unknown>;
+  heroAbilityOverrideOptions?: unknown[];
 }
 
 export type CardData = CharacterData | SpellData | ItemData;

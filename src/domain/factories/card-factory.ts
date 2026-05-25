@@ -1,4 +1,4 @@
-import { Card } from "@domain/entities/card";
+import type { Card } from "@domain/entities/card";
 import { Character, type CharacterProps } from "@domain/entities/character";
 import { Spell, type SpellProps } from "@domain/entities/spell";
 import { Item, type ItemProps } from "@domain/entities/item";
@@ -10,14 +10,16 @@ export class CardFactory {
   public static createCard(data: CardData): Card {
     switch (data.type) {
       case CardType.Character:
-        return this.createCharacter(data as CharacterData);
+        return this.createCharacter(data);
       case CardType.Spell:
-        return this.createSpell(data as SpellData);
+        return this.createSpell(data);
       case CardType.Item:
-        return this.createItem(data as ItemData);
+        return this.createItem(data);
       default:
         // Type casting to handle potential invalid inputs from external data
-        throw new DomainError(`Unknown card type: ${(data as any).type}`);
+        throw new DomainError(
+          `Unknown card type: ${String((data as Record<string, unknown>).type)}`,
+        );
     }
   }
 

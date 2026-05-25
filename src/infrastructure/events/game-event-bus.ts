@@ -146,10 +146,7 @@ export class GameEventBus implements IEventBus {
         try {
           handler(payload);
         } catch (error) {
-          console.error(
-            `[GameEventBus] Error en handler del evento "${key}":`,
-            error,
-          );
+          console.error(`[GameEventBus] Error en handler del evento "${key}":`, error);
         }
       }
     } finally {
@@ -169,10 +166,7 @@ export class GameEventBus implements IEventBus {
    * @param event   - Evento del que se elimina el handler.
    * @param handler - Referencia exacta a la función handler a eliminar.
    */
-  off<E extends GameEvent>(
-    event: E,
-    handler: (payload: GameEventPayloadMap[E]) => void,
-  ): void {
+  off<E extends GameEvent>(event: E, handler: (payload: GameEventPayloadMap[E]) => void): void {
     const key = event as string;
     const eventHandlers = this.handlers.get(key);
 
