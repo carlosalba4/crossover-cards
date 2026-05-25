@@ -9,15 +9,7 @@ export interface TurnAction {
   payload?: unknown;
 }
 
-/**
- * Error lanzado cuando se intenta una acción no permitida en la fase actual.
- */
-export class PhaseViolationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "PhaseViolationError";
-  }
-}
+export { PhaseViolationError } from "@domain/errors/phase-violation-error";
 
 /**
  * Contrato para las fases del motor de turnos (State Pattern).

@@ -1431,3 +1431,37 @@ una implementación concreta de la interfaz `IHeroRepository`, consumiendo los d
 **Notas**: Con la finalización de esta tarea, la triada de dependencias principales del Bloque C está completada
 (`CardRepository`, `DeckRepository` y `HeroRepository`). Todo preparado para inyectar estos adaptadores en la 
 lógica de la partida (como `Match` o un eventual `GameController`).
+
+---
+
+### Interacción #033 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación/Infraestructura - Tarea IMPL-026)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-026 del orquestador: establecer la jerarquía formal de errores
+tanto para el Dominio como para la Aplicación, y definir la interfaz principal del patrón Command.
+
+**Resultado**:
+- Creados los errores de Dominio en `src/domain/errors/` extendiendo `DomainError`:
+  - `InsufficientNostalgiaError`
+  - `PhaseViolationError`
+  - `InvalidTargetError`
+  - `BoardFullError`
+  - `CardNotInHandError`
+- Refactorizados `nostalgia-system.ts` y `turn-phase.ts` que declaraban sus errores `inline`, moviéndolos a su propio fichero e importándolos/re-exportándolos para evitar romper los tests y la interfaz expuesta al resto del proyecto.
+- Creada la clase base `ApplicationError` en `src/application/errors/application-error.ts` que incluye un
+  campo `code: string`.
+- Creadas las excepciones derivadas de Aplicación: `InvalidCommandError` y `PlayerNotFoundError`.
+- Construido el cimiento del Patrón Command mediante `src/application/commands/i-command.ts`, que expone 
+  la firma determinística `execute(): CommandResult` siendo `CommandResult` poseedor del estatus, error y los eventos emitidos.
+
+**Iteraciones**:
+1. Inspección general de errores preexistentes (con la herramienta `grep_search`).
+2. Generación iterativa de las jerarquías de clase asegurando la correcta herencia extendiendo las clases de Error en TS mediante la restauración del prototipo `Object.setPrototypeOf(this, new.target.prototype)`.
+3. Corrección de una falla en Typecheck por la omisión del "binding" al usar el atajo `export { x } from y` para un error que se usaba localmente en el archivo.
+4. QA Exitosa: Typecheck en verde. Linter sin incidencias.
+
+**Notas**: A partir de este momento, todos los Casos de Uso (PlayCard, EndTurn, UseHeroPower) que se generarán tendrán una interfaz Command y resultados tipados y estructurados.

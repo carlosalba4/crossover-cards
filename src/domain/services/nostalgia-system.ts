@@ -1,16 +1,8 @@
 import type { IEventBus } from "@domain/events/event-bus";
 import { GameEvent } from "@domain/events/game-event";
 
-/**
- * Error lanzado cuando un jugador intenta realizar una acción
- * para la cual no tiene suficiente Nostalgia disponible.
- */
-export class InsufficientNostalgiaError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "InsufficientNostalgiaError";
-  }
-}
+import { InsufficientNostalgiaError } from "@domain/errors/insufficient-nostalgia-error";
+export { InsufficientNostalgiaError };
 
 /**
  * Estado interno de Nostalgia para un jugador.
