@@ -1579,3 +1579,34 @@ carta desde la mano del jugador activo.
 4. Implementación y tests de los comandos de la tarea.
 5. Pase QA global sin warnings.
 
+
+---
+
+### Interacción #037 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación - Tarea IMPL-032)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-032 del orquestador: desarrollar `DeckService` en la capa de aplicación. Este servicio debe orquestar la obtención de datos de los repositorios (`IDeckRepository`, `ICardRepository`) y el uso de `CardFactory` para instanciar un `Deck` válido del dominio.
+
+**Resultado**:
+- Creado `src/application/services/deck-service.ts`.
+  - Inyecta `IDeckRepository` e `ICardRepository`.
+  - Implementa el método asíncrono `buildDeck(deckId: string): Promise<Deck>`.
+  - Valida la existencia del mazo y de cada carta requerida, arrojando `ApplicationError` ("DECK_NOT_FOUND", "CARD_NOT_FOUND") si fallan.
+  - Genera y retorna un `Deck` del dominio poblado de entidades reales.
+- Creado `tests/application/services/deck-service.test.ts`.
+  - Configurados mocks nativos de Vitest (`vi.fn().mockImplementation`) para simular los repositorios y la base de datos JSON de cartas y mazos.
+  - Testeado el camino exitoso, comprobando mediante `deck.draw()` que las instancias devueltas son verdaderamente entidades `Character` o `Spell` procedentes del `CardFactory`.
+  - Testeados los casos de error (mazo no encontrado, carta referenciada no existe).
+
+**Iteraciones**:
+1. Inspección de `IDeckRepository`, `ICardRepository` y `CardFactory` para comprender el contrato de las interfaces.
+2. Implementación pura de `DeckService`.
+3. Implementación de la suite de testing mockeando asíncronamente las interfaces.
+4. Pase QA que detectó advertencias del linter relativas a funciones asíncronas innecesarias (`@typescript-eslint/require-await`).
+5. Corrección de los tests devolviendo directamente `Promise.resolve(...)` para calmar al compilador estricto.
+6. Auto-Fix final de Prettier. Todo en verde.
+
