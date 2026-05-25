@@ -14,6 +14,7 @@ import { PlayCardCommand } from "@application/commands/play-card-command";
 import { AttackCommand } from "@application/commands/attack-command";
 import { EndTurnCommand } from "@application/commands/end-turn-command";
 import { GameEvent } from "@domain/events/game-event";
+import type { GameAction } from "@application/types/game-action";
 
 export class MatchService {
   private currentMatch: Match | null = null;
@@ -128,14 +129,8 @@ export class MatchService {
     return this.currentMatch;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public handlePlayerAction(action: any): CommandResult {
-    if (
-      !this.currentMatch ||
-      !this.turnEngine ||
-      !this.combatResolver ||
-      !this.nostalgiaSystem
-    ) {
+  public handlePlayerAction(action: GameAction): CommandResult {
+    if (!this.currentMatch || !this.turnEngine || !this.combatResolver || !this.nostalgiaSystem) {
       return {
         success: false,
         error: new ApplicationError("No hay partida activa."),
@@ -150,7 +145,7 @@ export class MatchService {
         command = new PlayCardCommand(
           this.currentMatch,
           action.playerId,
-          action.cardId,
+          action.cardInstanceId,
           this.eventBus,
           this.nostalgiaSystem,
           action.zoneId,
@@ -173,12 +168,14 @@ export class MatchService {
           this.turnEngine,
         );
         break;
-      default:
+      default: {
+        const _exhaustive: never = action;
         return {
           success: false,
-          error: new ApplicationError(`Acción no soportada: ${action.type}`),
+          error: new ApplicationError(`Acción no soportada: ${JSON.stringify(_exhaustive)}`),
           eventsEmitted: [],
         };
+      }
     }
 
     const result = command.execute();

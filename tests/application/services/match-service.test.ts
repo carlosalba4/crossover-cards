@@ -7,6 +7,7 @@ import type { ICardRepository } from "@domain/repositories/i-card-repository";
 import type { IEventBus } from "@domain/events/event-bus";
 import { GameEvent } from "@domain/events/game-event";
 import { CardType, Archetype, Rarity } from "@domain/types/card-types";
+import type { GameAction } from "@application/types/game-action";
 
 class MockEventBus implements IEventBus {
   on = vi.fn();
@@ -69,12 +70,7 @@ describe("MatchService", () => {
   beforeEach(() => {
     eventBus = new MockEventBus();
     deckService = new DeckService(mockDeckRepository, mockCardRepository);
-    matchService = new MatchService(
-      deckService,
-      mockDeckRepository,
-      mockHeroRepository,
-      eventBus,
-    );
+    matchService = new MatchService(deckService, mockDeckRepository, mockHeroRepository, eventBus);
   });
 
   it("should initialize a match correctly", async () => {
@@ -90,14 +86,8 @@ describe("MatchService", () => {
     expect(match.player1.hand.size()).toBe(4);
     expect(match.player2.hand.size()).toBe(4);
 
-    expect(eventBus.emit).toHaveBeenCalledWith(
-      GameEvent.MatchStarted,
-      expect.anything(),
-    );
-    expect(eventBus.emit).toHaveBeenCalledWith(
-      GameEvent.TurnStarted,
-      expect.anything(),
-    );
+    expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.MatchStarted, expect.anything());
+    expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.TurnStarted, expect.anything());
   });
 
   it("should handle invalid actions gracefully", async () => {
@@ -105,7 +95,9 @@ describe("MatchService", () => {
     await matchService.initMatch("DECK-1", "DECK-1");
 
     // Act
-    const result = matchService.handlePlayerAction({ type: "UNKNOWN_ACTION" });
+    const result = matchService.handlePlayerAction({
+      type: "UNKNOWN_ACTION",
+    } as unknown as GameAction);
 
     // Assert
     expect(result.success).toBe(false);
@@ -117,15 +109,15 @@ describe("MatchService", () => {
     const match = await matchService.initMatch("DECK-1", "DECK-1");
 
     const activePlayerId = match.activePlayerId;
-    const activePlayer =
-      activePlayerId === "p1" ? match.player1 : match.player2;
+    const activePlayer = activePlayerId === "p1" ? match.player1 : match.player2;
     const cardToPlay = activePlayer.hand.getCards()[0];
 
     // Act
     const result = matchService.handlePlayerAction({
       type: "PLAY_CARD",
       playerId: activePlayerId,
-      cardId: cardToPlay.instanceId,
+      cardInstanceId: cardToPlay.instanceId,
+      zoneId: "center",
     });
 
     // Assert
