@@ -1,5 +1,7 @@
 import type { Hand } from "@domain/entities/hand";
 import type { Character } from "@domain/entities/character";
+import type { Hero } from "@domain/entities/hero";
+import type { Deck } from "@domain/entities/deck";
 import type { TurnPhase } from "@domain/events/game-event";
 
 /**
@@ -19,7 +21,8 @@ export interface PlayerState {
   readonly playerId: string;
   hand: Hand;
   board: PlayerBoard;
-  heroCurrentHealth: number;
+  hero: Hero;
+  deck: Deck;
 }
 
 /**

@@ -12,6 +12,8 @@ import { InsufficientNostalgiaError } from "@domain/errors/insufficient-nostalgi
 import { BoardFullError } from "@domain/errors/board-full-error";
 import { CardNotInHandError } from "@domain/errors/card-not-in-hand-error";
 import type { IEventBus } from "@domain/events/event-bus";
+import { Hero } from "@domain/entities/hero";
+import { Deck } from "@domain/entities/deck";
 
 // ── Helpers de construcción ──────────────────────────────────────────────────
 
@@ -67,13 +69,39 @@ function makeMatch(hand: Hand, phase: "main" | "draw" | "combat" | "end" = "main
       playerId: "player1",
       hand,
       board: { left: [], center: [], right: [] },
-      heroCurrentHealth: 30,
+      hero: new Hero({
+        staticId: "HERO-1",
+        name: "H1",
+        archetype: Archetype.Neutral,
+        maxHealth: 30,
+        heroPower: {
+          name: "P1",
+          nostalgyCost: 2,
+          effectType: "Damage",
+          targetType: "Any",
+          value: 2,
+        },
+      }),
+      deck: new Deck([]),
     },
     {
       playerId: "player2",
       hand: new Hand(),
       board: { left: [], center: [], right: [] },
-      heroCurrentHealth: 30,
+      hero: new Hero({
+        staticId: "HERO-2",
+        name: "H2",
+        archetype: Archetype.Neutral,
+        maxHealth: 30,
+        heroPower: {
+          name: "P2",
+          nostalgyCost: 2,
+          effectType: "Damage",
+          targetType: "Any",
+          value: 2,
+        },
+      }),
+      deck: new Deck([]),
     },
   );
   match.currentPhase = phase;

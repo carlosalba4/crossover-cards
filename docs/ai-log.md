@@ -1551,3 +1551,31 @@ carta desde la mano del jugador activo.
 4. Generación de dos suites de testing rigurosas.
 5. Pase QA resolviendo pequeñas advertencias del Linter por dependencias/parámetros inutilizados pero provistos para el contrato de la interfaz.
 
+
+---
+
+### Interacción #036 — 2026-05-25 (Bloque IMPL-C: Capa de Aplicación - Tarea IMPL-029)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Domain-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/domain-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Implementar la Tarea IMPL-029 del orquestador: desarrollar `UseHeroPowerCommand`, `ActivateQuestCommand` y `ActivateCrossoverCommand` en la capa de aplicación, encargándose de las validaciones contextuales de turnos, recursos (Nostalgia), usos por partida/turno y orquestando las llamadas a los mánagers del dominio.
+
+**Resultado**:
+- Refactorizado el `PlayerState` dentro de `Match` (`src/domain/entities/match.ts`) para contener instancias reales de `Hero` y `Deck`, reemplazando el rudimentario `heroCurrentHealth`. Esta modificación permite acceder directamente a los flags de poderes usados y al estado del mazo rival.
+- Creado `src/application/commands/use-hero-power-command.ts`. Valida que se esté en fase "main", que el héroe no haya usado su poder este turno y que exista Nostalgia suficiente. Si es correcto, gasta Nostalgia, marca el flag `hasUsedHeroPowerThisTurn` y emite `HeroPowerUsed`.
+- Creado `src/application/commands/activate-quest-command.ts`. Valida que el jugador no tenga ya una misión activa mediante el `QuestManager` y asegura que la carta esté en la mano. De ser así, la saca de la mano, solicita colocarla y emite los eventos pertinentes de progresión.
+- Creado `src/application/commands/activate-crossover-command.ts`. Valida que el jugador no haya usado su Crossover (mecánica M5) y que el mazo oponente (`opponent.deck`) no esté vacío. Ejecuta la lógica delegando en `CrossoverManager`.
+- Actualizados todos los test utilities en `tests/application/commands/*` (como `makeMatch`) para proveer mocks apropiados de `Hero` y `Deck`.
+- Creadas suites de testing específicas para los 3 nuevos comandos (13 tests en total), validando los flujos base exitosos y todo el abanico de Errores de Dominio o de Aplicación según corresponda.
+- Linter autofixeado usando Prettier.
+
+**Iteraciones**:
+1. Inspección de `Match`, `QuestManager`, `CrossoverManager` y `Hero` para entender los límites y la ubicación de los distintos estados booleanos.
+2. Refactor de `Match` para soportar `hero` y `deck`.
+3. Actualización de test builders de comandos previos.
+4. Implementación y tests de los comandos de la tarea.
+5. Pase QA global sin warnings.
+

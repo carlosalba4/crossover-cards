@@ -6,6 +6,9 @@ import { TurnEngine } from "@domain/services/turn-engine";
 import { GameEvent } from "@domain/events/game-event";
 import { PhaseViolationError } from "@domain/errors/phase-violation-error";
 import type { IEventBus } from "@domain/events/event-bus";
+import { Hero } from "@domain/entities/hero";
+import { Deck } from "@domain/entities/deck";
+import { Archetype } from "@domain/types/card-types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,13 +27,39 @@ function makeMatch(phase: "main" | "draw" | "combat" | "end" = "main"): Match {
       playerId: "player1",
       hand: new Hand(),
       board: { left: [], center: [], right: [] },
-      heroCurrentHealth: 30,
+      hero: new Hero({
+        staticId: "HERO-1",
+        name: "H1",
+        archetype: Archetype.Neutral,
+        maxHealth: 30,
+        heroPower: {
+          name: "P1",
+          nostalgyCost: 2,
+          effectType: "Damage",
+          targetType: "Any",
+          value: 2,
+        },
+      }),
+      deck: new Deck([]),
     },
     {
       playerId: "player2",
       hand: new Hand(),
       board: { left: [], center: [], right: [] },
-      heroCurrentHealth: 30,
+      hero: new Hero({
+        staticId: "HERO-2",
+        name: "H2",
+        archetype: Archetype.Neutral,
+        maxHealth: 30,
+        heroPower: {
+          name: "P2",
+          nostalgyCost: 2,
+          effectType: "Damage",
+          targetType: "Any",
+          value: 2,
+        },
+      }),
+      deck: new Deck([]),
     },
   );
   match.currentPhase = phase;
