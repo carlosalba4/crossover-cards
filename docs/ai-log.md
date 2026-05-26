@@ -1809,3 +1809,44 @@ combate priorizado por amenazas criticas y value trades, y logica de Crossover d
 7. Eliminacion de la directiva eslint-disable (prefijo `_` suficiente).
 8. `npm run lint` + `npm run typecheck` -> todo en verde.
 
+---
+
+### Interacción #039 — 2026-05-26 (Bloque IMPL-E: Capa de Presentación parte 1)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/phaser-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: ~20000 / ~15000
+
+**Objetivo**: Implementar el Bloque IMPL-E (Tareas IMPL-043 a IMPL-052), consistente en la configuración básica de Phaser 4, componentes UI base (Button, ProgressBar, Modal, HeroPortrait), y las tres primeras escenas del flujo de menú (BootScene, MenuScene, HeroSelectScene), incluyendo lógica pura extraída para pruebas unitarias.
+
+**Resultado**:
+
+- Configuración global `src/presentation/config/game-config.ts` (1920x1080, FIT, `#0D0B1E`).
+- Componentes base reutilizables implementados:
+  - `ProgressBar`: con lógica pura para cálculo de relleno extraída e independiente de Phaser.
+  - `Button`: con manejo de estados interactivos y colores, y lógica extraída.
+  - `Modal`: ventana emergente con animaciones y superposición.
+  - `HeroPortrait`: renderizado de la información y mazo del héroe, con interactividad y feedback visual.
+- Implementación de escenas base:
+  - `BootScene`: Carga de assets (`heroes.json`, `decks.json`, etc.) simulada o real, y barra de progreso. Implementa el easter egg de clics sobre el logo.
+  - `MenuScene`: Interfaz inicial, botones con navegación hacia el panel de créditos y hacia selección de héroe, manejando animaciones.
+  - `HeroSelectScene`: Recuperación asíncrona de repositorios (`JsonHeroRepository`, `JsonDeckRepository`) para instanciar dinámicamente los retratos de "El Lich" y "Axel Blaze".
+- Pruebas unitarias de las lógicas UI sin entorno Phaser (`button.test.ts`, `progress-bar.test.ts`).
+- Corrección en tiempo real de fallos en IDs de repositorio (`DECK-LICH-01` vs `DECK-001`) y ajustes visuales del overflow del panel en `HeroPortrait`.
+- Verificación manual (QA visual en navegador) concluida y capturas documentadas en `docs/screenshots/04-implementation/`.
+
+**Decisiones clave**:
+- Las UIs no dependen de la capa de `domain/`, respetando la Clean Architecture. Todas las llamadas a lógica del juego se harán a través de comandos o del event bus.
+- Resiliencia frente a assets faltantes: se utilizaron "graphics" genéricos y texturas por defecto si la carga asíncrona falla o el asset no existe.
+- Lógica matemática de componentes UI desacoplada del motor de renderizado WebGL/Canvas de Phaser, permitiendo ser testeada en Node puro mediante Vitest sin problemas de dependencias (`progress-bar.test.ts` y `button.test.ts`).
+- Paneles ajustados a 640px en `HeroPortrait` para permitir el listado completo de las 10 cartas sin desbordamientos textuales.
+
+**Iteraciones**:
+1. Implementación inicial y escalada de tareas atómicas IMPL-043 a IMPL-049 por el Phaser-Dev-Agent.
+2. Tarea IMPL-050: HeroSelectScene, presentando el texto de carga y consumiendo los JSON repos.
+3. Tests Unitarios (IMPL-051).
+4. QA Manual visual (IMPL-052) detectó fallo por nombres harcodeados en carga de mazos. Se corrigió a `DECK-LICH-01` y `DECK-AXEL-01`.
+5. QA Manual detectó texto de la lista de cartas saliendo del HeroPortrait. Se redimensionó el panel a 640px de altura y se reajustó la posición relativa (`portraitY = -120`, `nameY = 60`).
+6. El flujo final Boot -> Menu -> Seleccionar Héroe funciona sin errores en consola y con las visuales adecuadas.
