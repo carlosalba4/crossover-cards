@@ -3,6 +3,7 @@ description: Diseña el catálogo numérico definitivo de las 20 cartas del jueg
 ---
 
 # ROL
+
 Eres un Game Designer senior especializado en balance de juegos de cartas
 coleccionables digitales (Hearthstone, MTG Arena, Legends of Runeterra, Marvel
 Snap). Tu tarea es producir el catálogo numérico definitivo de las 20 cartas
@@ -10,6 +11,7 @@ del juego "Crossover Cards" y las habilidades de héroe, con valores concretos
 de coste, ataque, vida y descripciones de habilidad listas para implementar.
 
 # CONTEXTO
+
 - Proyecto académico de 14 días, metodología cascada clásica.
 - Stack: Phaser 4 + TypeScript + Vite.
 - El PRD definitivo está en @docs/01-prd.md (léelo entero).
@@ -19,17 +21,20 @@ de coste, ataque, vida y descripciones de habilidad listas para implementar.
 - Las mecánicas del juego están en la skill `card-game-mechanics`.
 
 # OBJETIVO
+
 Generar el archivo `docs/04-card-catalog.md` con el catálogo numérico completo
 y todas las decisiones de balance documentadas.
 
 # CONTENIDO REQUERIDO
 
 ## 1. Introducción
+
 - Propósito del documento.
 - Principios de balance aplicados.
 - Referencias: PRD, arquitectura, mecánicas.
 
 ## 2. Sistema económico del juego
+
 - Curva de Nostalgia esperada turno a turno (turnos 1-10).
 - Cartas mínimas, óptimas y exclusivas por turno según coste.
 - Fórmula vanilla de balance (orientativa, no obligatoria):
@@ -42,7 +47,9 @@ y todas las decisiones de balance documentadas.
   - Cartas legendarias: pueden romper la fórmula con margen documentado.
 
 ## 3. Distribución por rareza
+
 Tabla por mazo:
+
 - Mazo de El Lich: X Comunes, X Raras, X Épicas, X Legendarias (total 10).
 - Mazo de Axel Blaze: igual.
 - Justifica la distribución (regla habitual en CCGs es ~50% comunes, 30% raras,
@@ -50,15 +57,18 @@ Tabla por mazo:
   ajustar).
 
 ## 4. Distribución por arquetipo
+
 - Cuántas cartas de cada arquetipo (los 4 definidos en el PRD) hay en cada mazo.
 - Cuántas criaturas tiene cada arquetipo en total (mínimo 3 para que la sinergia
   tribal M1 sea viable).
 - Cartas neutrales (sin arquetipo) si existen.
 
 ## 5. Catálogo del Mazo de El Lich (10 cartas)
+
 Para cada carta, una ficha con esta estructura:
 
 ### [Nombre de la carta]
+
 - **ID**: kebab-case único (`pops-el-gentil`, `superbocata`).
 - **Tipo**: Criatura / Hechizo / Objeto.
 - **Arquetipo**: [el correspondiente] / Neutral.
@@ -77,6 +87,7 @@ Pops el Gentil, Darwin Watterson, Chowder, Patricio Estrella, Rigby, Jake el Per
 Superbocata, Burger Cangreburger, El Poder, Espada de Sangre de Demonio.
 
 ## 6. Catálogo del Mazo de Axel Blaze (10 cartas)
+
 Misma estructura aplicada a las 10 cartas del Mazo de Axel Blaze:
 Goku, Marceline, Fantasma Chocala, Diamantino, Chum Chum, Agallas el Perro
 Cobarde, Pedo Poderoso, Linterna Minimizadora, Bola de Dragón, Omnitrix.
@@ -84,6 +95,7 @@ Cobarde, Pedo Poderoso, Linterna Minimizadora, Bola de Dragón, Omnitrix.
 ## 7. Habilidades de héroe definitivas
 
 ### El Lich
+
 - Nombre de habilidad: "Hechizo Ancestral".
 - Coste: [número] Nostalgia.
 - Efecto formal: [descripción].
@@ -91,6 +103,7 @@ Cobarde, Pedo Poderoso, Linterna Minimizadora, Bola de Dragón, Omnitrix.
 - Justificación: por qué este coste y efecto encajan en la curva.
 
 ### Axel Blaze
+
 - Nombre de habilidad: "Disparo Llamarada".
 - Coste: [número] Nostalgia.
 - Efecto formal: [descripción].
@@ -98,16 +111,20 @@ Cobarde, Pedo Poderoso, Linterna Minimizadora, Bola de Dragón, Omnitrix.
 - Justificación: por qué este coste y efecto encajan en la curva.
 
 ## 8. Tabla resumen ejecutiva
+
 Una tabla por mazo con columnas: ID | Nombre | Tipo | Arquetipo | Rareza | Coste |
 Ataque | Vida | Habilidad resumida. Para consulta rápida.
 
 ## 9. Esquema JSON de ejemplo
+
 Esquema TypeScript/JSON de 2-3 cartas representativas (una criatura, un hechizo,
 un objeto) listo para ser usado en `assets/data/cards.json`. Sigue el modelo de
 datos definido en sección 5 del documento de arquitectura.
 
 ## 10. Tests de balance previstos
+
 Lista de escenarios que deben pasar para validar el balance:
+
 - Una partida promedio dura entre X y Y turnos.
 - Ninguna carta debería tener una tasa de juego > 80% (over-tuned) o < 10% (no
   vale la pena jugarla).
@@ -119,10 +136,12 @@ Lista de escenarios que deben pasar para validar el balance:
 Estos escenarios son entradas para el Tester-Agent futuro.
 
 ## 11. Decisiones marcadas [PENDIENTE DE VALIDACIÓN]
+
 Lista de decisiones de balance donde haya dudas reales y el equipo deberá
 revisar manualmente.
 
 # RESTRICCIONES
+
 - Idioma: español.
 - Markdown limpio, sin emojis, tablas donde aporten claridad.
 - Sé conservador: vale más una carta ligeramente débil que rota.
@@ -136,6 +155,7 @@ revisar manualmente.
 - No inventes cartas adicionales fuera de las 20.
 
 # INSTRUCCIONES DE EJECUCIÓN
+
 1. Lee @docs/01-prd.md (especialmente sección de catálogo de cartas).
 2. Lee @docs/02-architecture.md (especialmente sección 5 Modelo de datos).
 3. Lee la skill @.agent/skills/card-game-mechanics/SKILL.md.

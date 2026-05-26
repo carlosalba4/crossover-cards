@@ -3,20 +3,24 @@ description: Inicializa el proyecto Phaser 4 con TypeScript strict, Vite, Vitest
 ---
 
 # ROL
+
 Eres un agente especializado en inicialización de proyectos frontend con
 Phaser 4, TypeScript, Vite, Vitest, ESLint y Prettier, aplicando principios de
 Clean Code, SOLID y preparando el terreno para arquitectura en capas.
 
 # CONTEXTO
+
 El repositorio ya tiene la estructura base creada por Setup-Repo-Agent y la
 configuración de IA establecida por AI-Config-Agent. Ver ADR-001 para el stack.
 
 Entorno:
+
 - Node.js v24.13.0
 - npm 11.6.2
 - Windows 11 (PowerShell)
 
 Restricciones técnicas conocidas:
+
 - TypeScript debe ir en modo strict completo desde el inicio.
 - ESLint 10 requiere flat config (eslint.config.js), no .eslintrc.cjs.
 - Vite 8.
@@ -26,14 +30,17 @@ Restricciones técnicas conocidas:
   @application, @infrastructure, @presentation.
 
 # TAREA
+
 Inicializa el proyecto Node y configura todo el tooling. Al final, el proyecto
 debe arrancar con `npm run dev` y mostrar una escena minimalista en Phaser 4 con
 tres textos:
+
 - "Cartas Turnos IA"
 - "Proyecto inicializado correctamente"
 - "Fase actual: Análisis de Requisitos"
 
 ## Pasos a ejecutar
+
 1. `npm init -y` y sobrescribir package.json con: nombre, descripción, autores,
    13 scripts (dev, build, preview, test, test:watch, test:ui, test:coverage,
    lint, lint:fix, format, format:check, typecheck), `"type": "module"`,
@@ -55,7 +62,7 @@ tres textos:
    ignores para dist y archivos de config.
 8. Crear .prettierrc.json: semi true, singleQuote false, trailingComma "all",
    printWidth 100, tabWidth 2, endOfLine "lf".
-9. Crear .prettierignore: node_modules, dist, build, coverage, *.min.js,
+9. Crear .prettierignore: node_modules, dist, build, coverage, \*.min.js,
    package-lock.json, assets.
 10. Crear index.html minimalista con div#game-container y módulo /src/main.ts.
 11. Crear src/main.ts con clase BootScene que muestre los tres textos
@@ -65,6 +72,7 @@ tres textos:
 13. Verificar en orden: typecheck, lint, format, test, build, dev.
 
 # RESTRICCIONES
+
 - TypeScript: strict, noUnusedLocals, noUnusedParameters, noImplicitReturns,
   noFallthroughCasesInSwitch, forceConsistentCasingInFileNames TODOS activos.
 - No usar `any` explícito.
@@ -73,6 +81,7 @@ tres textos:
   a ciegas.
 
 # ENTREGABLES ESPERADOS
+
 - Plan de ejecución previo con orden de pasos.
 - Cada archivo generado como artifact independiente.
 - Log de comandos ejecutados.

@@ -4,15 +4,15 @@
 
 ---
 
-| Campo            | Valor                                                        |
-|------------------|--------------------------------------------------------------|
-| Titulo           | Catálogo de Cartas y Balance                                 |
-| Version          | 1.0.0                                                        |
-| Fecha            | 2026-05-21                                                   |
-| Estado           | Aprobado                                                     |
-| Autores          | Equipo del proyecto (2 personas)                             |
-| Fase             | Diseño (Cascada, Día 3-4)                                    |
-| Revision         | Generado con asistencia de Google Antigravity (Claude Sonnet)|
+| Campo    | Valor                                                         |
+| -------- | ------------------------------------------------------------- |
+| Titulo   | Catálogo de Cartas y Balance                                  |
+| Version  | 1.0.0                                                         |
+| Fecha    | 2026-05-21                                                    |
+| Estado   | Aprobado                                                      |
+| Autores  | Equipo del proyecto (2 personas)                              |
+| Fase     | Diseño (Cascada, Día 3-4)                                     |
+| Revision | Generado con asistencia de Google Antigravity (Claude Sonnet) |
 
 ---
 
@@ -70,12 +70,12 @@ permanecen igual en ambos idiomas.
 
 ### 1.4 Referencias
 
-| Documento                  | Ubicacion                            |
-|----------------------------|--------------------------------------|
-| PRD v1.1.0                 | `docs/01-prd.md`                     |
-| Arquitectura Técnica v1.0  | `docs/02-architecture.md`            |
-| Catálogo de Agentes        | `docs/03-agents.md`                  |
-| Skill de Mecánicas         | `.agent/skills/card-game-mechanics/SKILL.md` |
+| Documento                 | Ubicacion                                    |
+| ------------------------- | -------------------------------------------- |
+| PRD v1.1.0                | `docs/01-prd.md`                             |
+| Arquitectura Técnica v1.0 | `docs/02-architecture.md`                    |
+| Catálogo de Agentes       | `docs/03-agents.md`                          |
+| Skill de Mecánicas        | `.agent/skills/card-game-mechanics/SKILL.md` |
 
 ---
 
@@ -87,16 +87,16 @@ La Nostalgia comienza en 1 el turno 1 y aumenta +1 por turno hasta un máximo de
 Se restaura al inicio de cada turno propio. El Momentum puede actuar como Nostalgia adicional
 cuando el jugador tiene 15 PV o menos.
 
-| Turno | Nostalgia max | Cartas jugables (coste exacto)                               | Notas                                    |
-|:-----:|:-------------:|--------------------------------------------------------------|------------------------------------------|
-| 1     | 1             | Chum Chum (1)                                                | Solo 1 carta de coste 1 en todo el juego |
-| 2     | 2             | Pops (2), Darwin (2), Rigby (2), Cangreburger (2)            | Turno de desarrollo; 4 opciones          |
-| 3     | 3             | Chowder (3), Patricio (3), Fantasma (3), Agallas (3), El Poder (3), Linterna (3) | Turno más poblado |
-| 4     | 4             | Jake (4), Superbocata (4), Pedo Poderoso (4), Diamantino (4), Omnitrix (4) | Punto de inflexión |
-| 5     | 5             | Marceline (5), Bola de Dragón (5), Espada S. Demonio (5)     | Cartas de alto impacto                   |
-| 6     | 6             | Combinación de 2 cartas (4+2, 3+3) o habilidad + carta       | Sin carta de coste 6                     |
-| 7     | 7             | Goku (7) / combinación de 3 cartas baratas                   | Techo de coste del MVP                   |
-| 8-10  | 8-10          | Multi-juego: 2 cartas caras + habilidad de héroe el mismo turno | Fase de cierre con Momentum             |
+| Turno | Nostalgia max | Cartas jugables (coste exacto)                                                   | Notas                                    |
+| :---: | :-----------: | -------------------------------------------------------------------------------- | ---------------------------------------- |
+|   1   |       1       | Chum Chum (1)                                                                    | Solo 1 carta de coste 1 en todo el juego |
+|   2   |       2       | Pops (2), Darwin (2), Rigby (2), Cangreburger (2)                                | Turno de desarrollo; 4 opciones          |
+|   3   |       3       | Chowder (3), Patricio (3), Fantasma (3), Agallas (3), El Poder (3), Linterna (3) | Turno más poblado                        |
+|   4   |       4       | Jake (4), Superbocata (4), Pedo Poderoso (4), Diamantino (4), Omnitrix (4)       | Punto de inflexión                       |
+|   5   |       5       | Marceline (5), Bola de Dragón (5), Espada S. Demonio (5)                         | Cartas de alto impacto                   |
+|   6   |       6       | Combinación de 2 cartas (4+2, 3+3) o habilidad + carta                           | Sin carta de coste 6                     |
+|   7   |       7       | Goku (7) / combinación de 3 cartas baratas                                       | Techo de coste del MVP                   |
+| 8-10  |     8-10      | Multi-juego: 2 cartas caras + habilidad de héroe el mismo turno                  | Fase de cierre con Momentum              |
 
 **Observación de diseño**: ninguna carta supera coste 7. Los turnos 8-10 están diseñados
 para que el jugador pueda combinar múltiples acciones fuertes en el mismo turno, lo que
@@ -114,19 +114,19 @@ justifican respecto a ella, no al revés.
 
 ### 2.3 Tabla de Bonificaciones y Penalizaciones
 
-| Modificador                                       | Ajuste de coste efectivo |
-|---------------------------------------------------|:------------------------:|
-| Taunt (Provocación)                               | +1                       |
-| Charge (Cargo, puede atacar el mismo turno)       | +1                       |
-| Divine Shield (Escudo Divino)                     | +1 a +2                  |
-| Deathrattle potente (buff +2/+2 a aliado)         | +1                       |
-| Battlecry fuerte (destruir personaje, robar carta) | +1                       |
-| Lifesteal (Drenaje)                               | +1                       |
-| Efecto de área (AoE)                              | +1 a +2                  |
-| Restricción de ataque (cooldown 1 turno)          | -1                       |
-| Efecto condicional (requiere aliado en tablero)   | -0.5                     |
-| Efecto aleatorio (puede ser negativo)             | -0.5                     |
-| Legendaria (efecto único e impactante)            | margen libre documentado |
+| Modificador                                        | Ajuste de coste efectivo |
+| -------------------------------------------------- | :----------------------: |
+| Taunt (Provocación)                                |            +1            |
+| Charge (Cargo, puede atacar el mismo turno)        |            +1            |
+| Divine Shield (Escudo Divino)                      |         +1 a +2          |
+| Deathrattle potente (buff +2/+2 a aliado)          |            +1            |
+| Battlecry fuerte (destruir personaje, robar carta) |            +1            |
+| Lifesteal (Drenaje)                                |            +1            |
+| Efecto de área (AoE)                               |         +1 a +2          |
+| Restricción de ataque (cooldown 1 turno)           |            -1            |
+| Efecto condicional (requiere aliado en tablero)    |           -0.5           |
+| Efecto aleatorio (puede ser negativo)              |           -0.5           |
+| Legendaria (efecto único e impactante)             | margen libre documentado |
 
 ---
 
@@ -134,13 +134,13 @@ justifican respecto a ella, no al revés.
 
 ### 3.1 Tabla por Mazo
 
-| Rareza      | El Lich | Axel Blaze | Total |
-|-------------|:-------:|:----------:|:-----:|
-| Común       | 3       | 1          | 4     |
-| Rara        | 3       | 3          | 6     |
-| Épica       | 2       | 2          | 4     |
-| Legendaria  | 1       | 3          | 4     |
-| **Total**   | **9**   | **9**      | **18**|
+| Rareza     | El Lich | Axel Blaze | Total  |
+| ---------- | :-----: | :--------: | :----: |
+| Común      |    3    |     1      |   4    |
+| Rara       |    3    |     3      |   6    |
+| Épica      |    2    |     2      |   4    |
+| Legendaria |    1    |     3      |   4    |
+| **Total**  |  **9**  |   **9**    | **18** |
 
 > Nota: las 2 cartas restantes hasta 10 por mazo son las misiones (QST-001/002/003),
 > que son neutrales y no pertenecen a ningún mazo. El recuento de 9 cartas es el total
@@ -166,20 +166,20 @@ lo que permite romper esta norma conscientemente:
 
 ### 4.1 Tabla de Personajes por Arquetipo
 
-| Arquetipo        | Personajes en El Lich                        | Personajes en Axel Blaze          | Total Personajes | Sinergia M1 |
-|------------------|----------------------------------------------|-----------------------------------|:----------------:|:-----------:|
-| Cartoon Clásico  | Pops, Darwin, Chowder, Patricio, Rigby (5)   | Chum Chum (1)                     | 6                | Fuerte      |
-| Aventura Mágica  | Jake el Perro (1)                            | Marceline (1)                     | 2                | Marginal    |
-| Anime Combate    | —                                            | Goku, Diamantino (2)              | 2                | Moderada    |
-| Sobrenatural     | —                                            | Fantasma Chocala, Agallas (2)     | 2                | Situacional |
-| Neutral          | —                                            | —                                 | 0                | N/A         |
+| Arquetipo       | Personajes en El Lich                      | Personajes en Axel Blaze      | Total Personajes | Sinergia M1 |
+| --------------- | ------------------------------------------ | ----------------------------- | :--------------: | :---------: |
+| Cartoon Clásico | Pops, Darwin, Chowder, Patricio, Rigby (5) | Chum Chum (1)                 |        6         |   Fuerte    |
+| Aventura Mágica | Jake el Perro (1)                          | Marceline (1)                 |        2         |  Marginal   |
+| Anime Combate   | —                                          | Goku, Diamantino (2)          |        2         |  Moderada   |
+| Sobrenatural    | —                                          | Fantasma Chocala, Agallas (2) |        2         | Situacional |
+| Neutral         | —                                          | —                             |        0         |     N/A     |
 
 ### 4.2 Cartas No-Personaje por Mazo
 
-| Tipo    | El Lich                                      | Axel Blaze                               |
-|---------|----------------------------------------------|------------------------------------------|
-| Hechizo | Superbocata (4), Cangreburger (2)            | Pedo Poderoso (4), Linterna Minimizadora (3) |
-| Objeto  | El Poder (3), Espada de Sangre de Demonio (5)| Bola de Dragón (5), Omnitrix (4)         |
+| Tipo    | El Lich                                       | Axel Blaze                                   |
+| ------- | --------------------------------------------- | -------------------------------------------- |
+| Hechizo | Superbocata (4), Cangreburger (2)             | Pedo Poderoso (4), Linterna Minimizadora (3) |
+| Objeto  | El Poder (3), Espada de Sangre de Demonio (5) | Bola de Dragón (5), Omnitrix (4)             |
 
 ### 4.3 Análisis de Viabilidad de Sinergias Tribales (M1)
 
@@ -505,7 +505,7 @@ lo que permite romper esta norma conscientemente:
   1. Infligir 3 danyo a un objetivo enemigo (heroe o Personaje).
   2. Otorgar Escudo Divino al heroe aliado hasta el inicio del siguiente turno.
   3. Robar 2 cartas.
-  Cada vez que se activa la habilidad de heroe con el Omnitrix equipado consume 1 de durabilidad.
+     Cada vez que se activa la habilidad de heroe con el Omnitrix equipado consume 1 de durabilidad.
 - **Trasfondo narrativo**: el Omnitrix de Ben Tennyson permite transformarse en cualquier alienigena. En Crossover Cards, Axel Blaze usa el Omnitrix para elegir el poder que mas necesita en cada turno, combinando la fuerza del futbol con tecnologia extraterrestre.
 - **Justificacion de balance**: reemplaza la habilidad de heroe estandar ("Tornado de Fuego", +2 ATQ, coste 2) por 3 efectos mas potentes sin coste adicional de Nostalgia. El equilibrio: durabilidad 2 (solo 2 usos en toda la partida) y coste de equipar 4 Nostalgia. El valor total del objeto es aproximadamente 2 usos x (3 danyo o Shield o 2 cartas) ~ coste equivalente a 2 hechizos de coste 3, amortizando el coste de equipar de 4 en 2 turnos de uso.
 - **Sinergias**: la opcion "Robar 2 cartas" combina con mazos que necesitan refresco en mid-game. La opcion "Escudo Divino al heroe" protege de daño directo critico en turnos de alta presion. El efecto 1 (3 danyo) complementa el AoE de Pedo Poderoso para rematar Personajes supervivientes.
@@ -516,13 +516,13 @@ lo que permite romper esta norma conscientemente:
 
 ### El Lich — Hechizo Ancestral
 
-| Campo      | Valor                                                                              |
-|------------|------------------------------------------------------------------------------------|
-| Nombre     | Hechizo Ancestral                                                                  |
-| Coste      | 2 Nostalgia                                                                        |
-| Frecuencia | Una vez por turno (Fase Principal)                                                 |
+| Campo      | Valor                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| Nombre     | Hechizo Ancestral                                                                          |
+| Coste      | 2 Nostalgia                                                                                |
+| Frecuencia | Una vez por turno (Fase Principal)                                                         |
 | Efecto     | Inflige 2 puntos de danyo a un objetivo enemigo elegido por el jugador (heroe o Personaje) |
-| Sinergia   | Complementa mazos de desgaste y control; util para rematar Personajes debilitadas  |
+| Sinergia   | Complementa mazos de desgaste y control; util para rematar Personajes debilitadas          |
 
 **Justificacion**: 2 danyo directo a objetivo a coste 2 es exactamente la tasa estandar de los CCGs (1 danyo por 1 Nostalgia). No es un efecto rompedor pero si consistente. Usado correctamente, puede eliminar Personajes de baja vida o presionar al heroe rival turno a turno. Se usa si el jugador no tiene carta mas eficiente que jugar con la Nostalgia restante.
 
@@ -532,13 +532,13 @@ lo que permite romper esta norma conscientemente:
 
 ### Axel Blaze — Tornado de Fuego
 
-| Campo      | Valor                                                                              |
-|------------|------------------------------------------------------------------------------------|
-| Nombre     | Tornado de Fuego                                                                   |
-| Coste      | 2 Nostalgia                                                                        |
-| Frecuencia | Una vez por turno (Fase Principal)                                                 |
-| Efecto     | Otorga +2 ATQ a una Personaje aliada elegida hasta el final del turno              |
-| Sinergia   | Potente con Personajes que tienen Cargo o con la sinergia tribal de Anime Combate  |
+| Campo      | Valor                                                                             |
+| ---------- | --------------------------------------------------------------------------------- |
+| Nombre     | Tornado de Fuego                                                                  |
+| Coste      | 2 Nostalgia                                                                       |
+| Frecuencia | Una vez por turno (Fase Principal)                                                |
+| Efecto     | Otorga +2 ATQ a una Personaje aliada elegida hasta el final del turno             |
+| Sinergia   | Potente con Personajes que tienen Cargo o con la sinergia tribal de Anime Combate |
 
 **Nota terminologica**: el nombre canonico es "Tornado de Fuego" segun el PRD (seccion 8). El workflow contenia "Disparo Llamarada" por error. "Tornado de Fuego" es la referencia definitiva.
 
@@ -552,33 +552,33 @@ lo que permite romper esta norma conscientemente:
 
 ### 8.1 Mazo de El Lich
 
-| ID      | Nombre                      | Tipo      | Arquetipo        | Rareza     | Coste | ATQ  | VID  | Habilidad resumida                                    |
-|---------|-----------------------------|-----------|------------------|------------|:-----:|:----:|:----:|-------------------------------------------------------|
-| LIC-001 | Pops el Gentil              | Personaje | Cartoon Clasico  | Rara       | 2     | 1    | 4    | Deathrattle: +2/+2 a aliado aleatorio                 |
-| LIC-002 | Darwin Watterson            | Personaje | Cartoon Clasico  | Comun      | 2     | 2    | 3    | Battlecry: +1/+1 si hay aliado                        |
-| LIC-003 | Chowder                     | Personaje | Cartoon Clasico  | Comun      | 3     | 3    | 2    | Battlecry: destruye enemigo con 1 VID o menos         |
-| LIC-004 | Patricio Estrella           | Personaje | Cartoon Clasico  | Comun      | 3     | 4    | 3    | Modifier aleatorio al jugarse (6 outcomes, RNG inyectable) |
-| LIC-005 | Rigby                       | Personaje | Cartoon Clasico  | Rara       | 2     | 3    | 2    | Charge; cooldown 1 turno tras atacar                  |
-| LIC-006 | Jake el Perro               | Personaje | Aventura Magica  | Epica      | 4     | var  | var  | Battlecry: elige 6/2 u 2/6                            |
-| LIC-007 | Superbocata                 | Hechizo   | Neutral          | Rara       | 4     | —    | —    | Restaura 6 PV al heroe aliado                         |
-| LIC-008 | Cangreburger                | Hechizo   | Neutral          | Comun      | 2     | —    | —    | Restaura 3 PV y roba 1 carta                          |
-| LIC-009 | El Poder                    | Objeto    | Neutral          | Epica      | 3     | —    | —    | Equipable; activa AoE 3 danyo a todos los enemigos. Durabilidad 1 |
-| LIC-010 | Espada de Sangre de Demonio | Objeto    | Aventura Magica  | Legendaria | 5     | —    | —    | Equipable; +5 ATQ heroe, 1 auto-danyo/turno. Durabilidad 3 |
+| ID      | Nombre                      | Tipo      | Arquetipo       | Rareza     | Coste | ATQ | VID | Habilidad resumida                                                |
+| ------- | --------------------------- | --------- | --------------- | ---------- | :---: | :-: | :-: | ----------------------------------------------------------------- |
+| LIC-001 | Pops el Gentil              | Personaje | Cartoon Clasico | Rara       |   2   |  1  |  4  | Deathrattle: +2/+2 a aliado aleatorio                             |
+| LIC-002 | Darwin Watterson            | Personaje | Cartoon Clasico | Comun      |   2   |  2  |  3  | Battlecry: +1/+1 si hay aliado                                    |
+| LIC-003 | Chowder                     | Personaje | Cartoon Clasico | Comun      |   3   |  3  |  2  | Battlecry: destruye enemigo con 1 VID o menos                     |
+| LIC-004 | Patricio Estrella           | Personaje | Cartoon Clasico | Comun      |   3   |  4  |  3  | Modifier aleatorio al jugarse (6 outcomes, RNG inyectable)        |
+| LIC-005 | Rigby                       | Personaje | Cartoon Clasico | Rara       |   2   |  3  |  2  | Charge; cooldown 1 turno tras atacar                              |
+| LIC-006 | Jake el Perro               | Personaje | Aventura Magica | Epica      |   4   | var | var | Battlecry: elige 6/2 u 2/6                                        |
+| LIC-007 | Superbocata                 | Hechizo   | Neutral         | Rara       |   4   |  —  |  —  | Restaura 6 PV al heroe aliado                                     |
+| LIC-008 | Cangreburger                | Hechizo   | Neutral         | Comun      |   2   |  —  |  —  | Restaura 3 PV y roba 1 carta                                      |
+| LIC-009 | El Poder                    | Objeto    | Neutral         | Epica      |   3   |  —  |  —  | Equipable; activa AoE 3 danyo a todos los enemigos. Durabilidad 1 |
+| LIC-010 | Espada de Sangre de Demonio | Objeto    | Aventura Magica | Legendaria |   5   |  —  |  —  | Equipable; +5 ATQ heroe, 1 auto-danyo/turno. Durabilidad 3        |
 
 ### 8.2 Mazo de Axel Blaze
 
-| ID      | Nombre                   | Tipo      | Arquetipo       | Rareza     | Coste | ATQ | VID | Habilidad resumida                                         |
-|---------|--------------------------|-----------|-----------------|------------|:-----:|:---:|:---:|------------------------------------------------------------|
-| AXE-001 | Goku                     | Personaje | Anime Combate   | Legendaria | 7     | 6   | 6   | Al morir una vez por partida, vuelve 4/4 con Charge        |
-| AXE-002 | Marceline                | Personaje | Aventura Magica | Epica      | 5     | 4   | 5   | Lifesteal: el heroe aliado recupera PV = danyo infligido   |
-| AXE-003 | Fantasma Chocala         | Personaje | Sobrenatural    | Rara       | 3     | 2   | 3   | Battlecry: +1/+1 a aliado aleatorio; inmune a hechizos ese turno |
-| AXE-004 | Diamantino               | Personaje | Anime Combate   | Rara       | 4     | 3   | 5   | Escudo Cristalino: primer danyo recibido se reduce a la mitad |
-| AXE-005 | Chum Chum                | Personaje | Cartoon Clasico | Comun      | 1     | 1   | 2   | Sin habilidad. Unico 1-drop del juego                      |
-| AXE-006 | Agallas el Perro Cobarde | Personaje | Sobrenatural    | Rara       | 3     | 2   | 4   | Taunt inverso; +2 ATQ si es el unico aliado en tablero     |
-| AXE-007 | Pedo Poderoso            | Hechizo   | Neutral         | Epica      | 4     | —   | —   | AoE instantaneo: 2 danyo a todos los Personajes enemigos   |
-| AXE-008 | Linterna Minimizadora    | Hechizo   | Neutral         | Rara       | 3     | —   | —   | Reduce ATQ y VID de enemigo objetivo a la mitad (permanente) |
-| AXE-009 | Bola de Dragon           | Objeto    | Anime Combate   | Legendaria | 5     | —   | —   | Elige: curar 5 PV / 5 danyo al heroe enemigo / 3 Nostalgia extra |
-| AXE-010 | Omnitrix                 | Objeto    | Anime Combate   | Legendaria | 4     | —   | —   | Equipable (dur. 2); reemplaza habilidad de heroe por 3 opciones |
+| ID      | Nombre                   | Tipo      | Arquetipo       | Rareza     | Coste | ATQ | VID | Habilidad resumida                                               |
+| ------- | ------------------------ | --------- | --------------- | ---------- | :---: | :-: | :-: | ---------------------------------------------------------------- |
+| AXE-001 | Goku                     | Personaje | Anime Combate   | Legendaria |   7   |  6  |  6  | Al morir una vez por partida, vuelve 4/4 con Charge              |
+| AXE-002 | Marceline                | Personaje | Aventura Magica | Epica      |   5   |  4  |  5  | Lifesteal: el heroe aliado recupera PV = danyo infligido         |
+| AXE-003 | Fantasma Chocala         | Personaje | Sobrenatural    | Rara       |   3   |  2  |  3  | Battlecry: +1/+1 a aliado aleatorio; inmune a hechizos ese turno |
+| AXE-004 | Diamantino               | Personaje | Anime Combate   | Rara       |   4   |  3  |  5  | Escudo Cristalino: primer danyo recibido se reduce a la mitad    |
+| AXE-005 | Chum Chum                | Personaje | Cartoon Clasico | Comun      |   1   |  1  |  2  | Sin habilidad. Unico 1-drop del juego                            |
+| AXE-006 | Agallas el Perro Cobarde | Personaje | Sobrenatural    | Rara       |   3   |  2  |  4  | Taunt inverso; +2 ATQ si es el unico aliado en tablero           |
+| AXE-007 | Pedo Poderoso            | Hechizo   | Neutral         | Epica      |   4   |  —  |  —  | AoE instantaneo: 2 danyo a todos los Personajes enemigos         |
+| AXE-008 | Linterna Minimizadora    | Hechizo   | Neutral         | Rara       |   3   |  —  |  —  | Reduce ATQ y VID de enemigo objetivo a la mitad (permanente)     |
+| AXE-009 | Bola de Dragon           | Objeto    | Anime Combate   | Legendaria |   5   |  —  |  —  | Elige: curar 5 PV / 5 danyo al heroe enemigo / 3 Nostalgia extra |
+| AXE-010 | Omnitrix                 | Objeto    | Anime Combate   | Legendaria |   4   |  —  |  —  | Equipable (dur. 2); reemplaza habilidad de heroe por 3 opciones  |
 
 ---
 
@@ -677,8 +677,21 @@ Los siguientes ejemplos siguen el modelo de datos definido en la seccion 5 del d
       { "source": "patricio_random", "attackBonus": -1, "healthBonus": 0, "duration": -1 },
       { "source": "patricio_random", "attackBonus": 0, "healthBonus": 1, "duration": -1 },
       { "source": "patricio_random", "attackBonus": 0, "healthBonus": -1, "duration": -1 },
-      { "source": "patricio_random", "attackBonus": 0, "healthBonus": 0, "abilitiesGranted": ["taunt"], "duration": 1 },
-      { "source": "patricio_random", "attackBonus": 0, "healthBonus": 0, "abilitiesGranted": [], "oneShot": "drawCard", "duration": 0 }
+      {
+        "source": "patricio_random",
+        "attackBonus": 0,
+        "healthBonus": 0,
+        "abilitiesGranted": ["taunt"],
+        "duration": 1
+      },
+      {
+        "source": "patricio_random",
+        "attackBonus": 0,
+        "healthBonus": 0,
+        "abilitiesGranted": [],
+        "oneShot": "drawCard",
+        "duration": 0
+      }
     ]
   }
 }
@@ -781,8 +794,9 @@ asume pool separado (coste 0, colocacion al inicio de Fase Principal sin consumi
 ### DV-002: Slot Libre Fuera de Zonas
 
 **Descripcion**: el tablero tiene 7 slots por bando: 6 en zonas (2 por zona x 3 zonas)
-+ 1 slot libre fuera de zonas. Los Personajes en el slot libre no reciben buffs/debuffs
-de entorno ni participan en la sinergia de zona.
+
+- 1 slot libre fuera de zonas. Los Personajes en el slot libre no reciben buffs/debuffs
+  de entorno ni participan en la sinergia de zona.
 
 **Punto pendiente**: la UI debe aclarar si el jugador puede elegir colocar una Personaje
 en el slot libre voluntariamente o si ese slot solo se usa cuando las 3 zonas estan llenas.
@@ -826,6 +840,6 @@ Omnitrix sea gratuito en terminos de recursos.
 
 ---
 
-*Fin del Catalogo de Cartas v1.0.0*
-*Generado: 2026-05-21 | Agente: Google Antigravity (Claude Sonnet)*
-*Siguiente paso: implementacion en `src/domain/` con domain-dev-agent*
+_Fin del Catalogo de Cartas v1.0.0_
+_Generado: 2026-05-21 | Agente: Google Antigravity (Claude Sonnet)_
+_Siguiente paso: implementacion en `src/domain/` con domain-dev-agent_

@@ -6,22 +6,22 @@ especialista sigue este formato YAML obligatorio.
 ## Estructura
 
 ```yaml
-task_id: <FASE>-<NUMERO>          # ID único, ej: IMPL-001
-agent: <nombre-del-agente>        # ej: domain-dev-agent
-description: <qué hace la tarea>  # 1 línea
-inputs:                           # archivos que el agente debe leer
+task_id: <FASE>-<NUMERO> # ID único, ej: IMPL-001
+agent: <nombre-del-agente> # ej: domain-dev-agent
+description: <qué hace la tarea> # 1 línea
+inputs: # archivos que el agente debe leer
   - <ruta-relativa-1>
   - <ruta-relativa-2>
-outputs:                          # archivos que el agente debe producir
+outputs: # archivos que el agente debe producir
   - <ruta-relativa-1>
   - <ruta-relativa-2>
-acceptance_criteria:              # criterios verificables
+acceptance_criteria: # criterios verificables
   - <criterio 1>
   - <criterio 2>
-dependencies:                     # tareas previas necesarias o "none"
+dependencies: # tareas previas necesarias o "none"
   - <task_id-previa>
 estimated_complexity: low | medium | high
-model_hint: <modelo recomendado>  # ej: Claude Sonnet 4.6 Thinking
+model_hint: <modelo recomendado> # ej: Claude Sonnet 4.6 Thinking
 ```
 
 ## Ejemplo concreto
@@ -57,6 +57,7 @@ model_hint: Claude Sonnet 4.6 Thinking
 ## Política de criterios de aceptación
 
 Los criterios deben ser:
+
 - Verificables con un comando concreto (ej: `npm test`).
 - Cuantificables cuando aplique (ej: "cobertura >= 80%").
 - Específicos (no "código limpio" sino "sin warnings ESLint").

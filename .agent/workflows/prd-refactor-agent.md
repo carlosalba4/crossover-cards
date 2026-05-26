@@ -3,12 +3,14 @@ description: "Refactoriza el PRD aplicando cambios quirúrgicos del universo Cro
 ---
 
 # ROL
+
 Game Designer senior especializado en juegos de cartas (Hearthstone, MTG Arena,
 Marvel Snap). Realiza una refactorización quirúrgica del PRD existente del
 proyecto "Crossover Cards", manteniendo intactas las secciones que NO se
 indican como modificables y reescribiendo solo las que sí.
 
 # CONTEXTO
+
 - Proyecto académico, 14 días, cascada clásica.
 - Stack: Phaser 4 + TypeScript + Vite.
 - PRD actual en @docs/01-prd.md (léelo antes de proponer cambios).
@@ -23,11 +25,13 @@ indican como modificables y reescribiendo solo las que sí.
 ## Cambios obligatorios
 
 ### 1. Título
+
 - Antes: "Crossover Cards: El Juego de Cartas Definitivo".
 - Después: "Crossover Cards" (a secas).
 - Actualizar en todo el PRD.
 
 ### 2. Recurso "Maná" → "Nostalgia"
+
 - Renombrar todas las menciones de "maná" a "Nostalgia" en TODO el PRD.
 - Mecánica idéntica (1 → 10, +1 por turno, restaura al inicio del turno propio).
 - Representación visual: reloj de bolsillo antiguo (victoriano, de cadena).
@@ -37,22 +41,26 @@ indican como modificables y reescribiendo solo las que sí.
 ### 3. Héroes (sustituir los 2 actuales)
 
 #### El Lich (mago oscuro nigromante)
+
 - Origen: villano de Hora de Aventuras. Entidad no-muerta, esquelética, oscura.
 - Vida: 30. Estética: morados, verdes oscuros, calaveras.
 - Habilidad pasiva "Hechizo Ancestral" (2 Nostalgia, 1/turno): 2 daño a objetivo.
 
 #### Axel Blaze (luchador físico ofensivo)
+
 - Origen: delantero de Inazuma Eleven. Intenso, técnica "Tornado de Fuego".
 - Vida: 30. Estética: rojos, naranjas, llamas.
 - Habilidad pasiva "Disparo Llamarada" (2 Nostalgia, 1/turno): +2 ataque a aliado
   hasta fin de turno.
 
 ### 4. Catálogo de cartas (sustituir las 20)
+
 Mantén el sistema de rareza (Común, Rara, Épica, Legendaria) y coste de Nostalgia
 razonable (decide tú según el poder). Diseña habilidad inspirada en el trasfondo
 de cada carta; si el trasfondo no encaja, usa habilidad genérica.
 
 #### Mazo de El Lich (10 cartas)
+
 1. Pops el Gentil (Regular Show, anciano caballeroso con poderes ocultos al
    enfadarse). Criatura Común/Rara. Sugerencia: soporte/curación o deathrattle
    sorpresa.
@@ -80,6 +88,7 @@ de cada carta; si el trasfondo no encaja, usa habilidad genérica.
     +4/+5 ataque equipable pero 1 daño al héroe propio cada turno.
 
 #### Mazo de Axel Blaze (10 cartas)
+
 11. Goku (Dragon Ball, saiyan, se transforma en Super Saiyan). Criatura
     Legendaria. Sugerencia: stats altos; al morir, vuelve transformado con
     stats mayores.
@@ -110,11 +119,13 @@ de cada carta; si el trasfondo no encaja, usa habilidad genérica.
     habilidad aleatoria entre 3 (ataque, escudo, robar carta).
 
 ### 5. Arquetipos (sustituir los 4 actuales)
+
 Elimina Floja, Aventura, Submarino, Deportiva. Diseña 4 nuevos coherentes con el
 catálogo. Cada arquetipo entre 3 y 6 criaturas para que la sinergia tribal (M1)
 funcione. Justifica brevemente por qué cada uno y qué cartas incluye.
 
 Propuesta de partida (puedes ajustar):
+
 - **Cartoon Clásico** (humor, vagancia, absurdo): Pops, Rigby, Patricio, Chowder,
   Darwin, Chum Chum.
 - **Aventura Mágica** (Hora de Aventuras + mística): Jake, Marceline, El Lich (héroe).
@@ -123,27 +134,34 @@ Propuesta de partida (puedes ajustar):
 - **Sobrenatural** (fantasmas, horror cómico): Fantasma Chocala, Agallas.
 
 ### 6. Zonas dinámicas (genéricas)
+
 Sustituye las zonas específicas. Diseña 3-4 zonas genéricas. Mantén la mecánica
 M3 (cada 3 turnos cambia una zona). Propuesta:
+
 - **Zona Caótica**: buff aleatorio al inicio del turno (+1 ataque o +1 vida random).
 - **Zona Mágica**: hechizos cuestan 1 Nostalgia menos.
 - **Zona de Combate**: criaturas ganan +1 ataque pero -1 vida.
 - **Zona Misteriosa**: criaturas no pueden ser objetivo durante ese turno.
 
 ### 7. Misiones (genéricas, no dependientes de arquetipos)
+
 Propuesta:
+
 - Invoca 5 criaturas → invoca token legendario 5/5.
 - Inflige 15 daño con criaturas → +5 vida al héroe.
 - Sobrevive 7 turnos → roba 3 cartas y gana 3 Nostalgia.
 
 ### 8. Easter egg (coherencia nostálgica)
+
 Elige una y descríbela en el PRD:
+
 - 10 clics en el reloj de Nostalgia → animación logo Cartoon Network 90s o
   sintonía corta nostálgica.
 - Clic en elemento concreto del tablero → frase guiño a los autores.
 - Combinación de cartas concreta → animación humorística especial.
 
 ## Secciones que NO debes tocar
+
 - Resumen ejecutivo (solo título y maná→Nostalgia donde aparezca).
 - Sistema de turnos (Robo → Principal → Combate → Fin).
 - Mecánicas M1, M2, M4, M5 (solo ajustar maná→Nostalgia y arquetipos a los nuevos).
@@ -155,6 +173,7 @@ Elige una y descríbela en el PRD:
 - Plataforma, resolución, tono general.
 
 # INSTRUCCIONES DE EJECUCIÓN
+
 1. Lee @docs/01-prd.md completo.
 2. Propón un PLAN DE CAMBIOS en tabla (sección | tipo de cambio | resumen).
 3. Espera mi aprobación del plan.
@@ -163,6 +182,7 @@ Elige una y descríbela en el PRD:
 6. Mantén estilo Markdown, tablas, numeración, glosario y estructura general.
 
 # RESTRICCIONES
+
 - No inventes mecánicas adicionales.
 - Si dudas sobre alguna habilidad, propón 2-3 alternativas marcadas [PENDIENTE DE VALIDACIÓN].
 - Habilidades viables técnicamente con Phaser (sin físicas complejas).
@@ -170,6 +190,7 @@ Elige una y descríbela en el PRD:
 - Idioma: español. Sin emojis.
 
 # ENTREGABLES ESPERADOS
+
 - `docs/01-prd.md` actualizado con todos los cambios.
 - Resumen final al chat con secciones modificadas y decisiones
   [PENDIENTE DE VALIDACIÓN].

@@ -3,12 +3,14 @@ description: Propaga el cambio terminológico Criatura→Personaje y Creature→
 ---
 
 # ROL
+
 Eres un refactorizador terminológico especializado en documentación técnica.
 Tu trabajo es propagar de forma consistente el cambio de nombre de una entidad
 del dominio a través de múltiples archivos del repositorio, respetando contexto,
 plurales, mayúsculas, idioma y bloques de código.
 
 # CONTEXTO
+
 - Proyecto académico "Crossover Cards" (juego de cartas por turnos).
 - Stack: Phaser 4 + TypeScript + Vite.
 - Documentos del repo:
@@ -23,6 +25,7 @@ plurales, mayúsculas, idioma y bloques de código.
     técnicos, JSON schemas).
 
 # OBJETIVO
+
 Aplicar el cambio terminológico de forma quirúrgica a `docs/01-prd.md` y
 `docs/02-architecture.md` para que toda la documentación quede alineada con la
 decisión del catálogo de cartas.
@@ -30,6 +33,7 @@ decisión del catálogo de cartas.
 # REGLAS DE SUSTITUCIÓN
 
 ## Sustituciones en español (en TEXTO PROSA del PRD)
+
 - "criatura" → "personaje"
 - "Criatura" → "Personaje"
 - "criaturas" → "personajes"
@@ -38,6 +42,7 @@ decisión del catálogo de cartas.
 - "CRIATURAS" → "PERSONAJES"
 
 ## Sustituciones en inglés (en NOMBRES TÉCNICOS de la arquitectura)
+
 - `Creature` (PascalCase, clase/interfaz) → `Character`
 - `creature` (camelCase, variable) → `character`
 - `creatures` (plural variable) → `characters`
@@ -46,6 +51,7 @@ decisión del catálogo de cartas.
 - En JSON schemas: `"type": "creature"` → `"type": "character"`
 
 ## Contextos a respetar (NO modificar)
+
 - Si la palabra "creature" aparece en una URL externa, código importado de
   librerías de terceros o nombres de archivo ya existentes, no modificar.
 - Si aparece en un nombre histórico ya en uso (poco probable aquí), respetarlo
@@ -56,6 +62,7 @@ decisión del catálogo de cartas.
   sentido común.
 
 ## Tipos de carta a considerar
+
 El sistema reconoce 3 tipos de carta: Personaje (antes Criatura), Hechizo, Objeto.
 "Hechizo" y "Objeto" NO cambian.
 
@@ -88,6 +95,7 @@ El sistema reconoce 3 tipos de carta: Personaje (antes Criatura), Hechizo, Objet
    - Confirmación de que `docs/04-card-catalog.md` NO se ha tocado.
 
 # RESTRICCIONES
+
 - Cambios quirúrgicos: SOLO los términos indicados. NO modifiques redacciones,
   ortografía, formato Markdown, tablas, diagramas Mermaid u otras secciones.
 - NO toques `docs/04-card-catalog.md` (ya está alineado).
