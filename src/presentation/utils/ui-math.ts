@@ -21,9 +21,6 @@ export function clampProgress(value: number): number {
 /**
  * Calcula el ancho del relleno de la barra de progreso.
  */
-export function calculateFillWidth(
-  progress: number,
-  totalWidth: number,
-): number {
+export function calculateFillWidth(progress: number, totalWidth: number): number {
   return totalWidth * clampProgress(progress);
 }
