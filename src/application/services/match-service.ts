@@ -123,6 +123,20 @@ export class MatchService {
     this.combatResolver = new CombatResolver(this.eventBus);
     this.nostalgiaSystem = new NostalgiaSystem(this.eventBus);
 
+    // Mantener la entidad Match sincronizada con los eventos del dominio
+    this.eventBus.on(GameEvent.TurnStarted, (payload) => {
+      if (this.currentMatch) {
+        this.currentMatch.activePlayerId = payload.playerId;
+        this.currentMatch.currentPhase = payload.phase;
+      }
+    });
+
+    this.eventBus.on(GameEvent.PhaseChanged, (payload) => {
+      if (this.currentMatch) {
+        this.currentMatch.currentPhase = payload.newPhase;
+      }
+    });
+
     // Arrancar la partida (Activa DrawPhase para el jugador 1)
     this.turnEngine.startMatch();
 
