@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { calculateFillWidth } from "@presentation/utils/ui-math";
 
 // ---------------------------------------------------------------------------
 // Tipos públicos
@@ -30,36 +31,6 @@ const CORNER_RADIUS = 4;
 /** Alto por defecto (spec: 12px). */
 const DEFAULT_HEIGHT = 12;
 
-// ---------------------------------------------------------------------------
-// Funciones puras exportadas (clave para tests — IMPL-051)
-// ---------------------------------------------------------------------------
-
-/**
- * Clampea un valor de progreso al rango [0, 1].
- *
- * Función pura: sin efectos secundarios.
- *
- * @param value Valor de progreso arbitrario.
- * @returns     Valor en el rango [0, 1].
- */
-export function clampProgress(value: number): number {
-  if (value <= 0) return 0;
-  if (value >= 1) return 1;
-  return value;
-}
-
-/**
- * Calcula el ancho en píxeles del relleno para un progreso dado.
- *
- * Función pura: sin efectos secundarios.
- *
- * @param progress   Progreso ya clampeado en [0, 1].
- * @param totalWidth Ancho total de la barra en píxeles.
- * @returns          Ancho del relleno en píxeles.
- */
-export function calculateFillWidth(progress: number, totalWidth: number): number {
-  return clampProgress(progress) * totalWidth;
-}
 
 // ---------------------------------------------------------------------------
 // Clase ProgressBar

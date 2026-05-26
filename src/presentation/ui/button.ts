@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { lightenColor } from "@presentation/utils/ui-math";
 
 // ---------------------------------------------------------------------------
 // Tipos públicos
@@ -24,26 +25,6 @@ export interface ButtonConfig {
   disabled?: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Función pura de utilidad (exportada para tests — IMPL-051)
-// ---------------------------------------------------------------------------
-
-/**
- * Aclara un color Phaser (número 0xRRGGBB) multiplicando cada canal RGB
- * por `factor`. Satura al máximo 0xFF por canal.
- *
- * Función pura: sin efectos secundarios ni dependencias de Phaser.
- *
- * @param color  Color original en formato 0xRRGGBB.
- * @param factor Factor de aclarado (p. ej. 1.1 = 10% más claro).
- * @returns      Color resultante en formato 0xRRGGBB.
- */
-export function lightenColor(color: number, factor: number): number {
-  const r = Math.min(0xff, Math.round(((color >> 16) & 0xff) * factor));
-  const g = Math.min(0xff, Math.round(((color >> 8) & 0xff) * factor));
-  const b = Math.min(0xff, Math.round((color & 0xff) * factor));
-  return (r << 16) | (g << 8) | b;
-}
 
 // ---------------------------------------------------------------------------
 // Constantes de animación (basadas en spec §4.7)
