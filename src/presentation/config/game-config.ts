@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 import { BootScene } from "@presentation/scenes/boot-scene";
+import { MenuScene } from "@presentation/scenes/menu-scene";
 
 /**
  * Configuración global de Phaser 4 para Crossover Cards.
@@ -22,6 +23,6 @@ export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
     width: 1920,
     height: 1080,
   },
-  // MenuScene y demás escenas se añadirán en sus tareas IMPL respectivas
-  scene: [BootScene],
+  // HeroSelectScene y demás escenas se añadirán en sus tareas IMPL respectivas
+  scene: [BootScene, MenuScene],
 };

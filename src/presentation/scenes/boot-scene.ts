@@ -35,6 +35,8 @@ const GAME_VERSION = "v1.0.0";
 export class BootScene extends Phaser.Scene {
   /** Contador privado de clics sobre el logo (easter egg). */
   private _easterClicks = 0;
+  private _progressBar!: ProgressBar;
+  private _percentText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: "BootScene" });
@@ -53,8 +55,20 @@ export class BootScene extends Phaser.Scene {
 
     this.loadCharacters();
     this.loadData();
-    this.loadAudio();
+    // Audio no registrado hasta que los archivos existan en assets/audio/
+    // (Phaser 4 lanza EncodingError no capturable que bloquea el evento 'complete')
     this.loadBackgrounds();
+
+    // Los eventos del loader deben registrarse en preload() — el loader ya ha
+    // terminado cuando create() se ejecuta y los callbacks no se invocan
+    this.load.on("progress", (value: number) => {
+      if (this._progressBar) this._progressBar.update(value);
+      if (this._percentText) this._percentText.setText(`${Math.floor(value * 100)}%`);
+    });
+
+    this.load.on("complete", () => {
+      this.onLoadComplete();
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -97,7 +111,7 @@ export class BootScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // Barra de progreso (IMPL-045) — 520px de ancho, spec §3.1
-    const progressBar = new ProgressBar({
+    this._progressBar = new ProgressBar({
       scene: this,
       x: cx,
       y: cy + 60,
@@ -105,7 +119,7 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Texto de porcentaje debajo de la barra
-    const percentText = this.add
+    this._percentText = this.add
       .text(cx, cy + 86, "0%", {
         fontFamily: "Nunito, system-ui",
         fontSize: "16px",
@@ -128,16 +142,6 @@ export class BootScene extends Phaser.Scene {
       color: COLOR_TEXT_SECONDARY,
     });
     copyright.setX(width - copyright.width - 20);
-
-    // --- Eventos del loader ---
-    this.load.on("progress", (value: number) => {
-      progressBar.update(value);
-      percentText.setText(`${Math.floor(value * 100)}%`);
-    });
-
-    this.load.on("complete", () => {
-      this.onLoadComplete();
-    });
 
     // --- Easter egg: zona interactiva sobre el logo (400×120px) ---
     this.setupEasterEgg(logoText, cx, cy - 145);
@@ -227,13 +231,6 @@ export class BootScene extends Phaser.Scene {
     this.load.json("data-heroes", "assets/data/heroes.json");
   }
 
-  /** Registra los assets de audio (puede fallar silenciosamente). */
-  private loadAudio(): void {
-    this.load.audio("music-menu", "assets/audio/music-menu.mp3");
-    this.load.audio("sfx-card-play", "assets/audio/sfx-card-play.mp3");
-  }
-
-  /** Registra las imágenes de fondo de las escenas. */
   private loadBackgrounds(): void {
     this.load.image("bg-menu", "assets/bg-menu.png");
     this.load.image("bg-hero-select", "assets/bg-hero-select.png");

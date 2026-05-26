@@ -114,7 +114,7 @@ export class Modal extends Phaser.GameObjects.Container {
     // --- Cuerpo ---
     const bodyMaxWidth = modalW - BODY_PADDING_X * 2;
     const bodyY = titleY + titleText.height + 16;
-    config.scene.add
+    const bodyText = config.scene.add
       .text(cx, bodyY, config.body, {
         fontFamily: "Nunito, system-ui",
         fontSize: "16px",
@@ -146,8 +146,8 @@ export class Modal extends Phaser.GameObjects.Container {
       this.animateOut();
     });
 
-    // --- Ensamblar contenedor ---
-    this.add([overlay, this.panel, titleText, closeBtn]);
+    // --- Ensamblar contenedor (body incluido para heredar depth) ---
+    this.add([overlay, this.panel, titleText, bodyText, closeBtn]);
 
     // --- Profundidad máxima ---
     this.setDepth(MODAL_DEPTH);
@@ -156,6 +156,7 @@ export class Modal extends Phaser.GameObjects.Container {
     overlay.setAlpha(0);
     this.panel.setScale(PANEL_SCALE_FROM);
     titleText.setScale(PANEL_SCALE_FROM);
+    bodyText.setScale(PANEL_SCALE_FROM);
     closeBtn.setScale(PANEL_SCALE_FROM);
 
     config.scene.tweens.add({
@@ -165,7 +166,7 @@ export class Modal extends Phaser.GameObjects.Container {
       ease: "Power1",
     });
     config.scene.tweens.add({
-      targets: [this.panel, titleText, closeBtn],
+      targets: [this.panel, titleText, bodyText, closeBtn],
       scaleX: 1,
       scaleY: 1,
       duration: ANIM_DURATION,
