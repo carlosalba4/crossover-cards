@@ -102,6 +102,9 @@ class FakeCardRepository implements ICardRepository {
   getAll(): Promise<CardData[]> {
     return Promise.resolve(MOCK_CARDS);
   }
+  getByArchetype(archetype: Archetype): Promise<CardData[]> {
+    return Promise.resolve(MOCK_CARDS.filter((c) => c.archetype === archetype));
+  }
 }
 
 class FakeHeroRepository implements IHeroRepository {
@@ -130,7 +133,7 @@ describe("AI Opponent Flow Integration", () => {
     // Aseguramos que p1 empieza el turno siendo el humano.
     const mathRandomSpy = vi.spyOn(Math, "random").mockReturnValue(0.1);
 
-    const eventBus = new GameEventBus() as unknown as IEventBus;
+    const eventBus = GameEventBus.getInstance() as unknown as IEventBus;
     const cardRepo = new FakeCardRepository();
     const deckRepo = new FakeDeckRepository();
     const heroRepo = new FakeHeroRepository();
@@ -193,7 +196,7 @@ describe("AI Opponent Flow Integration", () => {
   it("Escenario 2: Humano vs ThreatAwareAI - comportamiento defensivo", async () => {
     const mathRandomSpy = vi.spyOn(Math, "random").mockReturnValue(0.1); // Humano empieza
 
-    const eventBus = new GameEventBus() as unknown as IEventBus;
+    const eventBus = GameEventBus.getInstance() as unknown as IEventBus;
     const cardRepo = new FakeCardRepository();
     const deckRepo = new FakeDeckRepository();
     const heroRepo = new FakeHeroRepository();

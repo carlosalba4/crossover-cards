@@ -183,7 +183,7 @@ describe("OpponentService", () => {
     const matchService = createMockMatchService(false);
 
     // Mock console.warn para mantener limpia la salida de tests
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => { });
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     // Act
     // No debe lanzar excepciones

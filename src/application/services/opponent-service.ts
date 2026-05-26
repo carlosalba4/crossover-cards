@@ -51,7 +51,7 @@ export class OpponentService {
    * @param strategy - Estrategia de IA activa. Se puede reemplazar en caliente
    *                   con `setStrategy()`.
    */
-  constructor(private strategy: IAIStrategy) { }
+  constructor(private strategy: IAIStrategy) {}
 
   // -------------------------------------------------------------------------
   // Configuración de estrategia
