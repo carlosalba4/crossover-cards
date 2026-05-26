@@ -149,10 +149,10 @@ export class HeroSelectScene extends Phaser.Scene {
 
   private async loadData(): Promise<SelectionData> {
     const hero1 = await this._heroRepo.getById("HERO-001");
-    const deck1 = await this._deckRepo.getById("DECK-001");
+    const deck1 = await this._deckRepo.getById("DECK-LICH-01");
 
     const hero2 = await this._heroRepo.getById("HERO-002");
-    const deck2 = await this._deckRepo.getById("DECK-002");
+    const deck2 = await this._deckRepo.getById("DECK-AXEL-01");
 
     if (!hero1 || !deck1 || !hero2 || !deck2) {
       throw new Error("No se encontraron los héroes o mazos base.");

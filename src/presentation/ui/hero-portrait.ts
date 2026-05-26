@@ -37,7 +37,7 @@ const COLOR_ACCENT_GOLD = "#F5C842";
 const COLOR_TEAL = 0x3ecfcf;
 
 const PANEL_WIDTH = 280;
-const PANEL_HEIGHT = 520; // Ajustado a 520px para acomodar el contenido y coincidir con el total
+const PANEL_HEIGHT = 640; // Ajustado a 640px para acomodar el contenido y coincidir con el total
 const BORDER_RADIUS = 12;
 const BORDER_WIDTH = 3;
 
@@ -92,7 +92,7 @@ export class HeroPortrait extends Phaser.GameObjects.Container {
     this.add(panel);
 
     // --- Retrato ---
-    const portraitY = -100;
+    const portraitY = -120;
     if (config.scene.textures.exists(heroData.textureKey)) {
       const portrait = config.scene.add
         .image(0, portraitY, heroData.textureKey)
@@ -113,7 +113,7 @@ export class HeroPortrait extends Phaser.GameObjects.Container {
     }
 
     // --- Nombre del héroe ---
-    const nameY = 70;
+    const nameY = 60;
     const nameText = config.scene.add
       .text(0, nameY, heroData.name, {
         fontFamily: "Bangers, system-ui",
