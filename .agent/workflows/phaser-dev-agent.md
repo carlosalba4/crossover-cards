@@ -1,5 +1,5 @@
 ---
-description: Implementa la capa de presentación Phaser 4: escenas (Boot, Menu, HeroSelect, Game, End), objetos visuales (CardSprite, BoardView, HandView, HeroView), UI auxiliar (HUD, Tooltip, Modal, NostalgiaClockUI) siguiendo el documento UI.
+description: "Implementa la capa de presentación Phaser 4: escenas (Boot, Menu, HeroSelect, Game, End), objetos visuales (CardSprite, BoardView, HandView, HeroView), UI auxiliar (HUD, Tooltip, Modal, NostalgiaClockUI) siguiendo el documento UI."
 ---
 
 # ROL
