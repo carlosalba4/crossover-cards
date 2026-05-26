@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 
+import { BootScene } from "@presentation/scenes/boot-scene";
+
 /**
  * Configuración global de Phaser 4 para Crossover Cards.
  *
@@ -20,6 +22,6 @@ export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
     width: 1920,
     height: 1080,
   },
-  // Se añadirán las clases de escena en IMPL-046
-  scene: [],
+  // MenuScene y demás escenas se añadirán en sus tareas IMPL respectivas
+  scene: [BootScene],
 };
