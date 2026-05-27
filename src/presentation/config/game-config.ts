@@ -14,6 +14,8 @@ import { HeroSelectScene } from "@presentation/scenes/hero-select-scene";
  * escena estén disponibles. Phaser no acepta strings de nombre como
  * referencia de clase, por lo que se deja vacío hasta entonces.
  */
+import { GameScene } from "@presentation/scenes/game-scene";
+
 export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game-container",
@@ -25,5 +27,5 @@ export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
     height: 1080,
   },
   // GameScene y demás escenas se añadirán en sus tareas IMPL respectivas
-  scene: [BootScene, MenuScene, HeroSelectScene],
+  scene: [BootScene, MenuScene, HeroSelectScene, GameScene],
 };

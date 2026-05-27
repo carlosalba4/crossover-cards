@@ -252,6 +252,10 @@ export class HeroSelectScene extends Phaser.Scene {
     if (!this._selectedHeroId) return;
 
     console.info("Héroe seleccionado:", this._selectedHeroId);
-    // La transición a GameScene será implementada en IMPL-F
+
+    this.cameras.main.fadeOut(400, 0, 0, 0);
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      this.scene.start("GameScene", { heroId: this._selectedHeroId });
+    });
   }
 }
