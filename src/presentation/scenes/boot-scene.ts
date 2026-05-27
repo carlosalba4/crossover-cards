@@ -197,31 +197,36 @@ export class BootScene extends Phaser.Scene {
 
   /** Carga los 22 sprites de personajes y héroes. */
   private loadCharacters(): void {
+    // Héroes
     this.load.image("hero-el-lich", "assets/characters/hero-el-lich.png");
     this.load.image("hero-axel-blaze", "assets/characters/hero-axel-blaze.png");
-    this.load.image("card-pops-el-gentil", "assets/characters/pops-el-gentil.png");
-    this.load.image("card-darwin-watterson", "assets/characters/darwin-watterson.png");
-    this.load.image("card-chowder", "assets/characters/chowder.png");
-    this.load.image("card-patricio-estrella", "assets/characters/patricio-estrella.png");
-    this.load.image("card-rigby", "assets/characters/rigby.png");
-    this.load.image("card-jake-el-perro", "assets/characters/jake-el-perro.png");
-    this.load.image("card-goku", "assets/characters/goku.png");
-    this.load.image("card-marceline", "assets/characters/marceline.png");
-    this.load.image("card-fantasma-chocala", "assets/characters/fantasma-chocala.png");
-    this.load.image("card-diamantino", "assets/characters/diamantino.png");
-    this.load.image("card-chum-chum", "assets/characters/chum-chum.png");
+
+    // Personajes mazo El Lich
+    this.load.image("pops_card", "assets/characters/pops_card.png");
+    this.load.image("darwin_card", "assets/characters/darwin_card.png");
+    this.load.image("chowder_card", "assets/characters/chowder_card.png");
+    this.load.image("patricio_card", "assets/characters/patricio_card.png");
+    this.load.image("rigby_card", "assets/characters/rigby_card.png");
+    this.load.image("jake_card", "assets/characters/jake_card.png");
+    this.load.image("superbocata_card", "assets/characters/superbocata_card.png");
+    this.load.image("cangreburger_card", "assets/characters/cangreburger_card.png");
+    this.load.image("el_poder_card", "assets/characters/el_poder_card.png");
+    this.load.image("demon_sword_card", "assets/characters/demon_sword_card.png");
+
+    // Personajes mazo Axel Blaze
+    this.load.image("goku_card", "assets/characters/goku_card.png");
+    this.load.image("marceline_card", "assets/characters/marceline_card.png");
+    this.load.image("fantasma_chocala_card", "assets/characters/fantasma_chocala_card.png");
+    this.load.image("diamantino_card", "assets/characters/diamantino_card.png");
+    this.load.image("chumchum_card", "assets/characters/chumchum_card.png");
+    this.load.image("agallas_card", "assets/characters/agallas_card.png");
+    this.load.image("pedo_poderoso_card", "assets/characters/pedo_poderoso_card.png");
     this.load.image(
-      "card-agallas-el-perro-cobarde",
-      "assets/characters/agallas-el-perro-cobarde.png",
+      "linterna_minimizadora_card",
+      "assets/characters/linterna_minimizadora_card.png",
     );
-    this.load.image("card-superbocata", "assets/characters/superbocata.png");
-    this.load.image("card-cangreburger", "assets/characters/cangreburger.png");
-    this.load.image("card-el-poder", "assets/characters/el-poder.png");
-    this.load.image("card-espada-sangre-demonio", "assets/characters/espada-sangre-demonio.png");
-    this.load.image("card-pedo-poderoso", "assets/characters/pedo-poderoso.png");
-    this.load.image("card-linterna-minimizadora", "assets/characters/linterna-minimizadora.png");
-    this.load.image("card-bola-de-dragon", "assets/characters/bola-de-dragon.png");
-    this.load.image("card-omnitrix", "assets/characters/omnitrix.png");
+    this.load.image("bola_dragon_card", "assets/characters/bola_dragon_card.png");
+    this.load.image("omnitrix_card", "assets/characters/omnitrix_card.png");
   }
 
   /** Carga los archivos JSON de datos del juego. */
@@ -231,8 +236,9 @@ export class BootScene extends Phaser.Scene {
     this.load.json("data-heroes", "assets/data/heroes.json");
   }
 
+  /** Carga los fondos de las escenas. */
   private loadBackgrounds(): void {
-    this.load.image("bg-menu", "assets/bg-menu.png");
-    this.load.image("bg-hero-select", "assets/bg-hero-select.png");
+    this.load.image("bg-menu", "assets/backgrounds/bg-menu.png");
+    this.load.image("bg-hero-select", "assets/backgrounds/bg-hero-select.png");
   }
 }
