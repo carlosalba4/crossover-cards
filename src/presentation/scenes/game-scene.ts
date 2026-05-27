@@ -7,6 +7,10 @@ import { TurnIndicator } from "@presentation/ui/turn-indicator";
 import { ZoneBanner } from "@presentation/ui/zone-banner";
 import { Tooltip } from "@presentation/ui/tooltip";
 import { Toast } from "@presentation/ui/toast";
+import { Modal } from "@presentation/ui/modal";
+import { Button } from "@presentation/ui/button";
+import { CardSprite } from "@presentation/objects/card-sprite";
+import type { GameAction } from "@application/types/game-action";
 
 import { MatchService } from "@application/services/match-service";
 import { DeckService } from "@application/services/deck-service";
@@ -33,6 +37,13 @@ export class GameScene extends Phaser.Scene {
   private hudRight!: HUDOverlay;
   private turnIndicator!: TurnIndicator;
   private zoneBanner!: ZoneBanner;
+
+  private currentPhase: string = "main";
+  private isPlayerTurn: boolean = false;
+  private selectedAttacker: string | null = null;
+  private attackerGlow: Phaser.GameObjects.Graphics | null = null;
+  private targetSelectionMode: "heroPower" | null = null;
+  private dragHighlight: Phaser.GameObjects.Graphics | null = null;
 
   constructor() {
     super({ key: "GameScene" });
@@ -101,6 +112,8 @@ export class GameScene extends Phaser.Scene {
     this.zoneBanner = new ZoneBanner(this, 960, 300);
     const tooltip = new Tooltip(this);
     tooltip.setVisible(false);
+
+    this.setupUIInteractions();
 
     // 3. Suscribir Handlers
     this.unsubscribers = [];
@@ -181,6 +194,10 @@ export class GameScene extends Phaser.Scene {
             },
             false,
           );
+          const sprite = this.handPlayer.list[this.handPlayer.list.length - 1];
+          if (sprite instanceof CardSprite) {
+            this.makeHandCardDraggable(sprite, c.instanceId);
+          }
         });
 
         p2.hand.getCards().forEach((c) => {
@@ -236,6 +253,13 @@ export class GameScene extends Phaser.Scene {
         if (!payload.character || !payload.zoneId) return;
         const isPlayer = payload.playerId === "p1";
         this.board.addCharacterSprite(payload.character, payload.zoneId as BoardZoneId, isPlayer);
+        const sprite = this.board.list
+          .slice()
+          .reverse()
+          .find((child) => child instanceof CardSprite);
+        if (sprite instanceof CardSprite) {
+          this.makeBoardCharacterClickable(sprite, payload.character.instanceId, isPlayer);
+        }
       }),
     );
 
@@ -304,6 +328,12 @@ export class GameScene extends Phaser.Scene {
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.TurnStarted, (payload) => {
         const isPlayer = payload.playerId === "p1";
+        this.isPlayerTurn = isPlayer;
+        if (!isPlayer) {
+          this.clearAttackerSelection();
+          this.targetSelectionMode = null;
+          this.board.clearHighlights();
+        }
         this.heroPlayer.setActiveTurn(isPlayer);
         this.heroRival.setActiveTurn(!isPlayer);
         this.turnIndicator.setPhase("Draw", isPlayer);
@@ -316,6 +346,7 @@ export class GameScene extends Phaser.Scene {
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.PhaseChanged, (payload) => {
         const isPlayer = payload.playerId === "p1";
+        this.currentPhase = payload.newPhase;
         const phaseMap: Record<string, "Draw" | "Main" | "Combat" | "End"> = {
           draw: "Draw",
           main: "Main",
@@ -430,9 +461,311 @@ export class GameScene extends Phaser.Scene {
     );
   }
 
+  private setupUIInteractions(): void {
+    this.hudRight.on("endTurn", () => {
+      if (!this.isPlayerTurn) return;
+      const result = this.matchService.handlePlayerAction({
+        type: "END_TURN",
+        playerId: "p1",
+      });
+      if (!result.success) {
+        Toast.show(this, result.error?.message || "No puedes terminar el turno ahora", "warn");
+      }
+    });
+
+    this.hudRight.on("crossover", () => {
+      if (!this.isPlayerTurn) return;
+      if (this.currentPhase !== "main") {
+        Toast.show(this, "Crossover solo se puede usar en fase Main", "warn");
+        return;
+      }
+
+      const modal = Modal.show(this, {
+        title: "Crossover",
+        body: "¿Quieres activar Crossover?\nRobarás una carta del mazo enemigo.",
+        onClose: () => {
+          if (btn) btn.destroy();
+        },
+      });
+
+      const btn = new Button({
+        scene: this,
+        x: 960,
+        y: 650,
+        width: 140,
+        height: 48,
+        label: "CONFIRMAR",
+        backgroundColor: 0x7b4fdb,
+        textColor: "#ffffff",
+        onClick: () => {
+          btn.destroy();
+          modal.destroy();
+          const result = this.matchService.handlePlayerAction({
+            type: "ACTIVATE_CROSSOVER",
+            playerId: "p1",
+          } as unknown as GameAction);
+          if (!result.success) {
+            Toast.show(this, result.error?.message || "Acción Crossover inválida", "warn");
+          }
+        },
+      });
+      btn.setDepth(1001);
+      this.add.existing(btn);
+    });
+
+    this.heroPlayer.on("heroPowerClicked", () => {
+      if (!this.isPlayerTurn) return;
+
+      const match = this.matchService.getCurrentMatch();
+      const heroPower = match?.player1.hero.heroPower;
+      if (!heroPower) return;
+
+      if (heroPower.targetType === "none" || !heroPower.targetType) {
+        const result = this.matchService.handlePlayerAction({
+          type: "USE_HERO_POWER",
+          playerId: "p1",
+        } as unknown as GameAction);
+        if (!result.success) {
+          Toast.show(this, result.error?.message || "No se pudo usar la habilidad", "warn");
+        }
+      } else {
+        this.targetSelectionMode = "heroPower";
+        Toast.show(this, "Selecciona un objetivo", "ok");
+      }
+    });
+
+    this.heroRival.setSize(180, 100);
+    this.heroRival.setInteractive({ useHandCursor: true });
+    this.heroRival.on("pointerdown", () => {
+      if (!this.isPlayerTurn) return;
+
+      const p2StaticId = this.matchService.getCurrentMatch()?.player2.hero.staticId;
+      if (!p2StaticId) return;
+
+      if (this.targetSelectionMode === "heroPower") {
+        const result = this.matchService.handlePlayerAction({
+          type: "USE_HERO_POWER",
+          playerId: "p1",
+          targetId: p2StaticId,
+        } as unknown as GameAction);
+        if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
+        this.targetSelectionMode = null;
+        return;
+      }
+
+      if (this.currentPhase === "combat" && this.selectedAttacker) {
+        const result = this.matchService.handlePlayerAction({
+          type: "ATTACK",
+          attackerId: this.selectedAttacker,
+          defenderId: p2StaticId,
+        });
+        if (!result.success) {
+          Toast.show(this, result.error?.message || "Ataque inválido", "warn");
+        }
+        this.clearAttackerSelection();
+      }
+    });
+
+    this.input.on(
+      "pointerdown",
+      (_pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]) => {
+        if (gameObjects.length === 0) {
+          if (this.selectedAttacker) this.clearAttackerSelection();
+          if (this.targetSelectionMode) {
+            this.targetSelectionMode = null;
+            Toast.show(this, "Selección cancelada", "ok");
+          }
+        }
+      },
+    );
+
+    this.input.keyboard?.on("keydown-ESC", () => {
+      if (this.selectedAttacker) this.clearAttackerSelection();
+      if (this.targetSelectionMode) {
+        this.targetSelectionMode = null;
+        Toast.show(this, "Selección cancelada", "ok");
+      }
+    });
+  }
+
+  private makeHandCardDraggable(sprite: CardSprite, cardInstanceId: string): void {
+    sprite.setInteractive({ draggable: true });
+
+    let startX = 0;
+    let startY = 0;
+
+    sprite.on("dragstart", (_pointer: Phaser.Input.Pointer) => {
+      if (!this.isPlayerTurn || this.currentPhase !== "main") {
+        Toast.show(this, "Solo puedes jugar cartas en tu fase Main", "warn");
+        return;
+      }
+      startX = sprite.x;
+      startY = sprite.y;
+      sprite.setDepth(100);
+      this.highlightValidSlots();
+    });
+
+    sprite.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+      if (!this.isPlayerTurn || this.currentPhase !== "main") return;
+      sprite.x = dragX;
+      sprite.y = dragY;
+    });
+
+    sprite.on("dragend", (pointer: Phaser.Input.Pointer) => {
+      if (!this.isPlayerTurn || this.currentPhase !== "main") return;
+      this.clearSlotHighlights();
+      sprite.setDepth(0);
+
+      const zoneId = this.getDropZone(pointer.x, pointer.y);
+      if (zoneId) {
+        const result = this.matchService.handlePlayerAction({
+          type: "PLAY_CARD",
+          playerId: "p1",
+          cardInstanceId,
+          zoneId,
+        });
+
+        if (!result.success) {
+          Toast.show(this, result.error?.message || "No se puede jugar la carta", "warn");
+          this.tweens.add({
+            targets: sprite,
+            x: startX,
+            y: startY,
+            duration: 200,
+            ease: "Quad.easeOut",
+          });
+          this.handPlayer.rearrange();
+        }
+      } else {
+        this.tweens.add({
+          targets: sprite,
+          x: startX,
+          y: startY,
+          duration: 200,
+          ease: "Quad.easeOut",
+        });
+        this.handPlayer.rearrange();
+      }
+    });
+  }
+
+  private makeBoardCharacterClickable(
+    sprite: CardSprite,
+    characterId: string,
+    isPlayer: boolean,
+  ): void {
+    sprite.setInteractive({ useHandCursor: true });
+
+    sprite.on("pointerdown", () => {
+      if (!this.isPlayerTurn) return;
+
+      if (this.targetSelectionMode === "heroPower") {
+        const result = this.matchService.handlePlayerAction({
+          type: "USE_HERO_POWER",
+          playerId: "p1",
+          targetId: characterId,
+        } as unknown as GameAction);
+        if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
+        this.targetSelectionMode = null;
+        return;
+      }
+
+      if (this.currentPhase !== "combat") return;
+
+      if (isPlayer) {
+        this.selectAttacker(sprite, characterId);
+      } else {
+        if (this.selectedAttacker) {
+          const result = this.matchService.handlePlayerAction({
+            type: "ATTACK",
+            attackerId: this.selectedAttacker,
+            defenderId: characterId,
+          });
+
+          if (!result.success) {
+            Toast.show(this, result.error?.message || "Ataque inválido", "warn");
+          }
+          this.clearAttackerSelection();
+        }
+      }
+    });
+  }
+
+  private selectAttacker(sprite: CardSprite, characterId: string): void {
+    this.clearAttackerSelection();
+    this.selectedAttacker = characterId;
+
+    this.attackerGlow = this.add.graphics();
+    this.attackerGlow.lineStyle(4, 0xff3b3b, 1);
+    this.board.add(this.attackerGlow);
+    this.attackerGlow.strokeRoundedRect(sprite.x - 38, sprite.y - 50, 76, 100, 6);
+
+    this.tweens.add({
+      targets: this.attackerGlow,
+      alpha: 0.4,
+      yoyo: true,
+      repeat: -1,
+      duration: 600,
+    });
+  }
+
+  private clearAttackerSelection(): void {
+    this.selectedAttacker = null;
+    if (this.attackerGlow) {
+      this.tweens.killTweensOf(this.attackerGlow);
+      this.attackerGlow.destroy();
+      this.attackerGlow = null;
+    }
+  }
+
+  private getDropZone(pointerX: number, pointerY: number): "left" | "center" | "right" | null {
+    if (pointerY < 540) return null;
+    const startX = 680;
+    if (pointerX >= startX + 80 && pointerX < startX + 240) return "left";
+    if (pointerX >= startX + 240 && pointerX < startX + 400) return "center";
+    if (pointerX >= startX + 400 && pointerX < startX + 560) return "right";
+    return null;
+  }
+
+  private highlightValidSlots(): void {
+    if (!this.dragHighlight) {
+      this.dragHighlight = this.add.graphics();
+    }
+    this.dragHighlight.clear();
+    this.dragHighlight.lineStyle(4, 0x4caf6e, 0.6);
+    const startX = 680;
+    this.dragHighlight.strokeRoundedRect(startX + 80, 540, 150, 500, 8);
+    this.dragHighlight.strokeRoundedRect(startX + 240, 540, 150, 500, 8);
+    this.dragHighlight.strokeRoundedRect(startX + 400, 540, 150, 500, 8);
+  }
+
+  private clearSlotHighlights(): void {
+    if (this.dragHighlight) {
+      this.dragHighlight.clear();
+    }
+  }
+
   shutdown(): void {
     // Desuscribir todos los handlers para evitar memory leaks
     this.unsubscribers.forEach((unsubscribe) => unsubscribe());
     this.unsubscribers = [];
+
+    this.tweens.killAll();
+
+    if (this.handPlayer) {
+      this.handPlayer.getAll().forEach((child) => {
+        if (child instanceof CardSprite) {
+          child.removeAllListeners();
+        }
+      });
+    }
+
+    if (this.board) {
+      this.board.getAll().forEach((child) => {
+        if (child instanceof CardSprite) {
+          child.removeAllListeners();
+        }
+      });
+    }
   }
 }
