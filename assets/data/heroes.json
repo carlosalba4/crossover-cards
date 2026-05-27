@@ -4,6 +4,7 @@
     "name": "El Lich",
     "archetype": "AventuraMagica",
     "maxHealth": 30,
+    "spriteKey": "hero-el-lich",
     "heroPower": {
       "name": "Hechizo Ancestral",
       "cost": 2,
@@ -17,6 +18,7 @@
     "name": "Axel Blaze",
     "archetype": "AnimeCombate",
     "maxHealth": 30,
+    "spriteKey": "hero-axel-blaze",
     "heroPower": {
       "name": "Tornado de Fuego",
       "cost": 2,
