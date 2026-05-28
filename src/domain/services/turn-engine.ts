@@ -2,6 +2,7 @@ import type { IEventBus } from "@domain/events/event-bus";
 import { GameEvent, type TurnPhase } from "@domain/events/game-event";
 import type { ITurnPhase, TurnAction } from "@domain/states/turn-phase";
 import { DrawPhase } from "@domain/states/draw-phase";
+import { MainPhase } from "@domain/states/main-phase";
 
 /**
  * Contexto principal del patrón State para la gestión de turnos.
@@ -77,8 +78,11 @@ export class TurnEngine {
       turnNumber: this.turnNumber,
       phase: "draw",
     });
-
+    // La fase de robo es automática: el robo/fatiga se gestiona en el
+    // MatchService al iniciar turno. Tras entrar en Draw, avanzamos
+    // inmediatamente a Main para que el jugador pueda actuar.
     this.transitionTo(new DrawPhase(this));
+    this.transitionTo(new MainPhase(this));
   }
 
   /**

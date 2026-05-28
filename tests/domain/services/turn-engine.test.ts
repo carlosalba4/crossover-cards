@@ -41,7 +41,8 @@ describe("TurnEngine", () => {
       turnNumber: 1,
       phase: "draw",
     });
-    expect(engine.getCurrentPhaseName()).toBe("draw");
+    // La fase de robo es automática: el motor avanza a main tras iniciar el turno.
+    expect(engine.getCurrentPhaseName()).toBe("main");
   });
 
   it("debe alternar al jugador activo y aumentar el turno al invocar endTurn", () => {
@@ -61,25 +62,33 @@ describe("TurnEngine", () => {
     expect(engine.getActivePlayerId()).toBe("P2");
     expect(engine.getInactivePlayerId()).toBe("P1");
     expect(engine.getTurnNumber()).toBe(2);
-    expect(engine.getCurrentPhaseName()).toBe("draw"); // P2 empieza su turno en draw
+    // P2 empieza su turno y el motor avanza automáticamente de draw a main.
+    expect(engine.getCurrentPhaseName()).toBe("main");
   });
 
   it("debe emitir PhaseChanged al hacer transitionTo", () => {
     // Arrange
     const eventBus = new MockEventBus();
     const engine = new TurnEngine(eventBus, "P1", "P2");
-    engine.startMatch(); // Entra a draw, lanza TurnStarted (no PhaseChanged porque previo es null)
+    engine.startMatch(); // draw -> main automático; emite PhaseChanged draw->main
 
-    // Act
-    engine.handleAction({ type: "END_PHASE" }); // TransitionTo MainPhase
-
-    // Assert
+    // Assert: la transición automática draw->main se ha emitido al iniciar
     expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.PhaseChanged, {
       playerId: "P1",
       previousPhase: "draw",
       newPhase: "main",
     });
-    expect(engine.getCurrentPhaseName()).toBe("main");
+
+    // Act: desde main, END_PHASE transiciona a combat
+    engine.handleAction({ type: "END_PHASE" });
+
+    // Assert
+    expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.PhaseChanged, {
+      playerId: "P1",
+      previousPhase: "main",
+      newPhase: "combat",
+    });
+    expect(engine.getCurrentPhaseName()).toBe("combat");
   });
 
   it("debe delegar acciones a la fase actual y transicionar correctamente en un turno completo", () => {
@@ -89,9 +98,7 @@ describe("TurnEngine", () => {
     engine.startMatch();
 
     // Act & Assert
-    expect(engine.getCurrentPhaseName()).toBe("draw");
-    engine.handleAction({ type: "END_PHASE" });
-
+    // El turno arranca directamente en main (draw es automática).
     expect(engine.getCurrentPhaseName()).toBe("main");
     engine.handleAction({ type: "PLAY_CARD" }); // Acción válida en main
     engine.handleAction({ type: "END_PHASE" });

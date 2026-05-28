@@ -13,15 +13,21 @@ class MockEventBus implements IEventBus {
 }
 
 describe("DrawPhase", () => {
-  it("debe transicionar a MainPhase cuando recibe la acción END_PHASE", () => {
+  it("tras startMatch el motor avanza automáticamente a MainPhase (draw es automática)", () => {
     // Arrange
     const engine = new TurnEngine(new MockEventBus(), "P1", "P2");
-    engine.startMatch(); // Empieza en draw phase
-    const phase = new DrawPhase(engine);
+    // Act
+    engine.startMatch(); // draw → main automático
+    // Assert
+    expect(engine.getCurrentPhaseName()).toBe("main");
+  });
 
+  it("DrawPhase.handleAction con END_PHASE transiciona a MainPhase", () => {
+    // Arrange
+    const engine = new TurnEngine(new MockEventBus(), "P1", "P2");
+    const phase = new DrawPhase(engine);
     // Act
     phase.handleAction({ type: "END_PHASE" });
-
     // Assert
     expect(engine.getCurrentPhaseName()).toBe("main");
   });

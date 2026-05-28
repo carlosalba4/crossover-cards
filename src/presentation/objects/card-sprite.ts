@@ -162,6 +162,8 @@ export class CardSprite extends Phaser.GameObjects.Container {
   private _disabled: boolean;
   private _showBack: boolean;
   private _selected: boolean;
+  private _baseY = 0;
+  private _isHovering = false;
   private readonly _size: CardSize;
   private readonly _dims: CardDimensions;
   private readonly _card: CardData;
@@ -671,30 +673,31 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
   private onPointerOver(): void {
     if (this._disabled || this._showBack) return;
-
+    if (this._isHovering) return; // ya está elevada, no re-elevar
+    this._isHovering = true;
+    this._baseY = this.y; // guarda posición de reposo
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.add({
       targets: this,
       scaleX: SCALE_HOVER,
       scaleY: SCALE_HOVER,
-      y: this.y - HOVER_ELEVATION_PX,
+      y: this._baseY - HOVER_ELEVATION_PX, // posición ABSOLUTA
       angle: 0,
       duration: TWEEN_HOVER_MS,
-      ease: "Power1",
     });
-    // Elevar profundidad visualmente
     this.setDepth(100);
   }
 
   private onPointerOut(): void {
     if (this._disabled || this._showBack) return;
-
+    if (!this._isHovering) return;
+    this._isHovering = false;
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.add({
       targets: this,
       scaleX: 1.0,
       scaleY: 1.0,
-      y: this.y + HOVER_ELEVATION_PX,
+      y: this._baseY, // VUELVE a la posición exacta de reposo
       duration: TWEEN_HOVER_MS,
       ease: "Power1",
     });

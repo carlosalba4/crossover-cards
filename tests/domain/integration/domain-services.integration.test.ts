@@ -155,19 +155,17 @@ describe("Domain Services Integration E2E", () => {
     // 0. Inicio de Partida
     // =========================================================
     turnEngine.startMatch();
-    // Emite MatchStarted, TurnStarted (P1, draw phase)
+    // Emite MatchStarted, TurnStarted (P1), y avanza automáticamente draw -> main
 
     // =========================================================
     // 1. TURNO 1 (P1)
     // =========================================================
-    // -- Draw Phase --
+    // -- Draw Phase (automática: el motor ya está en main) --
     let drawCard = p1Deck.draw();
     if (drawCard) p1Hand.add(drawCard);
 
     nostalgiaSystem.onTurnStart(P1);
     momentumSystem.onTurnStart(P1);
-
-    turnEngine.handleAction({ type: "END_PHASE" }); // Pasa a MainPhase
 
     // -- Main Phase --
     nostalgiaSystem.spend(P1, 1);
@@ -188,14 +186,13 @@ describe("Domain Services Integration E2E", () => {
     // =========================================================
     // 2. TURNO 2 (P2)
     // =========================================================
-    // -- Draw Phase --
+    // -- Draw Phase (automática: el motor ya está en main) --
     drawCard = p2Deck.draw();
     if (drawCard) p2Hand.add(drawCard);
 
     nostalgiaSystem.onTurnStart(P2);
     momentumSystem.onTurnStart(P2);
 
-    turnEngine.handleAction({ type: "END_PHASE" }); // -> MainPhase
     turnEngine.handleAction({ type: "END_PHASE" }); // -> CombatPhase
     turnEngine.handleAction({ type: "END_PHASE" }); // -> EndPhase
     turnEngine.handleAction({ type: "END_TURN" }); // Termina P2, empieza P1 (Turno 3)
@@ -225,8 +222,6 @@ describe("Domain Services Integration E2E", () => {
 
     nostalgiaSystem.onTurnStart(P1);
     momentumSystem.onTurnStart(P1);
-
-    turnEngine.handleAction({ type: "END_PHASE" }); // -> MainPhase
 
     // -- Main Phase --
     // Crossover (M5)
