@@ -129,6 +129,7 @@ export class MatchService {
         this.currentMatch.activePlayerId = payload.playerId;
         this.currentMatch.currentPhase = payload.phase;
       }
+      this.nostalgiaSystem?.onTurnStart(payload.playerId);
     });
 
     this.eventBus.on(GameEvent.PhaseChanged, (payload) => {
@@ -178,6 +179,7 @@ export class MatchService {
           action.defenderId,
           this.eventBus,
           this.combatResolver,
+          this.turnEngine,
         );
         break;
       case "END_TURN":
@@ -207,6 +209,14 @@ export class MatchService {
 
   public getCurrentMatch(): Match | null {
     return this.currentMatch;
+  }
+
+  public getNostalgia(playerId: string): { current: number; max: number } {
+    if (!this.nostalgiaSystem) return { current: 0, max: 0 };
+    return {
+      current: this.nostalgiaSystem.getCurrentNostalgia(playerId),
+      max: this.nostalgiaSystem.getMaxNostalgia(playerId),
+    };
   }
 
   private checkMatchEnd(): void {

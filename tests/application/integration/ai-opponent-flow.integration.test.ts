@@ -174,8 +174,9 @@ describe("AI Opponent Flow Integration", () => {
     match.currentPhase = "main";
     // Forzamos un poco de nostalgia para la IA para que juegue cartas (esto simulando que la Fase Main ya asignó nostalgia)
 
-    // 3. Simula al menos 3 turnos (llamando a executeAITurn)
-    opponentService.executeAITurn(match, aiPlayerId, matchService);
+    // 3. Simula al menos 3 turnos (llamando a executeTurn)
+    const dummyDelay = async () => Promise.resolve();
+    await opponentService.executeTurn(match, aiPlayerId, matchService, dummyDelay);
 
     // 4. Verifica que MatchService recibe correctamente las GameAction generadas por la IA.
     // Como executeAITurn no lanza excepciones y llama a END_TURN, la IA debe haber pasado su turno.
@@ -189,7 +190,7 @@ describe("AI Opponent Flow Integration", () => {
 
     // Turno 4: IA
     match.currentPhase = "main";
-    opponentService.executeAITurn(match, aiPlayerId, matchService);
+    await opponentService.executeTurn(match, aiPlayerId, matchService, dummyDelay);
     expect(match.activePlayerId).toBe(humanPlayerId);
   });
 
@@ -223,8 +224,9 @@ describe("AI Opponent Flow Integration", () => {
     match.player2.hero.currentHealth = 8;
     match.currentPhase = "main";
 
-    // 3. Al llamar a executeAITurn, verifica que toma decisiones (el servicio debería ejecutarlo sin error)
-    opponentService.executeAITurn(match, aiPlayerId, matchService);
+    // 3. Al llamar a executeTurn, verifica que toma decisiones (el servicio debería ejecutarlo sin error)
+    const dummyDelay = async () => Promise.resolve();
+    await opponentService.executeTurn(match, aiPlayerId, matchService, dummyDelay);
 
     // El turno debe terminar
     expect(match.activePlayerId).toBe(humanPlayerId);

@@ -11,6 +11,7 @@ import { InvalidTargetError } from "@domain/errors/invalid-target-error";
 import type { IEventBus } from "@domain/events/event-bus";
 import { Hero } from "@domain/entities/hero";
 import { Deck } from "@domain/entities/deck";
+import { TurnEngine } from "@domain/services/turn-engine";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,12 @@ function makeMockEventBus(): IEventBus {
     off: vi.fn(),
     clear: vi.fn(),
   };
+}
+
+function makeMockTurnEngine(): TurnEngine {
+  return {
+    handleAction: vi.fn(),
+  } as unknown as TurnEngine;
 }
 
 function makeCharacter(
@@ -102,10 +109,12 @@ function makeMatch(
 describe("AttackCommand", () => {
   let eventBus: IEventBus;
   let combatResolver: CombatResolver;
+  let turnEngine: TurnEngine;
 
   beforeEach(() => {
     eventBus = makeMockEventBus();
     combatResolver = new CombatResolver(eventBus);
+    turnEngine = makeMockTurnEngine();
   });
 
   // ── Éxito: ataque básico ─────────────────────────────────────────────────
@@ -122,6 +131,7 @@ describe("AttackCommand", () => {
       defender.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act
@@ -151,6 +161,7 @@ describe("AttackCommand", () => {
       defender.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act
@@ -167,11 +178,11 @@ describe("AttackCommand", () => {
 
   // ── Fallo: fase incorrecta ───────────────────────────────────────────────
 
-  it("debería fallar con PhaseViolationError si la fase no es 'combat'", () => {
+  it("debería fallar con PhaseViolationError si la fase no es 'combat' ni 'main'", () => {
     // Arrange
     const attacker = makeCharacter();
     const defender = makeCharacter({ name: "Chowder" });
-    const match = makeMatch([attacker], [defender], "main");
+    const match = makeMatch([attacker], [defender], "draw");
 
     const command = new AttackCommand(
       match,
@@ -179,6 +190,7 @@ describe("AttackCommand", () => {
       defender.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act
@@ -190,6 +202,29 @@ describe("AttackCommand", () => {
     // Ninguna entidad tomó daño
     expect(attacker.currentHealth).toBe(3);
     expect(defender.currentHealth).toBe(3);
+  });
+
+  it("debería llamar a turnEngine.handleAction({ type: 'END_PHASE' }) si la fase es 'main'", () => {
+    // Arrange
+    const attacker = makeCharacter({ attack: 3, health: 3 });
+    const defender = makeCharacter({ attack: 2, health: 2, name: "Chowder" });
+    const match = makeMatch([attacker], [defender], "main");
+
+    const command = new AttackCommand(
+      match,
+      attacker.instanceId,
+      defender.instanceId,
+      eventBus,
+      combatResolver,
+      turnEngine,
+    );
+
+    // Act
+    const result = command.execute();
+
+    // Assert
+    expect(result.success).toBe(true);
+    expect(turnEngine.handleAction).toHaveBeenCalledWith({ type: "END_PHASE" });
   });
 
   // ── Fallo: atacante exhausto ─────────────────────────────────────────────
@@ -207,6 +242,7 @@ describe("AttackCommand", () => {
       defender.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act
@@ -236,6 +272,7 @@ describe("AttackCommand", () => {
       defenderWithoutTaunt.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act
@@ -264,6 +301,7 @@ describe("AttackCommand", () => {
       defenderWithTaunt.instanceId,
       eventBus,
       combatResolver,
+      turnEngine,
     );
 
     // Act

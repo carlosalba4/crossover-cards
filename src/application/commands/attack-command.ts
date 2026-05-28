@@ -7,11 +7,13 @@ import { Ability } from "@domain/types/card-types";
 import { PhaseViolationError } from "@domain/errors/phase-violation-error";
 import { InvalidTargetError } from "@domain/errors/invalid-target-error";
 
+import type { TurnEngine } from "@domain/services/turn-engine";
+
 /**
  * Comando que ejecuta un ataque en la Fase de Combate.
  *
  * Validaciones:
- *  1. La fase actual debe ser "combat".
+ *  1. La fase actual debe ser "combat" o "main". (Si es "main", auto-transiciona a "combat").
  *  2. El atacante debe existir en el tablero del jugador activo.
  *  3. El atacante no debe estar exhausto ni haber atacado ya.
  *  4. Si el oponente tiene Personajes con Taunt, el objetivo debe ser uno de ellos.
@@ -28,17 +30,20 @@ export class AttackCommand implements ICommand {
     private readonly defenderId: string,
     _eventBus: IEventBus,
     private readonly combatResolver: CombatResolver,
+    private readonly turnEngine: TurnEngine,
   ) {}
 
   execute(): CommandResult {
     const eventsEmitted: GameEvent[] = [];
 
-    // ── 1. Validar fase ──────────────────────────────────────────────────────
-    if (this.match.currentPhase !== "combat") {
+    // ── 1. Validar fase y auto-transicionar si es necesario ────────────────
+    if (this.match.currentPhase === "main") {
+      this.turnEngine.handleAction({ type: "END_PHASE" });
+    } else if (this.match.currentPhase !== "combat") {
       return {
         success: false,
         error: new PhaseViolationError(
-          `Solo se puede atacar en la fase "combat", fase actual: "${this.match.currentPhase}".`,
+          `Solo se puede atacar en la fase "combat" o "main", fase actual: "${this.match.currentPhase}".`,
         ),
         eventsEmitted,
       };

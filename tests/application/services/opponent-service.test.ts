@@ -66,10 +66,13 @@ describe("OpponentService", () => {
   function createMockMatchService(success: boolean = true): MatchService {
     return {
       handlePlayerAction: vi.fn().mockReturnValue({ success, eventsEmitted: [] }),
+      getNostalgia: vi.fn().mockReturnValue({ current: 10, max: 10 }),
     } as unknown as MatchService;
   }
 
-  it("a) setStrategy() reemplaza la estrategia", () => {
+  const dummyDelay = async () => Promise.resolve();
+
+  it("a) setStrategy() reemplaza la estrategia", async () => {
     // Arrange
     const originalStrategy = createMockStrategy();
     const newStrategy = createMockStrategy();
@@ -78,18 +81,18 @@ describe("OpponentService", () => {
     const matchService = createMockMatchService();
 
     // Act 1: usa original
-    opponentService.executeAITurn(match, "ai-player", matchService);
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
 
     // Act 2: cambia y usa nueva
     opponentService.setStrategy(newStrategy);
-    opponentService.executeAITurn(match, "ai-player", matchService);
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
 
     // Assert
     expect(originalStrategy.decideMainPhaseActions).toHaveBeenCalledTimes(1);
     expect(newStrategy.decideMainPhaseActions).toHaveBeenCalledTimes(1);
   });
 
-  it("b) executeAITurn llama a handlePlayerAction para PLAY_CARD", () => {
+  it("b) executeAITurn llama a handlePlayerAction para PLAY_CARD", async () => {
     // Arrange
     const strategy = createMockStrategy([
       { type: "PLAY_CARD", cardInstanceId: "card-1", zoneId: "center" },
@@ -101,7 +104,7 @@ describe("OpponentService", () => {
     const matchService = createMockMatchService();
 
     // Act
-    opponentService.executeAITurn(match, "ai-player", matchService);
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
 
     // Assert
     expect(matchService.handlePlayerAction).toHaveBeenCalledWith({
@@ -118,7 +121,7 @@ describe("OpponentService", () => {
     });
   });
 
-  it("c) executeAITurn llama a handlePlayerAction para ATTACK", () => {
+  it("c) executeAITurn llama a handlePlayerAction para ATTACK", async () => {
     // Arrange
     const strategy = createMockStrategy(
       [{ type: "END_MAIN_PHASE" }],
@@ -133,7 +136,7 @@ describe("OpponentService", () => {
     const matchService = createMockMatchService();
 
     // Act
-    opponentService.executeAITurn(match, "ai-player", matchService);
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
 
     // Assert
     expect(matchService.handlePlayerAction).toHaveBeenCalledWith({
@@ -148,7 +151,7 @@ describe("OpponentService", () => {
     });
   });
 
-  it("d) executeAITurn SIEMPRE llama a END_TURN al final", () => {
+  it("d) executeAITurn SIEMPRE llama a END_TURN al final", async () => {
     // Arrange
     const strategy = createMockStrategy();
     const opponentService = new OpponentService(strategy);
@@ -156,7 +159,7 @@ describe("OpponentService", () => {
     const matchService = createMockMatchService();
 
     // Act
-    opponentService.executeAITurn(match, "ai-player", matchService);
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
 
     // Assert
     // handlePlayerAction debería ser llamado 1 vez, solo para el END_TURN
@@ -167,7 +170,7 @@ describe("OpponentService", () => {
     });
   });
 
-  it("e) Si handlePlayerAction devuelve success: false, NO lanza excepción y continúa al END_TURN final", () => {
+  it("e) Si handlePlayerAction devuelve success: false, NO lanza excepción y continúa al END_TURN final", async () => {
     // Arrange
     const strategy = createMockStrategy(
       [
@@ -187,9 +190,9 @@ describe("OpponentService", () => {
 
     // Act
     // No debe lanzar excepciones
-    expect(() => {
-      opponentService.executeAITurn(match, "ai-player", matchService);
-    }).not.toThrow();
+    await expect(
+      opponentService.executeTurn(match, "ai-player", matchService, dummyDelay),
+    ).resolves.not.toThrow();
 
     // Assert
     // Se llamó a PLAY_CARD

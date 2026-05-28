@@ -20,6 +20,8 @@ import { JsonHeroRepository } from "@infrastructure/repositories/json-hero-repos
 import { GameEventBus } from "@infrastructure/events/game-event-bus";
 import { GameEvent } from "@domain/events/game-event";
 import type { Unsubscribe, IEventBus } from "@domain/events/event-bus";
+import { OpponentService } from "@application/services/opponent-service";
+import { GreedyAI } from "@domain/ai/greedy-ai";
 
 export class GameScene extends Phaser.Scene {
   private heroId!: string;
@@ -45,6 +47,10 @@ export class GameScene extends Phaser.Scene {
   private targetSelectionMode: "heroPower" | null = null;
   private dragHighlight: Phaser.GameObjects.Graphics | null = null;
 
+  private opponentService!: OpponentService;
+  private aiOverlay?: Phaser.GameObjects.Rectangle;
+  private rivalTurnText!: Phaser.GameObjects.Text;
+
   constructor() {
     super({ key: "GameScene" });
   }
@@ -66,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     const deckService = new DeckService(deckRepo, cardRepo);
 
     this.matchService = new MatchService(deckService, deckRepo, heroRepo, this.eventBus);
+    this.opponentService = new OpponentService(new GreedyAI());
 
     // 2. Construir UI
     this.board = new BoardView(this, 136, 0, 1648, 1080);
@@ -112,6 +119,16 @@ export class GameScene extends Phaser.Scene {
     this.zoneBanner = new ZoneBanner(this, 960, 300);
     const tooltip = new Tooltip(this);
     tooltip.setVisible(false);
+
+    this.rivalTurnText = this.add
+      .text(960, 40, "TURNO RIVAL", {
+        fontFamily: "Bangers",
+        fontSize: "24px",
+        color: "#FF3B3B",
+      })
+      .setOrigin(0.5)
+      .setVisible(false)
+      .setDepth(100);
 
     this.setupUIInteractions();
 
@@ -329,20 +346,53 @@ export class GameScene extends Phaser.Scene {
       this.eventBus.on(GameEvent.TurnStarted, (payload) => {
         const isPlayer = payload.playerId === "p1";
         this.isPlayerTurn = isPlayer;
-        // Draw es siempre inmediato; la fase efectiva tras TurnStarted es "main".
-        // Se corregirá por PhaseChanged(draw→main) que llega justo después.
-        // Inicializamos a "draw" para que el indicador sea correcto y se sobreescriba.
         this.currentPhase = payload.phase;
+
         if (!isPlayer) {
           this.clearAttackerSelection();
           this.targetSelectionMode = null;
           this.board.clearHighlights();
+
+          // Bloquear mano del jugador
+          this.handPlayer.setEnabled(false);
+
+          // Overlay semitransparente sutil sobre la mano
+          if (!this.aiOverlay) {
+            this.aiOverlay = this.add.rectangle(960, 950, 1920, 300, 0x000000, 0.4);
+            this.aiOverlay.setDepth(50);
+          }
+          this.aiOverlay.setVisible(true);
+
+          // Indicador visual
+          this.turnIndicator.setVisible(false);
+          this.rivalTurnText.setVisible(true);
+
+          // Ejecutar IA con delay visual
+          const match = this.matchService.getCurrentMatch();
+          if (match) {
+            const delayFn = (ms: number) => {
+              return new Promise<void>((resolve) => {
+                this.time.delayedCall(ms, resolve);
+              });
+            };
+            this.opponentService
+              .executeTurn(match, payload.playerId, this.matchService, delayFn)
+              .catch((e) => console.error(e));
+          }
+        } else {
+          // Desbloquear mano y limpiar overlay
+          this.handPlayer.setEnabled(true);
+          if (this.aiOverlay) this.aiOverlay.setVisible(false);
+
+          // Indicador visual normal
+          this.turnIndicator.setVisible(true);
+          this.rivalTurnText.setVisible(false);
+          this.turnIndicator.setPhase("Draw", isPlayer);
         }
+
         this.heroPlayer.setActiveTurn(isPlayer);
         this.heroRival.setActiveTurn(!isPlayer);
-        this.turnIndicator.setPhase("Draw", isPlayer);
         this.hudRight.setEndTurnEnabled(isPlayer);
-        this.handPlayer.setEnabled(isPlayer);
       }),
     );
 
@@ -363,8 +413,12 @@ export class GameScene extends Phaser.Scene {
 
     // 10. TurnEnded
     this.unsubscribers.push(
-      this.eventBus.on(GameEvent.TurnEnded, () => {
-        // Nada visual requerido específicamente aquí en esta iteración
+      this.eventBus.on(GameEvent.TurnEnded, (payload) => {
+        const isPlayer = payload.playerId === "p1";
+        if (!isPlayer) {
+          this.handPlayer.setEnabled(true);
+          if (this.aiOverlay) this.aiOverlay.setVisible(false);
+        }
       }),
     );
 
@@ -760,10 +814,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    // Desuscribir todos los handlers para evitar memory leaks
-    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
+    // Desuscribir todos los handlers
+    this.unsubscribers.forEach((unsub) => unsub());
     this.unsubscribers = [];
 
+    // Limpiar todos los eventos de tiempo para evitar fugas
+    this.time.removeAllEvents();
     this.tweens.killAll();
 
     if (this.handPlayer) {

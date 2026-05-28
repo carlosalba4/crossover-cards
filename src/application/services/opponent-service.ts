@@ -90,9 +90,15 @@ export class OpponentService {
    * @param aiPlayerId   - ID del jugador controlado por la IA.
    * @param matchService - Servicio de partida que ejecuta los comandos.
    */
-  executeAITurn(match: Match, aiPlayerId: string, matchService: MatchService): void {
+  async executeTurn(
+    match: Match,
+    aiPlayerId: string,
+    matchService: MatchService,
+    delayFn: (ms: number) => Promise<void>,
+  ): Promise<void> {
     // Paso 1 — Construir el snapshot inmutable
-    const snapshot = createSnapshot(match, aiPlayerId);
+    const nostalgia = matchService.getNostalgia(aiPlayerId);
+    const snapshot = createSnapshot(match, aiPlayerId, nostalgia.current, nostalgia.max);
 
     // -----------------------------------------------------------------------
     // Paso 2 — Fase Principal
@@ -100,6 +106,8 @@ export class OpponentService {
     const mainActions = this.strategy.decideMainPhaseActions(snapshot);
 
     for (const action of mainActions) {
+      await delayFn(800);
+
       switch (action.type) {
         case "PLAY_CARD": {
           const result = matchService.handlePlayerAction({
@@ -118,29 +126,24 @@ export class OpponentService {
         }
 
         case "USE_HERO_POWER":
-          // USE_HERO_POWER: UseHeroPowerCommand no existe aún en esta iteración.
-          // Se reserva para una tarea futura del bloque IMPL-D.
           console.warn(
             "[OpponentService] USE_HERO_POWER: pendiente de implementar UseHeroPowerCommand.",
           );
           break;
 
         case "END_MAIN_PHASE":
-          // La estrategia indica que ha terminado la fase principal
           break;
       }
 
-      // Salir del loop al encontrar END_MAIN_PHASE
       if (action.type === "END_MAIN_PHASE") {
         break;
       }
     }
 
     // -----------------------------------------------------------------------
-    // Paso 3 — Crossover (opcional, pendiente de comando)
+    // Paso 3 — Crossover (opcional)
     // -----------------------------------------------------------------------
     if (this.strategy.shouldUseCrossover(snapshot)) {
-      // ActivateCrossoverCommand no existe aún: se reserva para tarea futura.
       console.warn("[OpponentService] Crossover IA: pendiente de comando.");
     }
 
@@ -150,6 +153,8 @@ export class OpponentService {
     const combatActions = this.strategy.decideCombatActions(snapshot);
 
     for (const action of combatActions) {
+      await delayFn(800);
+
       switch (action.type) {
         case "ATTACK": {
           const result = matchService.handlePlayerAction({
@@ -167,20 +172,18 @@ export class OpponentService {
         }
 
         case "END_COMBAT":
-          // La estrategia indica que ha terminado el combate
           break;
       }
 
-      // Salir del loop al encontrar END_COMBAT
       if (action.type === "END_COMBAT") {
         break;
       }
     }
 
     // -----------------------------------------------------------------------
-    // Paso 5 — Fin de turno (siempre se emite, aunque los pasos anteriores
-    // hayan fallado o devuelto arrays vacíos)
+    // Paso 5 — Fin de turno
     // -----------------------------------------------------------------------
+    await delayFn(800);
     const endTurnResult = matchService.handlePlayerAction({
       type: "END_TURN",
       playerId: aiPlayerId,

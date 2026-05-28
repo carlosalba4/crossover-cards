@@ -155,7 +155,12 @@ export interface GameStateSnapshot {
  *   .sort((a, b) => b.nostalgyCost - a.nostalgyCost);
  * ```
  */
-export function createSnapshot(match: Match, aiPlayerId: PlayerId): GameStateSnapshot {
+export function createSnapshot(
+  match: Match,
+  aiPlayerId: PlayerId,
+  nostalgiaCurrent: number = 0,
+  nostalgiaMax: number = 0
+): GameStateSnapshot {
   // Identifica qué PlayerState corresponde a la IA y cuál al oponente.
   const isAiPlayer1 = match.player1.playerId === aiPlayerId;
 
@@ -195,8 +200,8 @@ export function createSnapshot(match: Match, aiPlayerId: PlayerId): GameStateSna
     // Recursos pendientes de implementación en PlayerState.
     // Se inicializan a valores neutros hasta que NostalgiaSystem y
     // MomentumSystem estén integrados y expongan estos datos.
-    nostalgiaCurrent: 0,
-    nostalgiaMax: 0,
+    nostalgiaCurrent,
+    nostalgiaMax,
     momentumActive: false,
     momentumCharges: 0,
     crossoverAvailable: false,
