@@ -121,9 +121,9 @@ describe("MatchService", () => {
     });
 
     // Assert
-    // Expect failure due to PhaseViolation (it starts in "draw" phase)
+    // Expect failure due to InsufficientNostalgia (since phase is correctly 'main')
     expect(result).toBeDefined();
     expect(result.success).toBe(false);
-    expect(result.error?.message).toContain("fase");
+    expect(result.error?.message).toContain("Nostalgia insuficiente");
   });
 });

@@ -152,6 +152,12 @@ export class MatchService {
       };
     }
 
+    // Forzar sincronización de la fase por si el EventBus tuvo latencia
+    const realPhase = this.turnEngine.getCurrentPhaseName();
+    if (realPhase) {
+      this.currentMatch.currentPhase = realPhase;
+    }
+
     let command: ICommand;
 
     switch (action.type) {

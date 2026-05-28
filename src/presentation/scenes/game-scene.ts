@@ -329,6 +329,10 @@ export class GameScene extends Phaser.Scene {
       this.eventBus.on(GameEvent.TurnStarted, (payload) => {
         const isPlayer = payload.playerId === "p1";
         this.isPlayerTurn = isPlayer;
+        // Draw es siempre inmediato; la fase efectiva tras TurnStarted es "main".
+        // Se corregirá por PhaseChanged(draw→main) que llega justo después.
+        // Inicializamos a "draw" para que el indicador sea correcto y se sobreescriba.
+        this.currentPhase = payload.phase;
         if (!isPlayer) {
           this.clearAttackerSelection();
           this.targetSelectionMode = null;
@@ -463,7 +467,15 @@ export class GameScene extends Phaser.Scene {
 
   private setupUIInteractions(): void {
     this.hudRight.on("endTurn", () => {
-      if (!this.isPlayerTurn) return;
+      if (!this.isPlayerTurn) {
+        Toast.show(this, "No es tu turno", "warn");
+        return;
+      }
+      // Validar con el estado local de la escena (más fiable que esperar match.currentPhase)
+      if (this.currentPhase !== "main" && this.currentPhase !== "combat") {
+        Toast.show(this, "Espera a que cargue la fase principal", "warn");
+        return;
+      }
       const result = this.matchService.handlePlayerAction({
         type: "END_TURN",
         playerId: "p1",
@@ -590,6 +602,8 @@ export class GameScene extends Phaser.Scene {
 
   private makeHandCardDraggable(sprite: CardSprite, cardInstanceId: string): void {
     sprite.setInteractive({ draggable: true });
+    // Phaser requiere registrar explícitamente el objeto en el gestor de drag de la escena.
+    this.input.setDraggable(sprite);
 
     let startX = 0;
     let startY = 0;
