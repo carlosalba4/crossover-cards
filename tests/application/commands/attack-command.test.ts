@@ -11,7 +11,7 @@ import { InvalidTargetError } from "@domain/errors/invalid-target-error";
 import type { IEventBus } from "@domain/events/event-bus";
 import { Hero } from "@domain/entities/hero";
 import { Deck } from "@domain/entities/deck";
-import { TurnEngine } from "@domain/services/turn-engine";
+import type { TurnEngine } from "@domain/services/turn-engine";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

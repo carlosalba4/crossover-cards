@@ -159,7 +159,7 @@ export function createSnapshot(
   match: Match,
   aiPlayerId: PlayerId,
   nostalgiaCurrent: number = 0,
-  nostalgiaMax: number = 0
+  nostalgiaMax: number = 0,
 ): GameStateSnapshot {
   // Identifica qué PlayerState corresponde a la IA y cuál al oponente.
   const isAiPlayer1 = match.player1.playerId === aiPlayerId;
