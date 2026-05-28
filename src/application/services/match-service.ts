@@ -21,6 +21,7 @@ export class MatchService {
   private turnEngine: TurnEngine | null = null;
   private combatResolver: CombatResolver | null = null;
   private nostalgiaSystem: NostalgiaSystem | null = null;
+  private internalUnsubscribers: Array<() => void> = [];
 
   constructor(
     private readonly deckService: DeckService,
@@ -123,20 +124,34 @@ export class MatchService {
     this.combatResolver = new CombatResolver(this.eventBus);
     this.nostalgiaSystem = new NostalgiaSystem(this.eventBus);
 
-    // Mantener la entidad Match sincronizada con los eventos del dominio
-    this.eventBus.on(GameEvent.TurnStarted, (payload) => {
-      if (this.currentMatch) {
-        this.currentMatch.activePlayerId = payload.playerId;
-        this.currentMatch.currentPhase = payload.phase;
-      }
-      this.nostalgiaSystem?.onTurnStart(payload.playerId);
-    });
+    // Limpiar suscripciones de partidas anteriores antes de registrar las nuevas
+    this.dispose();
 
-    this.eventBus.on(GameEvent.PhaseChanged, (payload) => {
-      if (this.currentMatch) {
-        this.currentMatch.currentPhase = payload.newPhase;
-      }
-    });
+    // Mantener la entidad Match sincronizada con los eventos del dominio
+    this.internalUnsubscribers.push(
+      this.eventBus.on(GameEvent.TurnStarted, (payload) => {
+        if (this.currentMatch) {
+          this.currentMatch.activePlayerId = payload.playerId;
+          this.currentMatch.currentPhase = payload.phase;
+
+          // Resetear estado de combate de los personajes del jugador activo
+          const activePlayer = this.currentMatch.getActivePlayer();
+          this.currentMatch.getAllBoardCharacters(activePlayer).forEach((char) => {
+            char.isExhausted = false;
+            char.hasAttackedThisTurn = false;
+          });
+        }
+        this.nostalgiaSystem?.onTurnStart(payload.playerId);
+      }),
+    );
+
+    this.internalUnsubscribers.push(
+      this.eventBus.on(GameEvent.PhaseChanged, (payload) => {
+        if (this.currentMatch) {
+          this.currentMatch.currentPhase = payload.newPhase;
+        }
+      }),
+    );
 
     // Arrancar la partida (Activa DrawPhase para el jugador 1)
     this.turnEngine.startMatch();
@@ -217,6 +232,11 @@ export class MatchService {
       current: this.nostalgiaSystem.getCurrentNostalgia(playerId),
       max: this.nostalgiaSystem.getMaxNostalgia(playerId),
     };
+  }
+
+  public dispose(): void {
+    this.internalUnsubscribers.forEach((unsub) => unsub());
+    this.internalUnsubscribers = [];
   }
 
   private checkMatchEnd(): void {

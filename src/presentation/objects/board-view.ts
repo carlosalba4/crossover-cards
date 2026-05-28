@@ -142,6 +142,10 @@ export class BoardView extends Phaser.GameObjects.Container {
     });
   }
 
+  public getSpriteByInstanceId(instanceId: string): CardSprite | null {
+    return this.spriteMap.get(instanceId) ?? null;
+  }
+
   public removeCharacterSprite(characterId: string, animate: boolean = true): void {
     const sprite = this.spriteMap.get(characterId);
     if (!sprite) return;

@@ -49,12 +49,13 @@ export class HandView extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Añade una nueva carta a la mano.
+   * Añade una nueva carta a la mano y devuelve el sprite creado.
    */
-  public addCard(card: CardData & { id: string }, animate: boolean = true): void {
+  public addCard(card: CardData & { id: string }, animate: boolean = true): CardSprite {
     if (this.cardEntries.length >= this.maxCards) {
       console.warn("La mano está llena, no se puede añadir más cartas.");
-      return;
+      // Devolvemos un sprite temporal para no romper callers con la firma
+      return new CardSprite(this.scene, card, { size: CardSize.Hand, showBack: !this.isPlayer });
     }
 
     const sprite = new CardSprite(this.scene, card, {
@@ -83,6 +84,7 @@ export class HandView extends Phaser.GameObjects.Container {
     }
 
     this.rearrange();
+    return sprite;
   }
 
   /**
@@ -116,6 +118,8 @@ export class HandView extends Phaser.GameObjects.Container {
 
   /**
    * Recalcula y anima todas las cartas a sus posiciones en abanico.
+   * Cancela tweens previos para evitar conflictos y actualiza la posición
+   * de reposo de cada carta (necesario para el hover correcto).
    */
   public rearrange(): void {
     const count = this.cardEntries.length;
@@ -130,12 +134,19 @@ export class HandView extends Phaser.GameObjects.Container {
       // Si no es el jugador, invertimos la rotación para que el abanico luzca bien boca abajo
       const targetRotation = this.isPlayer ? rotation : -rotation;
 
-      // Animamos la posición. Mantenemos el depth natural basado en el orden de Container.
+      // Cancelar tweens previos para evitar conflictos con hover o drags anteriores
+      this.scene.tweens.killTweensOf(entry.sprite);
+
+      // Actualizar la posición de reposo antes de animar (fix hover con _baseY incorrecto)
+      entry.sprite.setRestPosition(targetY);
+
       this.scene.tweens.add({
         targets: entry.sprite,
-        x: x,
+        x,
         y: targetY,
         angle: targetRotation,
+        scaleX: 1.0,
+        scaleY: 1.0,
         duration: 300,
         ease: "Quad.easeOut",
       });

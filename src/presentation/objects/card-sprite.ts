@@ -319,6 +319,15 @@ export class CardSprite extends Phaser.GameObjects.Container {
     return this._disabled;
   }
 
+  /**
+   * Actualiza la posición de reposo de la carta y cancela cualquier hover activo.
+   * Llamar desde HandView.rearrange() antes de animar a la nueva posición.
+   */
+  setRestPosition(baseY: number): void {
+    this._baseY = baseY;
+    this._isHovering = false;
+  }
+
   // -------------------------------------------------------------------------
   // Construcción de capas internas
   // -------------------------------------------------------------------------

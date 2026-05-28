@@ -224,6 +224,7 @@ describe("AttackCommand", () => {
 
     // Assert
     expect(result.success).toBe(true);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(turnEngine.handleAction).toHaveBeenCalledWith({ type: "END_PHASE" });
   });
 

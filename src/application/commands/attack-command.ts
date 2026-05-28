@@ -96,12 +96,45 @@ export class AttackCommand implements ICommand {
     }
 
     // ── Ejecutar el ataque via CombatResolver ────────────────────────────────
-    // Determinar si el defensor es un Character del tablero o el "héroe" (id estático)
     const defenderCharacter = this.match.findCharacterOnBoard(inactivePlayer, this.defenderId);
 
-    // Por ahora solo soportamos Character vs Character en este comando
-    // (Character vs Hero requeriría acceso a la entidad Hero del oponente)
-    if (!defenderCharacter) {
+    if (defenderCharacter) {
+      // Character vs Character
+      this.combatResolver.resolveAttack(
+        attacker,
+        defenderCharacter,
+        activePlayer.playerId,
+        inactivePlayer.playerId,
+      );
+
+      eventsEmitted.push(GameEvent.AttackDeclared);
+      eventsEmitted.push(GameEvent.AttackResolved);
+
+      if (!attacker.isAlive()) {
+        this.match.removeCharacterFromBoard(activePlayer, attacker.instanceId);
+        eventsEmitted.push(GameEvent.CharacterDestroyed);
+      }
+      if (!defenderCharacter.isAlive()) {
+        this.match.removeCharacterFromBoard(inactivePlayer, defenderCharacter.instanceId);
+        eventsEmitted.push(GameEvent.CharacterDestroyed);
+      }
+    } else if (this.defenderId === inactivePlayer.hero.staticId) {
+      // Character vs Hero directo
+      this.combatResolver.resolveAttack(
+        attacker,
+        inactivePlayer.hero,
+        activePlayer.playerId,
+        inactivePlayer.playerId,
+      );
+
+      eventsEmitted.push(GameEvent.AttackDeclared);
+      eventsEmitted.push(GameEvent.AttackResolved);
+
+      if (!attacker.isAlive()) {
+        this.match.removeCharacterFromBoard(activePlayer, attacker.instanceId);
+        eventsEmitted.push(GameEvent.CharacterDestroyed);
+      }
+    } else {
       return {
         success: false,
         error: new InvalidTargetError(
@@ -109,27 +142,6 @@ export class AttackCommand implements ICommand {
         ),
         eventsEmitted,
       };
-    }
-
-    // El CombatResolver emite AttackDeclared y AttackResolved internamente
-    this.combatResolver.resolveAttack(
-      attacker,
-      defenderCharacter,
-      activePlayer.playerId,
-      inactivePlayer.playerId,
-    );
-
-    eventsEmitted.push(GameEvent.AttackDeclared);
-    eventsEmitted.push(GameEvent.AttackResolved);
-
-    // ── Limpiar muertos del tablero ───────────────────────────────────────────
-    if (!attacker.isAlive()) {
-      this.match.removeCharacterFromBoard(activePlayer, attacker.instanceId);
-      eventsEmitted.push(GameEvent.CharacterDestroyed);
-    }
-    if (!defenderCharacter.isAlive()) {
-      this.match.removeCharacterFromBoard(inactivePlayer, defenderCharacter.instanceId);
-      eventsEmitted.push(GameEvent.CharacterDestroyed);
     }
 
     return { success: true, eventsEmitted };

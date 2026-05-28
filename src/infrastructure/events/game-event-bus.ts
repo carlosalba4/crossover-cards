@@ -68,11 +68,11 @@ export class GameEventBus implements IEventBus {
   private readonly handlers: Map<string, AnyHandler[]> = new Map();
 
   /**
-   * Flag de guardia contra emisiones recursivas.
-   * Si `emit()` es llamado mientras ya se está procesando una emisión,
-   * se loguea un aviso y se retorna sin propagar (prevención de bucles).
+   * Conjunto de eventos cuya emisión está actualmente en curso.
+   * Bloquea únicamente la re-emisión del MISMO evento para prevenir bucles
+   * infinitos, pero permite emisiones anidadas de eventos distintos.
    */
-  private isEmitting: boolean = false;
+  private readonly emittingEvents: Set<string> = new Set();
 
   /**
    * Constructor privado: impide la instanciación directa fuera del Singleton.
@@ -121,15 +121,16 @@ export class GameEventBus implements IEventBus {
    * @param payload - Datos tipados asociados al evento.
    */
   emit<E extends GameEvent>(event: E, payload: GameEventPayloadMap[E]): void {
-    if (this.isEmitting) {
+    const key = event as string;
+
+    if (this.emittingEvents.has(key)) {
       console.warn(
-        `[GameEventBus] Emisión recursiva bloqueada para el evento "${event as string}". ` +
-          "Revisa si algún handler dispara emit() dentro de su cuerpo.",
+        `[GameEventBus] Emisión recursiva bloqueada para el evento "${key}". ` +
+          "Revisa si algún handler dispara emit() del mismo evento dentro de su cuerpo.",
       );
       return;
     }
 
-    const key = event as string;
     const eventHandlers = this.handlers.get(key);
 
     if (eventHandlers === undefined || eventHandlers.length === 0) {
@@ -140,7 +141,7 @@ export class GameEventBus implements IEventBus {
     // no afecte a la lista mientras se itera.
     const snapshot = [...eventHandlers];
 
-    this.isEmitting = true;
+    this.emittingEvents.add(key);
     try {
       for (const handler of snapshot) {
         try {
@@ -150,9 +151,7 @@ export class GameEventBus implements IEventBus {
         }
       }
     } finally {
-      // Garantizamos que el flag se libera aunque ocurra un error inesperado
-      // fuera del bucle (p.ej. en la copia del snapshot).
-      this.isEmitting = false;
+      this.emittingEvents.delete(key);
     }
   }
 

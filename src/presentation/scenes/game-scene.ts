@@ -195,7 +195,7 @@ export class GameScene extends Phaser.Scene {
         this.heroRival.updateHealth(p2.hero.currentHealth, p2.hero.maxHealth);
 
         p1.hand.getCards().forEach((c) => {
-          this.handPlayer.addCard(
+          const sprite = this.handPlayer.addCard(
             {
               id: c.instanceId,
               spriteKey: c.spriteKey,
@@ -211,10 +211,7 @@ export class GameScene extends Phaser.Scene {
             },
             false,
           );
-          const sprite = this.handPlayer.list[this.handPlayer.list.length - 1];
-          if (sprite instanceof CardSprite) {
-            this.makeHandCardDraggable(sprite, c.instanceId);
-          }
+          this.makeHandCardDraggable(sprite, c.instanceId);
         });
 
         p2.hand.getCards().forEach((c) => {
@@ -242,39 +239,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setupEventHandlers(): void {
-    // 1. CardPlayed
+    // 1. CardPlayed — elimina la carta de la mano instantáneamente.
+    // La creación del sprite en tablero la gestiona el handler CharacterSummoned.
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.CardPlayed, (payload) => {
         if (!payload.cardId) return;
         const isPlayer = payload.playerId === "p1";
         const hand = isPlayer ? this.handPlayer : this.handRival;
-
-        hand.removeCard(payload.cardId, true);
-
-        const match = this.matchService.getCurrentMatch();
-        if (match && payload.zoneId) {
-          const player = isPlayer ? match.player1 : match.player2;
-          const zoneKey = payload.zoneId as "left" | "center" | "right";
-          const zone = player.board[zoneKey];
-          const character = zone?.find((c) => c.instanceId === payload.cardId);
-          if (character) {
-            this.board.addCharacterSprite(character, payload.zoneId as BoardZoneId, isPlayer);
-          }
-        }
+        hand.removeCard(payload.cardId, false);
       }),
     );
 
-    // 2. CharacterSummoned
+    // 2. CharacterSummoned — única ruta de creación del sprite en tablero
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.CharacterSummoned, (payload) => {
         if (!payload.character || !payload.zoneId) return;
         const isPlayer = payload.playerId === "p1";
         this.board.addCharacterSprite(payload.character, payload.zoneId as BoardZoneId, isPlayer);
-        const sprite = this.board.list
-          .slice()
-          .reverse()
-          .find((child) => child instanceof CardSprite);
-        if (sprite instanceof CardSprite) {
+        const sprite = this.board.getSpriteByInstanceId(payload.character.instanceId);
+        if (sprite) {
           this.makeBoardCharacterClickable(sprite, payload.character.instanceId, isPlayer);
         }
       }),
@@ -659,16 +642,11 @@ export class GameScene extends Phaser.Scene {
     // Phaser requiere registrar explícitamente el objeto en el gestor de drag de la escena.
     this.input.setDraggable(sprite);
 
-    let startX = 0;
-    let startY = 0;
-
     sprite.on("dragstart", (_pointer: Phaser.Input.Pointer) => {
       if (!this.isPlayerTurn || this.currentPhase !== "main") {
         Toast.show(this, "Solo puedes jugar cartas en tu fase Main", "warn");
         return;
       }
-      startX = sprite.x;
-      startY = sprite.y;
       sprite.setDepth(100);
       this.highlightValidSlots();
     });
@@ -695,23 +673,12 @@ export class GameScene extends Phaser.Scene {
 
         if (!result.success) {
           Toast.show(this, result.error?.message || "No se puede jugar la carta", "warn");
-          this.tweens.add({
-            targets: sprite,
-            x: startX,
-            y: startY,
-            duration: 200,
-            ease: "Quad.easeOut",
-          });
+          // rearrange anima la carta de vuelta a su hueco en el abanico
           this.handPlayer.rearrange();
         }
+        // En éxito: removeCard(false) en CardPlayed handler destruye el sprite
       } else {
-        this.tweens.add({
-          targets: sprite,
-          x: startX,
-          y: startY,
-          duration: 200,
-          ease: "Quad.easeOut",
-        });
+        // Zona inválida: rearrange devuelve la carta a su posición fan correcta
         this.handPlayer.rearrange();
       }
     });
@@ -814,9 +781,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    // Desuscribir todos los handlers
+    // Desuscribir handlers de GameScene y los internos de MatchService
     this.unsubscribers.forEach((unsub) => unsub());
     this.unsubscribers = [];
+    this.matchService?.dispose();
 
     // Limpiar todos los eventos de tiempo para evitar fugas
     this.time.removeAllEvents();
