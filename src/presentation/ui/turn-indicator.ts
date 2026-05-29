@@ -9,8 +9,11 @@ const PHASES: Array<{ id: TurnPhase; label: string }> = [
   { id: "End", label: "FIN" },
 ];
 
-/** Anchura total del banner del indicador, en px. */
-const INDICATOR_WIDTH = 200;
+/** Anchura total del banner del indicador, en px. Suficiente para repartir las
+ * 4 fases en tramos separados sin que las etiquetas se solapen. */
+const INDICATOR_WIDTH = 400;
+/** Tamaño de fuente de las etiquetas de fase (ajustado al ancho del tramo). */
+const PHASE_FONT_SIZE = "14px";
 
 export class TurnIndicator extends Phaser.GameObjects.Container {
   private bgGraphics: Phaser.GameObjects.Graphics;
@@ -34,7 +37,7 @@ export class TurnIndicator extends Phaser.GameObjects.Container {
       const text = scene.add
         .text(x, 0, phase.label, {
           fontFamily: "Bangers",
-          fontSize: "18px",
+          fontSize: PHASE_FONT_SIZE,
           color: "#9B96B0",
         })
         .setOrigin(0.5);

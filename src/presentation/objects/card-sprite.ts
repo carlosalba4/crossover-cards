@@ -100,7 +100,9 @@ const HAND_DIMS: CardDimensions = {
   width: 80,
   height: 112,
   portraitW: 56,
-  portraitH: 64,
+  // Retrato reducido respecto al diseño original para reservar una banda
+  // legible para la descripción entre el retrato y la fila de stats (Bug 5).
+  portraitH: 46,
   borderThickness: 3,
   archetypeBandW: 6,
   costCircleR: 14,
@@ -133,6 +135,15 @@ const TWEEN_GLOW_MS = 1000;
 const SCALE_HOVER = 1.15;
 const HOVER_ELEVATION_PX = 20;
 const DISABLED_ALPHA = 0.4;
+
+// ---------------------------------------------------------------------------
+// Texto de descripción
+// ---------------------------------------------------------------------------
+
+/** Máximo de líneas de la descripción en la carta de mano (resto se recorta). */
+const DESC_MAX_LINES = 2;
+/** Carácter de elipsis usado al recortar la descripción. */
+const DESC_ELLIPSIS = "…";
 
 // ---------------------------------------------------------------------------
 // Clase CardSprite
@@ -194,6 +205,12 @@ export class CardSprite extends Phaser.GameObjects.Container {
   private readonly selectedBorder: Phaser.GameObjects.Graphics;
   /** Overlay de disabled (semitransparente). */
   private readonly disabledOverlay: Phaser.GameObjects.Graphics;
+  /** Marco decorativo de rareza (frame-<rarity>) o null si no hay asset. */
+  private readonly frame: Phaser.GameObjects.Image | null;
+  /** Icono de ataque junto al número de ATQ (solo Character) o null. */
+  private readonly atkIcon: Phaser.GameObjects.Image | null;
+  /** Icono de vida junto al número de VID (solo Character) o null. */
+  private readonly vidIcon: Phaser.GameObjects.Image | null;
 
   /** Tween del glow pulsante en estado seleccionada. */
   private glowTween: Phaser.Tweens.Tween | null = null;
@@ -231,20 +248,30 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.selectedBorder = scene.add.graphics();
     this.disabledOverlay = this.buildDisabledOverlay(scene);
 
-    // Ensamblar contenedor
-    this.add([
-      this.cardBg,
-      this.portrait,
-      this.nameText,
-      this.costText,
-      this.atkText,
-      this.vidText,
+    // Marco de rareza (sprite) e iconos de stats — solo si el asset existe;
+    // en caso contrario se conservan los placeholders dibujados con Graphics.
+    this.frame = this.buildFrame(scene);
+    const halfWidth = this._dims.width / 2;
+    const atkIconX = -halfWidth + this._dims.archetypeBandW + this._dims.borderThickness + 6;
+    const vidIconX = halfWidth - this._dims.borderThickness - 6;
+    this.atkIcon = this.buildStatIcon(scene, "icon-attack", atkIconX);
+    this.vidIcon = this.buildStatIcon(scene, "icon-health", vidIconX);
+
+    // Ensamblar contenedor. El marco va sobre el fondo Graphics pero bajo el
+    // retrato y los textos para que estos sigan siendo legibles.
+    const layers: Phaser.GameObjects.GameObject[] = [this.cardBg];
+    if (this.frame) layers.push(this.frame);
+    layers.push(this.portrait, this.nameText, this.costText, this.atkText, this.vidText);
+    if (this.atkIcon) layers.push(this.atkIcon);
+    if (this.vidIcon) layers.push(this.vidIcon);
+    layers.push(
       this.descText,
       this.typeText,
       this.selectedBorder,
       this.backLayer,
       this.disabledOverlay,
-    ]);
+    );
+    this.add(layers);
 
     // Tamaño del hit-area del contenedor
     this.setSize(this._dims.width, this._dims.height);
@@ -326,6 +353,14 @@ export class CardSprite extends Phaser.GameObjects.Container {
   setRestPosition(baseY: number): void {
     this._baseY = baseY;
     this._isHovering = false;
+  }
+
+  /**
+   * Devuelve los datos inmutables de la carta. Lo usa la escena para alimentar
+   * el Tooltip con la descripción completa al hacer hover (Bug D).
+   */
+  getCardData(): CardData {
+    return this._card;
   }
 
   /**
@@ -428,6 +463,36 @@ export class CardSprite extends Phaser.GameObjects.Container {
       -halfH + d.borderThickness + d.costCircleR,
       d.costCircleR,
     );
+  }
+
+  /** Crea el marco decorativo de rareza (frame-<rarity>) si el asset existe. */
+  private buildFrame(scene: Phaser.Scene): Phaser.GameObjects.Image | null {
+    const key = `frame-${this._card.rarity.toLowerCase()}`;
+    if (!scene.textures.exists(key)) return null;
+    const d = this._dims;
+    const img = scene.add.image(0, 0, key);
+    img.setOrigin(0.5, 0.5);
+    img.setDisplaySize(d.width, d.height);
+    return img;
+  }
+
+  /**
+   * Crea un icono de stat (icon-attack / icon-health) junto a su número.
+   * Devuelve null si la carta no es Personaje o el asset no existe.
+   */
+  private buildStatIcon(
+    scene: Phaser.Scene,
+    key: string,
+    x: number,
+  ): Phaser.GameObjects.Image | null {
+    if (this._card.type !== CardType.Character) return null;
+    if (!scene.textures.exists(key)) return null;
+    const d = this._dims;
+    const size = this._size === CardSize.Hand ? 11 : 9;
+    const img = scene.add.image(x, d.height / 2 - 14, key);
+    img.setOrigin(0.5, 0.5);
+    img.setDisplaySize(size, size);
+    return img;
   }
 
   /** Crea la imagen del retrato o un Graphics placeholder si falta el asset. */
@@ -578,19 +643,56 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
   private buildDescText(scene: Phaser.Scene): Phaser.GameObjects.Text {
     const d = this._dims;
+    const isHand = this._size === CardSize.Hand;
     const areaX = -d.width / 2 + d.archetypeBandW + d.borderThickness + 2;
-    const areaY = d.height / 2 - 38;
     const areaW = d.width - d.archetypeBandW - d.borderThickness * 2 - 4;
+    // La descripción ocupa la banda situada justo debajo del retrato y por
+    // encima de la fila de stats (Bug 5: evita el desbordamiento y el solape).
+    const portraitTopOffset = isHand ? 18 : 2;
+    const areaY = -d.height / 2 + d.borderThickness + portraitTopOffset + d.portraitH + 1;
 
-    const txt = scene.add.text(areaX, areaY, this._card.description, {
+    const txt = scene.add.text(areaX, areaY, "", {
       fontFamily: "Nunito",
       fontSize: d.descFontSize,
       color: COLOR_TEXT_PRIMARY,
       wordWrap: { width: areaW, useAdvancedWrap: true },
+      // maxLines recorta el render a un máximo de líneas (evita el desborde
+      // vertical aunque la medición de elipsis no estuviera disponible).
+      maxLines: isHand ? DESC_MAX_LINES : 0,
     });
     txt.setOrigin(0, 0);
-    txt.setVisible(this._size === CardSize.Hand);
+
+    if (isHand) {
+      txt.setText(this.fitDescription(txt, this._card.description, DESC_MAX_LINES));
+    } else {
+      txt.setText(this._card.description);
+    }
+
+    txt.setVisible(isHand);
     return txt;
+  }
+
+  /**
+   * Devuelve la descripción recortada con elipsis para que no supere `maxLines`
+   * al renderizarse con el word-wrap configurado en `txt`. Si ya cabe, devuelve
+   * el texto completo. La medición usa `getWrappedText`, que respeta el ancho
+   * de envoltura del propio objeto de texto.
+   */
+  private fitDescription(txt: Phaser.GameObjects.Text, full: string, maxLines: number): string {
+    txt.setText(full);
+    if (txt.getWrappedText(full).length <= maxLines) {
+      return full;
+    }
+
+    const words = full.split(/\s+/).filter((w) => w.length > 0);
+    // Reduce palabra a palabra hasta que el texto + elipsis quepa en maxLines.
+    for (let count = words.length - 1; count >= 1; count--) {
+      const candidate = words.slice(0, count).join(" ") + DESC_ELLIPSIS;
+      if (txt.getWrappedText(candidate).length <= maxLines) {
+        return candidate;
+      }
+    }
+    return words.length > 0 ? words[0] + DESC_ELLIPSIS : DESC_ELLIPSIS;
   }
 
   private buildTypeText(scene: Phaser.Scene): Phaser.GameObjects.Text {
@@ -627,12 +729,16 @@ export class CardSprite extends Phaser.GameObjects.Container {
   /** Muestra u oculta el reverso sincronizando capas. */
   private syncBackVisibility(): void {
     const showFront = !this._showBack;
+    const isCharacter = this._card.type === CardType.Character;
     this.cardBg.setVisible(showFront);
+    this.frame?.setVisible(showFront);
     this.portrait.setVisible(showFront);
     this.nameText.setVisible(showFront && this._size === CardSize.Hand);
     this.costText.setVisible(showFront);
-    this.atkText.setVisible(showFront && this._card.type === CardType.Character);
-    this.vidText.setVisible(showFront && this._card.type === CardType.Character);
+    this.atkText.setVisible(showFront && isCharacter);
+    this.vidText.setVisible(showFront && isCharacter);
+    this.atkIcon?.setVisible(showFront && isCharacter);
+    this.vidIcon?.setVisible(showFront && isCharacter);
     this.descText.setVisible(showFront && this._size === CardSize.Hand);
     this.typeText.setVisible(showFront && this._size === CardSize.Hand);
     this.backLayer.setVisible(this._showBack);

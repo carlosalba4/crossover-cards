@@ -36,7 +36,9 @@ export interface PlayCardAction {
 /**
  * Acción: Atacar con un Personaje en la Fase de Combate.
  * - attackerId: UUID del Personaje atacante (en el tablero propio).
- * - defenderId: UUID del defensor (Personaje enemigo o héroe enemigo).
+ * - defenderId: identificador del objetivo. Si es un Personaje rival, su
+ *   `instanceId` (UUID); si el objetivo es el héroe rival, el `playerId` del
+ *   jugador rival (p.ej. "p2"). Contrato unificado, ver AttackCommand.
  */
 export interface AttackAction {
   readonly type: "ATTACK";

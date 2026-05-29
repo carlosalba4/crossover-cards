@@ -45,6 +45,14 @@ const DROP_ZONE_SLOT_WIDTH = 150;
 /** Altura del recuadro de resaltado de cada slot. */
 const DROP_ZONE_SLOT_HEIGHT = 500;
 
+/**
+ * Retardo (ms) antes de arrancar el turno de la IA. Difiere el arranque para
+ * que los manejadores síncronos de inicio de turno (reset de combate y recarga
+ * de Nostalgia en MatchService) se apliquen antes de que la IA lea el estado,
+ * y aporta una pausa visual de "el rival está pensando".
+ */
+const AI_TURN_START_DELAY_MS = 500;
+
 export class GameScene extends Phaser.Scene {
   private heroId!: string;
   private unsubscribers: Array<Unsubscribe> = [];
@@ -62,6 +70,7 @@ export class GameScene extends Phaser.Scene {
   private hudRight!: RightHUDPanel;
   private turnIndicator!: TurnIndicator;
   private zoneBanner!: ZoneBanner;
+  private tooltip!: Tooltip;
 
   private currentPhase: string = "main";
   private isPlayerTurn: boolean = false;
@@ -94,6 +103,15 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor("#0D0B1E");
     console.info("GameScene iniciada con heroId:", this.heroId);
+
+    // Fondo del tablero (bg-game). Se dibuja primero y al fondo; el color sólido
+    // de la cámara queda como fallback si el asset no se cargó.
+    if (this.textures.exists("bg-game")) {
+      this.add
+        .image(this.scale.width / 2, this.scale.height / 2, "bg-game")
+        .setDisplaySize(this.scale.width, this.scale.height)
+        .setDepth(-100);
+    }
 
     this.buildUI();
     this.setupUIInteractions();
@@ -153,8 +171,8 @@ export class GameScene extends Phaser.Scene {
     this.turnIndicator = new TurnIndicator(this, 960, 40);
 
     this.zoneBanner = new ZoneBanner(this, 960, 300);
-    const tooltip = new Tooltip(this);
-    tooltip.setVisible(false);
+    this.tooltip = new Tooltip(this);
+    this.tooltip.setVisible(false);
 
     this.rivalTurnText = this.add
       .text(960, 40, "TURNO RIVAL", {
@@ -229,6 +247,11 @@ export class GameScene extends Phaser.Scene {
         this.heroRival.setPosition(250, 200);
         this.heroRival.updateHealth(p2.hero.currentHealth, p2.hero.maxHealth);
 
+        // Reconectar los handlers de interacción a los HeroView recién creados
+        // (los listeners del mock anterior se perdieron al destruirlo). Sin esto
+        // el clic sobre el héroe rival no haría nada (Bug B).
+        this.wireHeroInteractions();
+
         p1.hand.getCards().forEach((c) => {
           const isCharacter = c instanceof Character;
           const sprite = this.handPlayer.addCard(
@@ -292,6 +315,23 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  /**
+   * Sincroniza la vida mostrada en el CardSprite de tablero de un Personaje
+   * con su vida real en el dominio. Se usa tras resolverse un combate.
+   * Si el id no corresponde a ningún Personaje en tablero (p.ej. es el héroe
+   * rival), no hace nada.
+   */
+  private refreshBoardCharacterHealth(instanceId: string): void {
+    const match = this.matchService.getCurrentMatch();
+    if (!match) return;
+    const character =
+      match.findCharacterOnBoard(match.player1, instanceId) ??
+      match.findCharacterOnBoard(match.player2, instanceId);
+    if (character) {
+      this.board.updateCharacterHealth(instanceId, character.currentHealth, character.health);
+    }
+  }
+
   private setupEventHandlers(): void {
     // 1. CardPlayed — elimina la carta de la mano instantáneamente.
     // La creación del sprite en tablero la gestiona el handler CharacterSummoned.
@@ -344,6 +384,12 @@ export class GameScene extends Phaser.Scene {
         if (payload.attackerId && payload.defenderId) {
           this.board.playAttackAnimation(payload.attackerId, payload.defenderId);
         }
+        // Refrescar la vida visible de los Personajes implicados. El payload no
+        // trae la vida actual, así que se lee del Match (ya mutado por el daño).
+        // Para un objetivo héroe el id no corresponde a ningún sprite de tablero
+        // y la actualización es un no-op (su vida la gestiona HeroDamaged).
+        this.refreshBoardCharacterHealth(payload.attackerId);
+        this.refreshBoardCharacterHealth(payload.defenderId);
       }),
     );
 
@@ -408,18 +454,26 @@ export class GameScene extends Phaser.Scene {
           this.turnIndicator.setVisible(false);
           this.rivalTurnText.setVisible(true);
 
-          // Ejecutar IA con delay visual
-          const match = this.matchService.getCurrentMatch();
-          if (match) {
-            const delayFn = (ms: number) => {
-              return new Promise<void>((resolve) => {
-                this.time.delayedCall(ms, resolve);
-              });
-            };
+          // Ejecutar IA con delay visual. El arranque se DIFIERE para garantizar
+          // que el manejador interno de MatchService (reset de combate + recarga
+          // de Nostalgia al iniciar turno) se ejecute ANTES de que la IA
+          // construya su snapshot. De lo contrario la IA leería estado obsoleto
+          // del turno anterior (Nostalgia y flags de combate), ya que el handler
+          // de GameScene se ejecuta antes que el de MatchService en el mismo
+          // emit de TurnStarted.
+          const aiPlayerId = payload.playerId;
+          const delayFn = (ms: number) => {
+            return new Promise<void>((resolve) => {
+              this.time.delayedCall(ms, resolve);
+            });
+          };
+          this.time.delayedCall(AI_TURN_START_DELAY_MS, () => {
+            const match = this.matchService.getCurrentMatch();
+            if (!match) return;
             this.opponentService
-              .executeTurn(match, payload.playerId, this.matchService, delayFn)
+              .executeTurn(match, aiPlayerId, this.matchService, delayFn)
               .catch((e) => console.error(e));
-          }
+          });
         } else {
           // Desbloquear mano y limpiar overlay
           this.handPlayer.setEnabled(true);
@@ -632,6 +686,42 @@ export class GameScene extends Phaser.Scene {
       this.add.existing(btn);
     });
 
+    // Los handlers de los HeroView se conectan en wireHeroInteractions(), que se
+    // (re)invoca tras recrear los héroes con los datos reales en startMatch().
+    // Si se conectaran aquí, se perderían al destruir/recrear los HeroView.
+
+    this.input.on(
+      "pointerdown",
+      (_pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]) => {
+        if (gameObjects.length === 0) {
+          if (this.selectedAttacker) this.clearAttackerSelection();
+          if (this.targetSelectionMode) {
+            this.targetSelectionMode = null;
+            Toast.show(this, "Selección cancelada", "ok");
+          }
+        }
+      },
+    );
+
+    this.input.keyboard?.on("keydown-ESC", () => {
+      if (this.selectedAttacker) this.clearAttackerSelection();
+      if (this.targetSelectionMode) {
+        this.targetSelectionMode = null;
+        Toast.show(this, "Selección cancelada", "ok");
+      }
+    });
+  }
+
+  /**
+   * Conecta los handlers de interacción de los HeroView (poder de héroe del
+   * jugador y clic sobre el héroe rival como objetivo de ataque / poder).
+   *
+   * Debe llamarse DESPUÉS de (re)crear los HeroView en startMatch(), porque al
+   * destruir/recrear los objetos se pierden sus listeners. El objetivo "héroe
+   * rival" usa el playerId del rival como defenderId (contrato unificado con
+   * AttackCommand y la IA).
+   */
+  private wireHeroInteractions(): void {
     this.heroPlayer.on("heroPowerClicked", () => {
       if (!this.isPlayerTurn) return;
 
@@ -658,14 +748,15 @@ export class GameScene extends Phaser.Scene {
     this.heroRival.on("pointerdown", () => {
       if (!this.isPlayerTurn) return;
 
-      const p2StaticId = this.matchService.getCurrentMatch()?.player2.hero.staticId;
-      if (!p2StaticId) return;
+      const rivalState = this.matchService.getCurrentMatch()?.player2;
+      if (!rivalState) return;
 
       if (this.targetSelectionMode === "heroPower") {
         const result = this.matchService.handlePlayerAction({
           type: "USE_HERO_POWER",
           playerId: "p1",
-          targetId: p2StaticId,
+          // El poder de héroe identifica al héroe objetivo por su staticId.
+          targetId: rivalState.hero.staticId,
         });
         if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
         this.targetSelectionMode = null;
@@ -674,37 +765,18 @@ export class GameScene extends Phaser.Scene {
 
       // El AttackCommand auto-transiciona main→combat, así que se permite
       // declarar el ataque al héroe rival también desde la fase main.
+      // El objetivo "héroe rival" se identifica por el playerId rival (contrato
+      // unificado con AttackCommand y la IA), no por su staticId.
       if (this.canAttackNow() && this.selectedAttacker) {
         const result = this.matchService.handlePlayerAction({
           type: "ATTACK",
           attackerId: this.selectedAttacker,
-          defenderId: p2StaticId,
+          defenderId: rivalState.playerId,
         });
         if (!result.success) {
           Toast.show(this, result.error?.message || "Ataque inválido", "warn");
         }
         this.clearAttackerSelection();
-      }
-    });
-
-    this.input.on(
-      "pointerdown",
-      (_pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]) => {
-        if (gameObjects.length === 0) {
-          if (this.selectedAttacker) this.clearAttackerSelection();
-          if (this.targetSelectionMode) {
-            this.targetSelectionMode = null;
-            Toast.show(this, "Selección cancelada", "ok");
-          }
-        }
-      },
-    );
-
-    this.input.keyboard?.on("keydown-ESC", () => {
-      if (this.selectedAttacker) this.clearAttackerSelection();
-      if (this.targetSelectionMode) {
-        this.targetSelectionMode = null;
-        Toast.show(this, "Selección cancelada", "ok");
       }
     });
   }
@@ -714,11 +786,23 @@ export class GameScene extends Phaser.Scene {
     // Phaser requiere registrar explícitamente el objeto en el gestor de drag de la escena.
     this.input.setDraggable(sprite);
 
+    // Tooltip con la descripción COMPLETA al hover sostenido. El retardo de 300ms
+    // lo gestiona internamente Tooltip.showForCard (IMPL-057). No interfiere con
+    // la elevación de hover de CardSprite ni con el drag.
+    sprite.on(Phaser.Input.Events.POINTER_OVER, () => {
+      this.tooltip.showForCard(sprite.getCardData(), sprite.x, sprite.y, sprite.height);
+    });
+    sprite.on(Phaser.Input.Events.POINTER_OUT, () => {
+      this.tooltip.hide();
+    });
+
     sprite.on("dragstart", (_pointer: Phaser.Input.Pointer) => {
       if (!this.isPlayerTurn || this.currentPhase !== "main") {
         Toast.show(this, "Solo puedes jugar cartas en tu fase Main", "warn");
         return;
       }
+      // Ocultar el tooltip mientras se arrastra la carta.
+      this.tooltip.hide();
       sprite.setDepth(100);
       this.highlightValidSlots();
     });

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 
 export class NostalgiaClockUI extends Phaser.GameObjects.Container {
+  private readonly clockImage: Phaser.GameObjects.Image | null;
   private readonly sphereGraphics: Phaser.GameObjects.Graphics;
   private readonly glowGraphics: Phaser.GameObjects.Graphics;
   private readonly emptyOverlay: Phaser.GameObjects.Graphics;
@@ -14,12 +15,20 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
 
-    // 1. Esfera base y borde (bg-card #1A1730, borde dorado #F5C842 3px)
+    // 0. Imagen del reloj (si el asset existe). Reemplaza la esfera dibujada.
+    this.clockImage = scene.textures.exists("nostalgia-clock")
+      ? scene.add.image(0, 0, "nostalgia-clock").setDisplaySize(132, 132)
+      : null;
+
+    // 1. Esfera base y borde (bg-card #1A1730, borde dorado #F5C842 3px).
+    //    Solo se dibuja como fallback cuando no hay imagen de reloj.
     this.sphereGraphics = scene.add.graphics();
-    this.sphereGraphics.fillStyle(0x1a1730, 1);
-    this.sphereGraphics.fillCircle(0, 0, 64);
-    this.sphereGraphics.lineStyle(3, 0xf5c842, 1);
-    this.sphereGraphics.strokeCircle(0, 0, 64);
+    if (!this.clockImage) {
+      this.sphereGraphics.fillStyle(0x1a1730, 1);
+      this.sphereGraphics.fillCircle(0, 0, 64);
+      this.sphereGraphics.lineStyle(3, 0xf5c842, 1);
+      this.sphereGraphics.strokeCircle(0, 0, 64);
+    }
 
     // 2. Glow para estado cargado (brillo dorado exterior)
     this.glowGraphics = scene.add.graphics();
@@ -73,7 +82,9 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
 
     // Añadir al container en orden de dibujado
-    this.add([
+    const clockLayers: Phaser.GameObjects.GameObject[] = [];
+    if (this.clockImage) clockLayers.push(this.clockImage);
+    clockLayers.push(
       this.glowGraphics,
       this.sphereGraphics,
       this.emptyOverlay,
@@ -82,7 +93,8 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
       this.minuteHandGraphics,
       centerDot,
       this.digitalText,
-    ]);
+    );
+    this.add(clockLayers);
 
     scene.add.existing(this);
   }

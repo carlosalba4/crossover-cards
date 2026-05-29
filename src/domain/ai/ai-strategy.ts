@@ -83,7 +83,7 @@ export type AIMainAction = AIPlayCardAction | AIUseHeroPowerAction | AIEndMainPh
  *
  * @field attackerId - `instanceId` del Personaje atacante (propiedad del tablero de la IA).
  * @field defenderId - `instanceId` del Personaje defensor (tablero del oponente),
- *                     o `staticId` del héroe oponente si el ataque va directo al héroe.
+ *                     o el `playerId` del oponente si el ataque va directo al héroe.
  */
 export interface AIAttackAction {
   readonly type: "ATTACK";

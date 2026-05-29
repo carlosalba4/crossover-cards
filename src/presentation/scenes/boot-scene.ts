@@ -54,10 +54,15 @@ export class BootScene extends Phaser.Scene {
     });
 
     this.loadCharacters();
+    this.loadCardAssets();
+    this.loadUIAssets();
+    this.loadBoardAndEffects();
     this.loadData();
-    // Audio no registrado hasta que los archivos existan en assets/audio/
-    // (Phaser 4 lanza EncodingError no capturable que bloquea el evento 'complete')
     this.loadBackgrounds();
+    // Los ficheros de audio ya existen en assets/audio/; se cargan con
+    // this.load.audio (los errores de decodificación se registran de forma no
+    // bloqueante mediante el handler 'loaderror' definido arriba).
+    this.loadAudio();
 
     // Los eventos del loader deben registrarse en preload() — el loader ya ha
     // terminado cuando create() se ejecuta y los callbacks no se invocan
@@ -236,9 +241,84 @@ export class BootScene extends Phaser.Scene {
     this.load.json("data-heroes", "assets/data/heroes.json");
   }
 
+  /** Carga los marcos de carta por rareza y el reverso. */
+  private loadCardAssets(): void {
+    this.load.image("frame-common", "assets/cards/frames/frame-common.png");
+    this.load.image("frame-rare", "assets/cards/frames/frame-rare.png");
+    this.load.image("frame-epic", "assets/cards/frames/frame-epic.png");
+    this.load.image("frame-legendary", "assets/cards/frames/frame-legendary.png");
+    this.load.image("card-back", "assets/cards/backs/card-back.png");
+  }
+
+  /** Carga los iconos del HUD, botones y elementos de HUD (logo, reloj). */
+  private loadUIAssets(): void {
+    // Iconos del HUD (assets/ui/icons/)
+    const icons = [
+      "icon-attack",
+      "icon-health",
+      "icon-nostalgia",
+      "icon-momentum",
+      "icon-deck",
+      "icon-shield",
+      "icon-crossover",
+      "icon-end-turn",
+      "icon-hand",
+      "icon-quest",
+      "icon-settings",
+      "icon-zone",
+    ];
+    for (const key of icons) {
+      this.load.image(key, `assets/ui/icons/${key}.png`);
+    }
+
+    // Botones (assets/ui/buttons/)
+    const buttons = ["button-default", "button-hover", "button-pressed", "button-disabled"];
+    for (const key of buttons) {
+      this.load.image(key, `assets/ui/buttons/${key}.png`);
+    }
+
+    // Elementos de HUD (assets/ui/hud/)
+    this.load.image("logo", "assets/ui/hud/logo.png");
+    this.load.image("nostalgia-clock", "assets/ui/hud/nostalgia-clock.png");
+  }
+
+  /** Carga los fondos de zona del tablero y los sprites de efectos. */
+  private loadBoardAndEffects(): void {
+    const zones = ["zone-chaotic", "zone-combat", "zone-magic", "zone-mysterious"];
+    for (const key of zones) {
+      this.load.image(key, `assets/board/zones/${key}.png`);
+    }
+
+    const effects = ["effect-death", "effect-impact", "effect-particles", "effect-summon"];
+    for (const key of effects) {
+      this.load.image(key, `assets/effects/${key}.png`);
+    }
+  }
+
   /** Carga los fondos de las escenas. */
   private loadBackgrounds(): void {
+    this.load.image("bg-boot", "assets/backgrounds/bg-boot.png");
     this.load.image("bg-menu", "assets/backgrounds/bg-menu.png");
     this.load.image("bg-hero-select", "assets/backgrounds/bg-hero-select.png");
+    this.load.image("bg-game", "assets/backgrounds/bg-game.png");
+    this.load.image("bg-end", "assets/backgrounds/bg-end.png");
+  }
+
+  /** Carga la música de fondo y los efectos de sonido. */
+  private loadAudio(): void {
+    this.load.audio("music-menu", "assets/audio/music/music-menu.mp3");
+    this.load.audio("music-game", "assets/audio/music/music-game.mp3");
+
+    const sfx = [
+      "sfx-attack",
+      "sfx-card-flip",
+      "sfx-card-play",
+      "sfx-defeat",
+      "sfx-end-turn",
+      "sfx-victory",
+    ];
+    for (const key of sfx) {
+      this.load.audio(key, `assets/audio/sfx/${key}.mp3`);
+    }
   }
 }

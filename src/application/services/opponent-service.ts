@@ -157,6 +157,15 @@ export class OpponentService {
 
       switch (action.type) {
         case "ATTACK": {
+          // El plan de combate se decidió sobre un snapshot al inicio del turno.
+          // Un atacante de un combate anterior del plan pudo morir por
+          // contraataque o quedar exhausto. Re-evaluamos el estado VIVO del Match
+          // antes de cada ataque y descartamos la acción si ya no es válida; así
+          // evitamos disparar la guarda legítima de CombatResolver (que lanzaría y
+          // bloquearía el turno de la IA).
+          if (!this.isAttackerAvailable(match, aiPlayerId, action.attackerId)) {
+            break;
+          }
           const result = matchService.handlePlayerAction({
             type: "ATTACK",
             attackerId: action.attackerId,
@@ -192,5 +201,29 @@ export class OpponentService {
     if (!endTurnResult.success) {
       console.warn("[OpponentService] END_TURN fallido:", endTurnResult.error?.message);
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Utilidades internas
+  // -------------------------------------------------------------------------
+
+  /**
+   * Comprueba, contra el estado actual del Match, si un Personaje de la IA sigue
+   * disponible para atacar: existe en su tablero, está vivo y no ha atacado ni
+   * está exhausto. Se usa para descartar ataques de un plan ya desactualizado.
+   *
+   * @param match      - Estado actual de la partida.
+   * @param aiPlayerId - ID del jugador controlado por la IA.
+   * @param attackerId - `instanceId` del Personaje atacante a verificar.
+   */
+  private isAttackerAvailable(match: Match, aiPlayerId: string, attackerId: string): boolean {
+    const aiPlayer = match.player1.playerId === aiPlayerId ? match.player1 : match.player2;
+    const attacker = match.findCharacterOnBoard(aiPlayer, attackerId);
+    return (
+      attacker !== null &&
+      attacker.isAlive() &&
+      !attacker.isExhausted &&
+      !attacker.hasAttackedThisTurn
+    );
   }
 }

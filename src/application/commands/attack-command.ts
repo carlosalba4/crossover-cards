@@ -18,6 +18,13 @@ import type { TurnEngine } from "@domain/services/turn-engine";
  *  3. El atacante no debe estar exhausto ni haber atacado ya.
  *  4. Si el oponente tiene Personajes con Taunt, el objetivo debe ser uno de ellos.
  *
+ * Contrato de identificación del objetivo (`defenderId`):
+ *  - Ataque a un Personaje → `instanceId` (UUID) del Personaje rival en tablero.
+ *  - Ataque al héroe rival   → `playerId` del jugador rival (p.ej. "p2").
+ * Este criterio es único y consistente con el que usan la presentación
+ * (GameScene), el OpponentService y la IA (snapshot.opponentPlayerId), y evita
+ * la ambigüedad de usar `staticId` cuando ambos jugadores comparten héroe.
+ *
  * Si válido: delega al CombatResolver, limpia muertos del tablero
  * y retorna el CommandResult con los eventos emitidos.
  *
@@ -118,8 +125,8 @@ export class AttackCommand implements ICommand {
         this.match.removeCharacterFromBoard(inactivePlayer, defenderCharacter.instanceId);
         eventsEmitted.push(GameEvent.CharacterDestroyed);
       }
-    } else if (this.defenderId === inactivePlayer.hero.staticId) {
-      // Character vs Hero directo
+    } else if (this.defenderId === inactivePlayer.playerId) {
+      // Character vs Hero directo (el héroe rival se identifica por el playerId rival)
       this.combatResolver.resolveAttack(
         attacker,
         inactivePlayer.hero,

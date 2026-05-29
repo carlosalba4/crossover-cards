@@ -168,7 +168,9 @@ export class GreedyAI implements IAIStrategy {
           defenderId: target.instanceId,
         });
       } else {
-        // Sin Provocación: ataca directamente al héroe oponente
+        // Sin Provocación: ataca directamente al héroe oponente.
+        // El héroe rival se identifica por el playerId del oponente (contrato
+        // unificado con AttackCommand / presentación).
         actions.push({
           type: "ATTACK",
           attackerId: attacker.instanceId,

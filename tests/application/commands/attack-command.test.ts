@@ -287,17 +287,18 @@ describe("AttackCommand", () => {
 
   // ── Éxito: ataque directo al héroe rival ─────────────────────────────────
 
-  it("debería permitir atacar directamente al héroe rival usando su staticId", () => {
+  it("debería permitir atacar directamente al héroe rival usando el playerId del rival", () => {
     // Arrange
     const attacker = makeCharacter({ attack: 4, health: 4 });
     const match = makeMatch([attacker], []);
-    const heroStaticId = match.player2.hero.staticId;
+    // Contrato unificado: el héroe rival se identifica por el playerId del rival.
+    const rivalPlayerId = match.player2.playerId;
     const heroHealthBefore = match.player2.hero.currentHealth;
 
     const command = new AttackCommand(
       match,
       attacker.instanceId,
-      heroStaticId,
+      rivalPlayerId,
       eventBus,
       combatResolver,
       turnEngine,
@@ -323,7 +324,7 @@ describe("AttackCommand", () => {
     const command = new AttackCommand(
       match,
       attacker.instanceId,
-      match.player2.hero.staticId,
+      match.player2.playerId,
       eventBus,
       combatResolver,
       turnEngine,

@@ -122,10 +122,14 @@ export class EndScene extends Phaser.Scene {
    * Dibuja el fondo bg-deep con vignette oscuro en bordes usando Graphics.
    */
   private drawBackground(width: number, height: number): void {
-    // Fondo sólido
-    const bg = this.add.graphics();
-    bg.fillStyle(BG_DEEP, 1);
-    bg.fillRect(0, 0, width, height);
+    // Fondo: imagen bg-end si está cargada; si no, color sólido como fallback.
+    if (this.textures.exists("bg-end")) {
+      this.add.image(width / 2, height / 2, "bg-end").setDisplaySize(width, height);
+    } else {
+      const bg = this.add.graphics();
+      bg.fillStyle(BG_DEEP, 1);
+      bg.fillRect(0, 0, width, height);
+    }
 
     // Vignette: gradiente radial simulado con elipses concéntricas oscuras
     const vignette = this.add.graphics();
