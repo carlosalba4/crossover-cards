@@ -2087,3 +2087,76 @@ botones de navegación hacia `HeroSelectScene` o `MenuScene`.
 - `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-endscene-victoria_041a.png`
 - `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-endscene-derrota_041b.png`
 - `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-typecheck-lint-ok_041c.png`
+
+---
+
+### Interacción #042 — 2026-05-29 (Bloque IMPL-F: Tests de presentación — Tarea IMPL-068)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Tester-Agent
+- **Herramienta**: Antigravity (workflow `/tester-agent`)
+- **Modelo del especialista**: Claude Sonnet 4.6 Thinking
+
+**Objetivo**: Implementar la Tarea IMPL-068 del bloque IMPL-F: tests unitarios de lógica
+pura exportada desde componentes de presentación. Solo se testea código que NO depende de
+Phaser directamente. Dos archivos de test: `calculateFanLayout` (HandView) y documentación
+de ausencia de funciones puras en `CardSprite`.
+
+**Archivos leídos antes de implementar**:
+
+- `src/presentation/objects/hand-view.ts` (función pura `calculateFanLayout`)
+- `src/presentation/objects/card-sprite.ts` (análisis de exports)
+- `.agent/skills/testing-vitest/SKILL.md`
+
+**Resultado**:
+
+- `tests/presentation/objects/hand-view.test.ts` creado con **13 tests** AAA:
+  - Camino feliz: `count=1` → `{ x: 0, rotation: 0 }`.
+  - `count=3`: rotación negativa (izquierda), 0 (centro), positiva (derecha).
+  - Límite de inclinación `count=7`: `rotation === -10` / `rotation === 10`.
+  - `count=10`: todas las `x` dentro de `[-450, 450]`; no lanza error.
+  - Caso borde `totalWidth=0`: no lanza error; con `count>1` x ≈ 0.
+  - Simetría del abanico: rotaciones y posiciones `x` opuestas en magnitud.
+  - Espaciado con `count=20`: rango de x ≤ totalWidth (con tolerancia de punto flotante).
+  - **Estrategia de mock**: `vi.mock("phaser")` + `vi.mock("@presentation/objects/card-sprite")`
+    para aislar la función pura del import-level de Phaser que rompía jsdom.
+
+- `tests/presentation/objects/card-sprite.test.ts` creado con **3 tests** AAA:
+  - Documenta exhaustivamente por qué `CardSprite` no expone funciones puras.
+  - Testea el único valor no-Phaser exportable: el enum `CardSize` (`"hand"` / `"board"`).
+  - Incluye tabla en comentarios con la justificación de exclusión por export.
+
+- **16 tests en verde** (2 archivos, 0 fallos, 0 warnings lint).
+- Tiempo de ejecución: ~2s en modo `vitest run`.
+
+**Decisiones clave**:
+
+- **`vi.mock("phaser")` en ambos archivos**: el import de `phaser` en `hand-view.ts` y
+  `card-sprite.ts` se ejecuta al cargar el módulo, lo que activa la inicialización interna
+  de Phaser (checkInverseAlpha → canvas.getContext) y falla en jsdom. El mock mínimo evita
+  esa cadena sin alterar el código bajo test.
+- **`toBeCloseTo` en lugar de `toBe(0)` para x con `totalWidth=0`**: la multiplicación de
+  punto flotante produce `-0` en JavaScript (≠ `+0` para `Object.is`). `toBeCloseTo(0, 10)`
+  es más robusto y semánticamente correcto.
+- **`toBeCloseTo(WIDTH_900, 5)` para el rango de x con `count=20`**: la suma acumulada
+  de `(count-1) * stepX` produce un error de punto flotante de ~1e-13. La precisión de
+  5 decimales absorbe ese error sin perder rigor en la lógica del test.
+- **Ausencia de tests funcionales de `CardSprite`**: la clase requiere `Phaser.Scene`
+  real en el constructor (`scene.add.graphics()`, `scene.add.text()`). Un mock masivo de
+  la escena no añade valor; la cobertura de integración se delega a un entorno headless
+  con canvas (fuera del alcance de IMPL-068). Documentado con tabla en el archivo.
+
+**Iteraciones**:
+
+1. Lectura de `hand-view.ts` (función pura `calculateFanLayout`) y `card-sprite.ts` (análisis de exports).
+2. Creación de directorio `tests/presentation/objects/`.
+3. Escritura inicial de ambos archivos de test (sin mocks de Phaser).
+4. Primera ejecución: fallo por `HTMLCanvasElement.getContext()` no implementado en jsdom.
+5. Añadido `vi.mock("phaser")` + `vi.mock("@presentation/objects/card-sprite")` en `hand-view.test.ts`.
+6. Segunda ejecución: 14/16 pasan; 2 fallos (`-0 vs +0`, error flotante `900.0000000000001`).
+7. Corrección con `toBeCloseTo(0, 10)` y `toBeCloseTo(WIDTH_900, 5)`.
+8. Tercera ejecución: **16/16 pasan** en ~2s.
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
