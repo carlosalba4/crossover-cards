@@ -1,4 +1,4 @@
-# Registro de Interacciones con IA
+﻿# Registro de Interacciones con IA
 
 Este archivo registra todas las interacciones con herramientas de IA durante el proyecto.  
 Es un entregable clave de la rúbrica: "es fundamental documentar todas las interacciones
@@ -1991,3 +1991,99 @@ Tras la primera sesión el usuario reportó 4 síntomas:
 - `docs/screenshots/04-implementation/2026-05-28_04-impl_impl066-nostalgia-fix-tests-verdes_040b.png`
 - `docs/screenshots/04-implementation/2026-05-29_04-impl_impl066-atacar-auto-combat_040c.png`
 
+---
+
+### Interacción #041 — 2026-05-29 (Bloque IMPL-F: EndScene — Tarea IMPL-067)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/phaser-dev-agent`)
+- **Modelo del especialista**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~18000 / ~12000
+
+**Objetivo**: Implementar la Tarea IMPL-067 del bloque IMPL-F: crear la escena final del juego
+(`EndScene`) en `src/presentation/scenes/end-scene.ts`. La escena recibe el resultado de la partida
+vía `scene.start('EndScene', { winnerId, loserId, isDraw, stats })`, muestra el resultado con efectos
+visuales diferenciados para victoria, derrota y empate, presenta estadísticas de la partida y ofrece
+botones de navegación hacia `HeroSelectScene` o `MenuScene`.
+
+**Archivos leídos antes de implementar**:
+
+- `docs/05-ui-design.md` (sección 3.5 EndScene, §2.1 paleta, §2.2 tipografía)
+- `src/presentation/ui/button.ts` (API de Button, ButtonConfig)
+- `src/presentation/config/game-config.ts`
+- `.agent/skills/phaser-patterns/SKILL.md`
+- `src/presentation/scenes/game-scene.ts` (handler MatchEnded existente)
+- `src/domain/events/game-event.ts` (MatchEndedPayload)
+
+**Resultado**:
+
+- `src/presentation/scenes/end-scene.ts` creado con ~280 líneas:
+  - `EndSceneData` e `EndSceneStats` exportadas como interfaces públicas.
+  - `init(data)`: almacena `winnerId`, `loserId`, `isDraw` y `stats` opcionales.
+  - **Victoria** (`winnerId === 'p1'`): banner "VICTORIA" Bangers 72px `#F5C842`, partículas doradas
+    (explosión 3s + lluvia suave continua + confeti 8 colores con `Phaser.GameObjects.Particles`).
+  - **Derrota** (`loserId === 'p1'`): banner "DERROTA" `#FF3B3B`, overlay `rgba(0,0,0,0.6)` con
+    fade-in Tween de 1s.
+  - **Empate**: banner "EMPATE" `#3ECFCF`.
+  - Fondo `bg-deep #0D0B1E` con vignette oscuro en bordes (Graphics, BlendMode.MULTIPLY).
+  - Animación de entrada del banner: fade-in + scale 0.8→1 en 0.6s ease-out.
+  - Panel de estadísticas: 3 columnas (turnos, daño, cartas) con placeholders `'—'` sin errores.
+  - Botón "JUGAR DE NUEVO" (144×56px, `accent-teal`) → `HeroSelectScene` (fade 0.4s).
+  - Botón "VOLVER AL MENÚ" (144×56px, `bg-surface`) → `MenuScene` (fade 0.4s).
+
+- `src/presentation/config/game-config.ts` modificado:
+  - Import de `EndScene` añadido; `EndScene` incluida en el array de escenas de `GAME_CONFIG`.
+
+- `src/presentation/scenes/game-scene.ts` modificado:
+  - Handler `MatchEnded` actualizado: sustituye `delayedCall` por `cameras.main.fadeOut(600)` +
+    `FADE_OUT_COMPLETE` → `scene.start('EndScene', { winnerId, loserId, isDraw, stats })`.
+
+**Decisiones clave**:
+
+- **Partículas con `"__DEFAULT"`**: Se usa la textura interna de Phaser 4 para los emitters,
+  evitando la dependencia de assets cargados en `BootScene`.
+- **Vignette sin shader**: Elipses concéntricas con `BlendMode.MULTIPLY` aproximan un gradiente
+  radial sin fragmento shader ni assets externos.
+- **Stats como placeholders**: Los contadores (turnos, daño, cartas) se inicializan a 0 para no
+  romper la UI. La firma de `EndSceneData` permite enriquecerlos en futuras iteraciones.
+- **Transición con `cameras.main.fadeOut`**: Cumple la restricción de no usar `setTimeout`/`setInterval`
+  del bloque IMPL-F; todo el timing pasa por el motor de Phaser.
+- **Contraste WCAG AA**: El botón secundario usa `textColor: "#F0EAD6"` sobre `#252240`
+  (ratio ≈ 7.5:1), cumpliendo el requisito de accesibilidad del doc UI §10.
+
+**Criterios de aceptación verificados**:
+
+- `EndScene extends Phaser.Scene` con key `'EndScene'`. ✓
+- `init(data: EndSceneData)` almacena todos los campos. ✓
+- Victoria: banner VICTORIA Bangers 72px `#F5C842`, fondo 560×120px. ✓
+- Derrota: banner DERROTA `#FF3B3B`, overlay fade-in 1s. ✓
+- Empate: banner EMPATE `#3ECFCF`. ✓
+- Partículas victoria con `Phaser.GameObjects.Particles`, explosión 3s + loop suave. ✓
+- Stats visibles con placeholders `'—'` sin errores. ✓
+- Botón "Jugar de nuevo" 144×56px, accent-teal → HeroSelectScene fadeOut 0.4s. ✓
+- Botón "Volver al menú" 144×56px, bg-surface → MenuScene fadeOut 0.4s. ✓
+- EndScene en array de escenas de `game-config.ts`. ✓
+- Fondo `bg-deep #0D0B1E` con vignette (Graphics). ✓
+- Animación entrada: fade-in + scale 0.8→1 en 0.6s ease-out. ✓
+- `npm run typecheck` → sin errores. ✓
+- `npm run lint` → sin warnings (corregidos con `--fix`). ✓
+- Transición desde GameScene (`MatchEnded`) muestra EndScene correctamente. ✓
+
+**Iteraciones**:
+
+1. Lectura de inputs (doc UI §3.5, Button API, game-config, game-scene, GameEvent).
+2. Generación inicial de `end-scene.ts` completo.
+3. Fix TS6133: parámetro `_height` renombrado en `createVictoryParticles`.
+4. Adición de `EndScene` en `game-config.ts`.
+5. Actualización del handler `MatchEnded` en `game-scene.ts`.
+6. Rescritura completa de `end-scene.ts` para restaurar la firma de `createVictoryParticles`
+   eliminada accidentalmente durante ediciones encadenadas.
+7. `npm run lint -- --fix` corrigió 3 warnings de formato Prettier.
+8. `npm run typecheck` + `npm run lint` + 463 tests: todos en verde.
+
+**Capturas asociadas**:
+
+- `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-endscene-victoria_041a.png`
+- `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-endscene-derrota_041b.png`
+- `docs/screenshots/04-implementation/2026-05-29_04-impl_impl067-typecheck-lint-ok_041c.png`
