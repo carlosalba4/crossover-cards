@@ -78,6 +78,17 @@ export class Toast extends Phaser.GameObjects.Container {
   }
 
   /**
+   * Reinicia el estado estático compartido entre escenas.
+   *
+   * Debe llamarse en el `shutdown()` de la escena para evitar que la lista
+   * `activeToasts` conserve referencias a objetos ya destruidos por Phaser,
+   * lo que provocaría errores en `repositionToasts` al recrear la escena.
+   */
+  public static reset(): void {
+    Toast.activeToasts = [];
+  }
+
+  /**
    * Elimina un toast de la lista activa
    */
   private static removeToast(toast: Toast): void {

@@ -6,6 +6,7 @@ import type { IEventBus } from "@domain/events/event-bus";
 import { TurnEngine } from "@domain/services/turn-engine";
 import { CombatResolver } from "@domain/services/combat-resolver";
 import { NostalgiaSystem } from "@domain/services/nostalgia-system";
+import { CrossoverManager } from "@domain/services/crossover-manager";
 import type { IDeckRepository } from "@domain/repositories/i-deck-repository";
 import type { IHeroRepository } from "@domain/repositories/i-hero-repository";
 import { ApplicationError } from "@application/errors/application-error";
@@ -13,6 +14,8 @@ import type { CommandResult, ICommand } from "@application/commands/i-command";
 import { PlayCardCommand } from "@application/commands/play-card-command";
 import { AttackCommand } from "@application/commands/attack-command";
 import { EndTurnCommand } from "@application/commands/end-turn-command";
+import { UseHeroPowerCommand } from "@application/commands/use-hero-power-command";
+import { ActivateCrossoverCommand } from "@application/commands/activate-crossover-command";
 import { GameEvent } from "@domain/events/game-event";
 import type { GameAction } from "@application/types/game-action";
 
@@ -21,6 +24,7 @@ export class MatchService {
   private turnEngine: TurnEngine | null = null;
   private combatResolver: CombatResolver | null = null;
   private nostalgiaSystem: NostalgiaSystem | null = null;
+  private crossoverManager: CrossoverManager | null = null;
   private internalUnsubscribers: Array<() => void> = [];
   /** Evita emitir MatchEnded más de una vez por partida. */
   private matchEnded = false;
@@ -126,6 +130,7 @@ export class MatchService {
     );
     this.combatResolver = new CombatResolver(this.eventBus);
     this.nostalgiaSystem = new NostalgiaSystem(this.eventBus);
+    this.crossoverManager = new CrossoverManager(this.eventBus);
 
     // Limpiar suscripciones de partidas anteriores antes de registrar las nuevas
     this.dispose();
@@ -160,7 +165,13 @@ export class MatchService {
   }
 
   public handlePlayerAction(action: GameAction): CommandResult {
-    if (!this.currentMatch || !this.turnEngine || !this.combatResolver || !this.nostalgiaSystem) {
+    if (
+      !this.currentMatch ||
+      !this.turnEngine ||
+      !this.combatResolver ||
+      !this.nostalgiaSystem ||
+      !this.crossoverManager
+    ) {
       return {
         success: false,
         error: new ApplicationError("No hay partida activa."),
@@ -203,6 +214,23 @@ export class MatchService {
           action.playerId,
           this.eventBus,
           this.turnEngine,
+        );
+        break;
+      case "USE_HERO_POWER":
+        command = new UseHeroPowerCommand(
+          this.currentMatch,
+          action.playerId,
+          action.targetId,
+          this.eventBus,
+          this.nostalgiaSystem,
+        );
+        break;
+      case "ACTIVATE_CROSSOVER":
+        command = new ActivateCrossoverCommand(
+          this.currentMatch,
+          action.playerId,
+          this.crossoverManager,
+          this.eventBus,
         );
         break;
       default: {

@@ -328,6 +328,25 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this._isHovering = false;
   }
 
+  /**
+   * Actualiza el valor de VID mostrado en la carta y anima un golpe.
+   * Solo tiene efecto en cartas de tipo Character (las únicas con VID visible).
+   *
+   * @param current - Vida actual a mostrar.
+   * @param max     - Vida máxima (para colorear: rojo si está dañada, verde si plena).
+   */
+  updateHealth(current: number, max: number): void {
+    if (this._card.type !== CardType.Character) return;
+    this.vidText.setText(String(current));
+    this.vidText.setColor(current < max ? "#FF3B3B" : "#6BFF8E");
+    this.scene.tweens.add({
+      targets: this.vidText,
+      scale: 1.5,
+      duration: 150,
+      yoyo: true,
+    });
+  }
+
   // -------------------------------------------------------------------------
   // Construcción de capas internas
   // -------------------------------------------------------------------------

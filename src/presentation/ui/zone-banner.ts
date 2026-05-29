@@ -1,13 +1,16 @@
 import Phaser from "phaser";
 
+/** Posición Y de reposo del banner, oculto por encima del borde superior. */
+const BANNER_HIDDEN_Y = -60;
+
 export class ZoneBanner extends Phaser.GameObjects.Container {
   private bgGraphics: Phaser.GameObjects.Graphics;
   private messageText: Phaser.GameObjects.Text;
-  private startY: number = -60;
+  private startY: number = BANNER_HIDDEN_Y;
   private targetY: number;
 
   constructor(scene: Phaser.Scene, x: number, targetY: number) {
-    super(scene, x, -60);
+    super(scene, x, BANNER_HIDDEN_Y);
     this.targetY = targetY;
 
     this.bgGraphics = scene.add.graphics();

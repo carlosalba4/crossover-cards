@@ -1,8 +1,13 @@
 import Phaser from "phaser";
-import { BoardView, type BoardZoneId } from "@presentation/objects/board-view";
+import {
+  BoardView,
+  type BoardZoneId,
+  type CharacterBoardData,
+} from "@presentation/objects/board-view";
 import { HandView } from "@presentation/objects/hand-view";
 import { HeroView } from "@presentation/objects/hero-view";
-import { HUDOverlay } from "@presentation/ui/hud-overlay";
+import { LeftHUDPanel } from "@presentation/ui/left-hud-panel";
+import { RightHUDPanel } from "@presentation/ui/right-hud-panel";
 import { TurnIndicator } from "@presentation/ui/turn-indicator";
 import { ZoneBanner } from "@presentation/ui/zone-banner";
 import { Tooltip } from "@presentation/ui/tooltip";
@@ -10,18 +15,35 @@ import { Toast } from "@presentation/ui/toast";
 import { Modal } from "@presentation/ui/modal";
 import { Button } from "@presentation/ui/button";
 import { CardSprite } from "@presentation/objects/card-sprite";
-import type { GameAction } from "@application/types/game-action";
 
-import { MatchService } from "@application/services/match-service";
-import { DeckService } from "@application/services/deck-service";
-import { JsonDeckRepository } from "@infrastructure/repositories/json-deck-repository";
-import { JsonCardRepository } from "@infrastructure/repositories/json-card-repository";
-import { JsonHeroRepository } from "@infrastructure/repositories/json-hero-repository";
-import { GameEventBus } from "@infrastructure/events/game-event-bus";
+import type { MatchService } from "@application/services/match-service";
+import type { OpponentService } from "@application/services/opponent-service";
+import type { IDeckRepository } from "@domain/repositories/i-deck-repository";
 import { GameEvent } from "@domain/events/game-event";
 import type { Unsubscribe, IEventBus } from "@domain/events/event-bus";
-import { OpponentService } from "@application/services/opponent-service";
-import { GreedyAI } from "@domain/ai/greedy-ai";
+import { Character } from "@domain/entities/character";
+import { createGameDependencies, type GameDependencies } from "@/composition/game-dependencies";
+
+// ---------------------------------------------------------------------------
+// Constantes de zonas de drop (coordenadas del tablero, en px)
+// ---------------------------------------------------------------------------
+
+/** Y mínima a partir de la cual una carta soltada cuenta como jugada en tablero. */
+const DROP_ZONE_MIN_Y = 540;
+/** Origen X de las zonas de drop (offset del free slot). */
+const DROP_ZONE_BASE_X = 680;
+/** Offset X del inicio de la zona izquierda respecto a la base. */
+const DROP_ZONE_LEFT_OFFSET = 80;
+/** Offset X del inicio de la zona central. */
+const DROP_ZONE_CENTER_OFFSET = 240;
+/** Offset X del inicio de la zona derecha. */
+const DROP_ZONE_RIGHT_OFFSET = 400;
+/** Offset X del final de la zona derecha. */
+const DROP_ZONE_END_OFFSET = 560;
+/** Anchura del recuadro de resaltado de cada slot. */
+const DROP_ZONE_SLOT_WIDTH = 150;
+/** Altura del recuadro de resaltado de cada slot. */
+const DROP_ZONE_SLOT_HEIGHT = 500;
 
 export class GameScene extends Phaser.Scene {
   private heroId!: string;
@@ -29,14 +51,15 @@ export class GameScene extends Phaser.Scene {
 
   private eventBus!: IEventBus;
   private matchService!: MatchService;
+  private opponentService!: OpponentService;
+  private deckRepository!: IDeckRepository;
 
   private board!: BoardView;
   private handPlayer!: HandView;
   private handRival!: HandView;
   private heroPlayer!: HeroView;
   private heroRival!: HeroView;
-  private hudLeft!: HUDOverlay;
-  private hudRight!: HUDOverlay;
+  private hudRight!: RightHUDPanel;
   private turnIndicator!: TurnIndicator;
   private zoneBanner!: ZoneBanner;
 
@@ -47,7 +70,6 @@ export class GameScene extends Phaser.Scene {
   private targetSelectionMode: "heroPower" | null = null;
   private dragHighlight: Phaser.GameObjects.Graphics | null = null;
 
-  private opponentService!: OpponentService;
   private aiOverlay?: Phaser.GameObjects.Rectangle;
   private rivalTurnText!: Phaser.GameObjects.Text;
 
@@ -55,26 +77,38 @@ export class GameScene extends Phaser.Scene {
     super({ key: "GameScene" });
   }
 
-  init(data: { heroId?: string }): void {
+  init(data: { heroId?: string; dependencies?: GameDependencies }): void {
     this.heroId = data.heroId || "HERO-001";
+
+    // Las dependencias se reciben ya compuestas desde la raíz de composición
+    // (DIP). Si no se inyectan, se construyen aquí como fallback para permitir
+    // arrancar la escena de forma autónoma sin acoplar la presentación a la
+    // infraestructura concreta.
+    const deps = data.dependencies ?? createGameDependencies();
+    this.eventBus = deps.eventBus;
+    this.matchService = deps.matchService;
+    this.opponentService = deps.opponentService;
+    this.deckRepository = deps.deckRepository;
   }
 
   create(): void {
     this.cameras.main.setBackgroundColor("#0D0B1E");
     console.info("GameScene iniciada con heroId:", this.heroId);
 
-    // 1. Inicializar EventBus y Servicios
-    this.eventBus = GameEventBus.getInstance();
+    this.buildUI();
+    this.setupUIInteractions();
 
-    const deckRepo = new JsonDeckRepository();
-    const cardRepo = new JsonCardRepository();
-    const heroRepo = new JsonHeroRepository();
-    const deckService = new DeckService(deckRepo, cardRepo);
+    this.unsubscribers = [];
+    this.setupEventHandlers();
 
-    this.matchService = new MatchService(deckService, deckRepo, heroRepo, this.eventBus);
-    this.opponentService = new OpponentService(new GreedyAI());
+    this.startMatch();
+  }
 
-    // 2. Construir UI
+  // -------------------------------------------------------------------------
+  // Construcción de la UI
+  // -------------------------------------------------------------------------
+
+  private buildUI(): void {
     this.board = new BoardView(this, 136, 0, 1648, 1080);
 
     this.handPlayer = new HandView(this, true);
@@ -112,8 +146,10 @@ export class GameScene extends Phaser.Scene {
     );
     this.heroRival.setPosition(250, 200);
 
-    this.hudLeft = new HUDOverlay(this, "left", 0, 100);
-    this.hudRight = new HUDOverlay(this, "right", 1800, 100);
+    // El panel izquierdo se auto-registra en la escena desde su constructor;
+    // no se guarda referencia porque la escena no interactúa con él actualmente.
+    new LeftHUDPanel(this, 0, 100);
+    this.hudRight = new RightHUDPanel(this, 1800, 100);
     this.turnIndicator = new TurnIndicator(this, 960, 40);
 
     this.zoneBanner = new ZoneBanner(this, 960, 300);
@@ -129,16 +165,15 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setVisible(false)
       .setDepth(100);
+  }
 
-    this.setupUIInteractions();
+  // -------------------------------------------------------------------------
+  // Arranque de la partida (carga asíncrona)
+  // -------------------------------------------------------------------------
 
-    // 3. Suscribir Handlers
-    this.unsubscribers = [];
-    this.setupEventHandlers();
-
-    // 4. Iniciar Partida
+  private startMatch(): void {
     // Convertir heroId → deckId buscando en el repositorio el mazo asociado.
-    deckRepo
+    this.deckRepository
       .getAll()
       .then((allDecks) => {
         const playerDeck = allDecks.find((d) => d.heroId === this.heroId);
@@ -195,6 +230,7 @@ export class GameScene extends Phaser.Scene {
         this.heroRival.updateHealth(p2.hero.currentHealth, p2.hero.maxHealth);
 
         p1.hand.getCards().forEach((c) => {
+          const isCharacter = c instanceof Character;
           const sprite = this.handPlayer.addCard(
             {
               id: c.instanceId,
@@ -204,9 +240,8 @@ export class GameScene extends Phaser.Scene {
               archetype: c.archetype,
               rarity: c.rarity,
               nostalgyCost: c.nostalgyCost,
-              attack: "attack" in c ? (c as { attack?: number }).attack : undefined,
-              health:
-                "currentHealth" in c ? (c as { currentHealth?: number }).currentHealth : undefined,
+              attack: isCharacter ? c.attack : undefined,
+              health: isCharacter ? c.currentHealth : undefined,
               description: c.description,
             },
             false,
@@ -215,6 +250,7 @@ export class GameScene extends Phaser.Scene {
         });
 
         p2.hand.getCards().forEach((c) => {
+          const isCharacter = c instanceof Character;
           this.handRival.addCard(
             {
               id: c.instanceId,
@@ -224,9 +260,8 @@ export class GameScene extends Phaser.Scene {
               archetype: c.archetype,
               rarity: c.rarity,
               nostalgyCost: c.nostalgyCost,
-              attack: "attack" in c ? (c as { attack?: number }).attack : undefined,
-              health:
-                "currentHealth" in c ? (c as { currentHealth?: number }).currentHealth : undefined,
+              attack: isCharacter ? c.attack : undefined,
+              health: isCharacter ? c.currentHealth : undefined,
               description: c.description,
             },
             false,
@@ -236,6 +271,25 @@ export class GameScene extends Phaser.Scene {
       .catch((err) => {
         console.error("Error inicializando partida:", err);
       });
+  }
+
+  /**
+   * Mapea una entidad de dominio `Character` al DTO de presentación que
+   * consume `BoardView`, aislando la capa visual de la lógica de negocio.
+   */
+  private toCharacterBoardData(character: Character): CharacterBoardData {
+    return {
+      instanceId: character.instanceId,
+      spriteKey: character.spriteKey,
+      name: character.name,
+      type: character.type,
+      archetype: character.archetype,
+      rarity: character.rarity,
+      nostalgyCost: character.nostalgyCost,
+      attack: character.attack,
+      currentHealth: character.currentHealth,
+      description: character.description,
+    };
   }
 
   private setupEventHandlers(): void {
@@ -255,7 +309,11 @@ export class GameScene extends Phaser.Scene {
       this.eventBus.on(GameEvent.CharacterSummoned, (payload) => {
         if (!payload.character || !payload.zoneId) return;
         const isPlayer = payload.playerId === "p1";
-        this.board.addCharacterSprite(payload.character, payload.zoneId as BoardZoneId, isPlayer);
+        this.board.addCharacterSprite(
+          this.toCharacterBoardData(payload.character),
+          payload.zoneId as BoardZoneId,
+          isPlayer,
+        );
         const sprite = this.board.getSpriteByInstanceId(payload.character.instanceId);
         if (sprite) {
           this.makeBoardCharacterClickable(sprite, payload.character.instanceId, isPlayer);
@@ -446,7 +504,7 @@ export class GameScene extends Phaser.Scene {
       this.eventBus.on(GameEvent.QuestProgressUpdated, (payload) => {
         const isPlayer = payload.playerId === "p1";
         if (isPlayer && payload.questId) {
-          this.hudLeft.setActiveQuest({
+          this.hudRight.setActiveQuest({
             name: "Progreso de Misión",
             current: payload.current,
             target: payload.target,
@@ -564,7 +622,7 @@ export class GameScene extends Phaser.Scene {
           const result = this.matchService.handlePlayerAction({
             type: "ACTIVATE_CROSSOVER",
             playerId: "p1",
-          } as unknown as GameAction);
+          });
           if (!result.success) {
             Toast.show(this, result.error?.message || "Acción Crossover inválida", "warn");
           }
@@ -585,7 +643,7 @@ export class GameScene extends Phaser.Scene {
         const result = this.matchService.handlePlayerAction({
           type: "USE_HERO_POWER",
           playerId: "p1",
-        } as unknown as GameAction);
+        });
         if (!result.success) {
           Toast.show(this, result.error?.message || "No se pudo usar la habilidad", "warn");
         }
@@ -608,7 +666,7 @@ export class GameScene extends Phaser.Scene {
           type: "USE_HERO_POWER",
           playerId: "p1",
           targetId: p2StaticId,
-        } as unknown as GameAction);
+        });
         if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
         this.targetSelectionMode = null;
         return;
@@ -713,7 +771,7 @@ export class GameScene extends Phaser.Scene {
           type: "USE_HERO_POWER",
           playerId: "p1",
           targetId: characterId,
-        } as unknown as GameAction);
+        });
         if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
         this.targetSelectionMode = null;
         return;
@@ -779,11 +837,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getDropZone(pointerX: number, pointerY: number): "left" | "center" | "right" | null {
-    if (pointerY < 540) return null;
-    const startX = 680;
-    if (pointerX >= startX + 80 && pointerX < startX + 240) return "left";
-    if (pointerX >= startX + 240 && pointerX < startX + 400) return "center";
-    if (pointerX >= startX + 400 && pointerX < startX + 560) return "right";
+    if (pointerY < DROP_ZONE_MIN_Y) return null;
+    const baseX = DROP_ZONE_BASE_X;
+    if (pointerX >= baseX + DROP_ZONE_LEFT_OFFSET && pointerX < baseX + DROP_ZONE_CENTER_OFFSET) {
+      return "left";
+    }
+    if (pointerX >= baseX + DROP_ZONE_CENTER_OFFSET && pointerX < baseX + DROP_ZONE_RIGHT_OFFSET) {
+      return "center";
+    }
+    if (pointerX >= baseX + DROP_ZONE_RIGHT_OFFSET && pointerX < baseX + DROP_ZONE_END_OFFSET) {
+      return "right";
+    }
     return null;
   }
 
@@ -793,10 +857,28 @@ export class GameScene extends Phaser.Scene {
     }
     this.dragHighlight.clear();
     this.dragHighlight.lineStyle(4, 0x4caf6e, 0.6);
-    const startX = 680;
-    this.dragHighlight.strokeRoundedRect(startX + 80, 540, 150, 500, 8);
-    this.dragHighlight.strokeRoundedRect(startX + 240, 540, 150, 500, 8);
-    this.dragHighlight.strokeRoundedRect(startX + 400, 540, 150, 500, 8);
+    const baseX = DROP_ZONE_BASE_X;
+    this.dragHighlight.strokeRoundedRect(
+      baseX + DROP_ZONE_LEFT_OFFSET,
+      DROP_ZONE_MIN_Y,
+      DROP_ZONE_SLOT_WIDTH,
+      DROP_ZONE_SLOT_HEIGHT,
+      8,
+    );
+    this.dragHighlight.strokeRoundedRect(
+      baseX + DROP_ZONE_CENTER_OFFSET,
+      DROP_ZONE_MIN_Y,
+      DROP_ZONE_SLOT_WIDTH,
+      DROP_ZONE_SLOT_HEIGHT,
+      8,
+    );
+    this.dragHighlight.strokeRoundedRect(
+      baseX + DROP_ZONE_RIGHT_OFFSET,
+      DROP_ZONE_MIN_Y,
+      DROP_ZONE_SLOT_WIDTH,
+      DROP_ZONE_SLOT_HEIGHT,
+      8,
+    );
   }
 
   private clearSlotHighlights(): void {
@@ -810,6 +892,10 @@ export class GameScene extends Phaser.Scene {
     this.unsubscribers.forEach((unsub) => unsub());
     this.unsubscribers = [];
     this.matchService?.dispose();
+
+    // Reiniciar el estado estático compartido de Toast para evitar referencias
+    // a objetos destruidos al recrear la escena.
+    Toast.reset();
 
     // Limpiar todos los eventos de tiempo para evitar fugas
     this.time.removeAllEvents();

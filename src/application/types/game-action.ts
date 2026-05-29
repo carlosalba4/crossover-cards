@@ -54,6 +54,32 @@ export interface EndTurnAction {
 }
 
 /**
+ * Acción: Usar la habilidad especial del héroe.
+ * - playerId: jugador que usa la habilidad (debe ser el activo).
+ * - targetId: objetivo de la habilidad. `instanceId` de un Personaje o
+ *   `staticId` de un héroe. `undefined` para habilidades sin objetivo.
+ */
+export interface UseHeroPowerAction {
+  readonly type: "USE_HERO_POWER";
+  readonly playerId: PlayerId;
+  readonly targetId?: CardId;
+}
+
+/**
+ * Acción: Activar la mecánica Crossover (robo de carta del mazo rival).
+ * - playerId: jugador que activa el Crossover (debe ser el activo).
+ */
+export interface ActivateCrossoverAction {
+  readonly type: "ACTIVATE_CROSSOVER";
+  readonly playerId: PlayerId;
+}
+
+/**
  * Unión discriminada de todas las acciones del jugador.
  */
-export type GameAction = PlayCardAction | AttackAction | EndTurnAction;
+export type GameAction =
+  | PlayCardAction
+  | AttackAction
+  | EndTurnAction
+  | UseHeroPowerAction
+  | ActivateCrossoverAction;

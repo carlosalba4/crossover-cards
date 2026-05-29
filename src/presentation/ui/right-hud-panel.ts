@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { NostalgiaClockUI } from "@presentation/objects/nostalgia-clock-ui";
 import { DeckCounter } from "@presentation/ui/deck-counter";
-import { ActionLog } from "@presentation/ui/action-log";
 import { Button } from "@presentation/ui/button";
+import type { IHUDPanel } from "@presentation/ui/i-hud-panel";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -15,75 +15,46 @@ export interface QuestData {
 }
 
 // ---------------------------------------------------------------------------
-// Clase HUDOverlay
+// Constantes de Momentum
 // ---------------------------------------------------------------------------
 
-export class HUDOverlay extends Phaser.GameObjects.Container {
-  private readonly side: "left" | "right";
+/** Puntos máximos de Momentum representables en la barra. */
+const MOMENTUM_MAX = 10;
+/** Altura de cada segmento de Momentum, en px. */
+const MOMENTUM_SEGMENT_H = 8;
 
-  // Lado Izquierdo
-  private actionLog?: ActionLog;
-  private pauseBtn?: Button;
+// ---------------------------------------------------------------------------
+// Clase RightHUDPanel
+// ---------------------------------------------------------------------------
 
-  // Lado Derecho
-  private nostalgiaClock?: NostalgiaClockUI;
-  private deckCounter?: DeckCounter;
-  private crossoverBtn?: Button;
-  private endTurnBtn?: Button;
+/**
+ * Panel lateral derecho del HUD: recursos del jugador (Nostalgia, Momentum,
+ * mazo), botones de Crossover y Fin de Turno, y panel de Misión activa.
+ * Responsabilidad única frente a `LeftHUDPanel`. Emite los eventos
+ * `"crossover"` y `"endTurn"`.
+ */
+export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDPanel {
+  private readonly nostalgiaClock: NostalgiaClockUI;
+  private readonly deckCounter: DeckCounter;
+  private readonly crossoverBtn: Button;
+  private readonly endTurnBtn: Button;
 
-  // Momentum (Derecho)
-  private momentumBarContainer?: Phaser.GameObjects.Container;
-  private momentumGraphics?: Phaser.GameObjects.Graphics;
+  // Momentum
+  private momentumBarContainer!: Phaser.GameObjects.Container;
+  private momentumGraphics!: Phaser.GameObjects.Graphics;
 
-  // Quest (Derecho)
-  private questContainer?: Phaser.GameObjects.Container;
-  private questPopup?: Phaser.GameObjects.Container;
+  // Quest
+  private questContainer!: Phaser.GameObjects.Container;
+  private questPopup!: Phaser.GameObjects.Container;
   private questHoverTimer: Phaser.Time.TimerEvent | null = null;
-  private questNameText?: Phaser.GameObjects.Text;
-  private questProgressText?: Phaser.GameObjects.Text;
-  private questPopupNameText?: Phaser.GameObjects.Text;
-  private questPopupProgressText?: Phaser.GameObjects.Text;
+  private questNameText!: Phaser.GameObjects.Text;
+  private questProgressText!: Phaser.GameObjects.Text;
+  private questPopupNameText!: Phaser.GameObjects.Text;
+  private questPopupProgressText!: Phaser.GameObjects.Text;
 
-  constructor(scene: Phaser.Scene, side: "left" | "right", x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
-    this.side = side;
 
-    if (side === "left") {
-      this.buildLeftHUD(scene);
-    } else {
-      this.buildRightHUD(scene);
-    }
-
-    scene.add.existing(this);
-  }
-
-  // -------------------------------------------------------------------------
-  // Construcción Visual
-  // -------------------------------------------------------------------------
-
-  private buildLeftHUD(scene: Phaser.Scene): void {
-    // ActionLog
-    this.actionLog = new ActionLog(scene, 0, 0);
-    this.add(this.actionLog);
-
-    // Botón Pausa
-    this.pauseBtn = new Button({
-      scene,
-      x: 60,
-      y: 450,
-      width: 104,
-      height: 40,
-      label: "PAUSA",
-      backgroundColor: 0x1a1730,
-      textColor: "#F0EAD6",
-      onClick: () => {
-        // Pausa no definida en scope actual
-      },
-    });
-    this.add(this.pauseBtn);
-  }
-
-  private buildRightHUD(scene: Phaser.Scene): void {
     // NostalgiaClockUI
     this.nostalgiaClock = new NostalgiaClockUI(scene, 80, 80);
     this.add(this.nostalgiaClock);
@@ -129,7 +100,13 @@ export class HUDOverlay extends Phaser.GameObjects.Container {
       },
     });
     this.add(this.endTurnBtn);
+
+    scene.add.existing(this);
   }
+
+  // -------------------------------------------------------------------------
+  // Construcción Visual
+  // -------------------------------------------------------------------------
 
   private buildMomentumBar(scene: Phaser.Scene, x: number, y: number): void {
     this.momentumBarContainer = scene.add.container(x, y);
@@ -228,87 +205,75 @@ export class HUDOverlay extends Phaser.GameObjects.Container {
   // -------------------------------------------------------------------------
 
   public updateNostalgia(current: number, max: number): void {
-    if (this.nostalgiaClock) {
-      this.nostalgiaClock.update(current, max);
-    }
+    this.nostalgiaClock.update(current, max);
   }
 
   public updateDeck(count: number): void {
-    if (this.deckCounter) {
-      this.deckCounter.update(count);
-    }
+    this.deckCounter.update(count);
   }
 
   public updateMomentum(points: number, isActive: boolean): void {
-    if (!this.momentumBarContainer || !this.momentumGraphics) return;
-
-    if (isActive) {
-      if (this.momentumBarContainer.alpha === 0) {
-        this.scene.tweens.add({
-          targets: this.momentumBarContainer,
-          alpha: 1,
-          duration: 600,
-          ease: "Sine.easeInOut",
-        });
-      }
-
-      this.momentumGraphics.clear();
-      this.momentumGraphics.fillStyle(0x1a1730, 1);
-      this.momentumGraphics.fillRect(0, 0, 16, 80);
-
-      this.momentumGraphics.fillStyle(0xf5a623, 1);
-      const safePoints = Math.min(points, 10); // Asumiendo 10 max
-      for (let i = 0; i < safePoints; i++) {
-        this.momentumGraphics.fillRect(0, 80 - (i + 1) * 8, 16, 8);
-      }
-
-      // Separadores
-      this.momentumGraphics.lineStyle(1, 0x000000, 1);
-      for (let i = 1; i < 10; i++) {
-        this.momentumGraphics.beginPath();
-        this.momentumGraphics.moveTo(0, i * 8);
-        this.momentumGraphics.lineTo(16, i * 8);
-        this.momentumGraphics.strokePath();
-      }
-    } else {
+    if (!isActive) {
       this.momentumBarContainer.setAlpha(0);
+      return;
+    }
+
+    if (this.momentumBarContainer.alpha === 0) {
+      this.scene.tweens.add({
+        targets: this.momentumBarContainer,
+        alpha: 1,
+        duration: 600,
+        ease: "Sine.easeInOut",
+      });
+    }
+
+    this.momentumGraphics.clear();
+    this.momentumGraphics.fillStyle(0x1a1730, 1);
+    this.momentumGraphics.fillRect(0, 0, 16, MOMENTUM_MAX * MOMENTUM_SEGMENT_H);
+
+    this.momentumGraphics.fillStyle(0xf5a623, 1);
+    const safePoints = Math.min(points, MOMENTUM_MAX);
+    for (let i = 0; i < safePoints; i++) {
+      this.momentumGraphics.fillRect(
+        0,
+        MOMENTUM_MAX * MOMENTUM_SEGMENT_H - (i + 1) * MOMENTUM_SEGMENT_H,
+        16,
+        MOMENTUM_SEGMENT_H,
+      );
+    }
+
+    // Separadores
+    this.momentumGraphics.lineStyle(1, 0x000000, 1);
+    for (let i = 1; i < MOMENTUM_MAX; i++) {
+      this.momentumGraphics.beginPath();
+      this.momentumGraphics.moveTo(0, i * MOMENTUM_SEGMENT_H);
+      this.momentumGraphics.lineTo(16, i * MOMENTUM_SEGMENT_H);
+      this.momentumGraphics.strokePath();
     }
   }
 
   public setCrossoverUsed(used: boolean): void {
-    if (this.crossoverBtn) {
-      this.crossoverBtn.setDisabled(used);
-      this.crossoverBtn.setAlpha(used ? 0.5 : 1.0);
-    }
+    this.crossoverBtn.setDisabled(used);
+    this.crossoverBtn.setAlpha(used ? 0.5 : 1.0);
   }
 
   public setEndTurnEnabled(enabled: boolean): void {
-    if (this.endTurnBtn) {
-      this.endTurnBtn.setDisabled(!enabled);
-    }
+    this.endTurnBtn.setDisabled(!enabled);
   }
 
   public setActiveQuest(quest: QuestData | null): void {
-    if (!this.questContainer) return;
-
     if (quest) {
       this.questContainer.setVisible(true);
 
       const shortName = quest.name.length > 12 ? quest.name.substring(0, 10) + "..." : quest.name;
-      this.questNameText?.setText(shortName);
-      this.questProgressText?.setText(`${quest.current}/${quest.target}`);
+      this.questNameText.setText(shortName);
+      this.questProgressText.setText(`${quest.current}/${quest.target}`);
 
-      this.questPopupNameText?.setText(quest.name);
-      this.questPopupProgressText?.setText(`Progreso: ${quest.current}/${quest.target}`);
+      this.questPopupNameText.setText(quest.name);
+      this.questPopupProgressText.setText(`Progreso: ${quest.current}/${quest.target}`);
     } else {
       this.questContainer.setVisible(false);
       this.hideQuestPopup();
-    }
-  }
-
-  public addActionEntry(text: string): void {
-    if (this.actionLog && this.side === "left") {
-      this.actionLog.addEntry(text);
     }
   }
 
@@ -317,27 +282,24 @@ export class HUDOverlay extends Phaser.GameObjects.Container {
   // -------------------------------------------------------------------------
 
   private showQuestPopup(): void {
-    if (this.questPopup) {
-      this.questPopup.setVisible(true);
-      this.questPopup.setAlpha(0);
-      this.scene.tweens.add({
-        targets: this.questPopup,
-        alpha: 1,
-        duration: 150,
-      });
-    }
+    this.questPopup.setVisible(true);
+    this.questPopup.setAlpha(0);
+    this.scene.tweens.add({
+      targets: this.questPopup,
+      alpha: 1,
+      duration: 150,
+    });
   }
 
   private hideQuestPopup(): void {
-    if (this.questPopup) {
-      this.scene.tweens.killTweensOf(this.questPopup);
-      this.questPopup.setVisible(false);
-    }
+    this.scene.tweens.killTweensOf(this.questPopup);
+    this.questPopup.setVisible(false);
   }
 
   override destroy(fromScene?: boolean): void {
     if (this.questHoverTimer) {
       this.questHoverTimer.destroy();
+      this.questHoverTimer = null;
     }
     super.destroy(fromScene);
   }

@@ -1,13 +1,33 @@
 import Phaser from "phaser";
 import { ZoneView } from "@presentation/objects/zone-view";
 import { CardSprite, CardSize } from "@presentation/objects/card-sprite";
-import type { Character } from "@domain/entities/character";
+import { drawDashedRect } from "@presentation/utils/graphics-utils";
+import type { Archetype, Rarity, CardType } from "@domain/types/card-types";
 
 // ---------------------------------------------------------------------------
 // Tipos
 // ---------------------------------------------------------------------------
 
 export type BoardZoneId = "left" | "center" | "right" | "free";
+
+/**
+ * DTO de presentación con los datos mínimos para renderizar un Personaje en el
+ * tablero. Solo propiedades primitivas: desacopla `BoardView` de la entidad de
+ * dominio `Character` (que contiene lógica de negocio). La escena es responsable
+ * de mapear la entidad de dominio a este DTO.
+ */
+export interface CharacterBoardData {
+  readonly instanceId: string;
+  readonly spriteKey: string;
+  readonly name: string;
+  readonly type: CardType;
+  readonly archetype: Archetype;
+  readonly rarity: Rarity;
+  readonly nostalgyCost: number;
+  readonly attack: number;
+  readonly currentHealth: number;
+  readonly description: string;
+}
 
 interface SlotData {
   id: string;
@@ -60,8 +80,8 @@ export class BoardView extends Phaser.GameObjects.Container {
     const freeGraphics = scene.add.graphics();
     freeGraphics.lineStyle(2, 0x9b96b0, 0.4);
     const freeCenterX = this.startX + freeSlotWidth / 2;
-    this.drawDashedRect(freeGraphics, freeCenterX - 36, height * 0.25 - 48, 72, 96);
-    this.drawDashedRect(freeGraphics, freeCenterX - 36, height * 0.75 - 48, 72, 96);
+    drawDashedRect(freeGraphics, freeCenterX - 36, height * 0.25 - 48, 72, 96);
+    drawDashedRect(freeGraphics, freeCenterX - 36, height * 0.75 - 48, 72, 96);
     this.add(freeGraphics);
 
     // Zonas
@@ -92,7 +112,11 @@ export class BoardView extends Phaser.GameObjects.Container {
   // Métodos Públicos
   // -------------------------------------------------------------------------
 
-  public addCharacterSprite(character: Character, zoneId: BoardZoneId, isPlayer: boolean): void {
+  public addCharacterSprite(
+    character: CharacterBoardData,
+    zoneId: BoardZoneId,
+    isPlayer: boolean,
+  ): void {
     // Si ya existe, evitamos duplicarlo
     if (this.spriteMap.has(character.instanceId)) return;
 
@@ -175,24 +199,8 @@ export class BoardView extends Phaser.GameObjects.Container {
     const sprite = this.spriteMap.get(characterId);
     if (!sprite) return;
 
-    // Dado que CardSprite no expone un método público para actualizar salud
-    // y no podemos editar CardSprite, accedemos vía coerción estructural para
-    // satisfacer el requerimiento manteniendo TypeScript strict.
-    type SpriteWithText = { vidText?: Phaser.GameObjects.Text };
-    const s = sprite as unknown as SpriteWithText;
-
-    if (s.vidText) {
-      s.vidText.setText(String(current));
-      s.vidText.setColor(current < max ? "#FF3B3B" : "#6BFF8E");
-
-      // Animar golpe
-      this.scene.tweens.add({
-        targets: s.vidText,
-        scale: 1.5,
-        duration: 150,
-        yoyo: true,
-      });
-    }
+    // CardSprite expone updateHealth() públicamente, respetando el encapsulamiento.
+    sprite.updateHealth(current, max);
   }
 
   public playAttackAnimation(attackerId: string, defenderId: string): void {
@@ -257,39 +265,5 @@ export class BoardView extends Phaser.GameObjects.Container {
     if (zoneId === "left") this.leftZone.setEnvironment(envData);
     if (zoneId === "center") this.centerZone.setEnvironment(envData);
     if (zoneId === "right") this.rightZone.setEnvironment(envData);
-  }
-
-  // -------------------------------------------------------------------------
-  // Métodos Privados
-  // -------------------------------------------------------------------------
-
-  private drawDashedRect(
-    gfx: Phaser.GameObjects.Graphics,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-  ): void {
-    const dashLength = 6;
-    const gapLength = 6;
-
-    gfx.beginPath();
-    for (let i = x; i < x + w; i += dashLength + gapLength) {
-      gfx.moveTo(i, y);
-      gfx.lineTo(Math.min(i + dashLength, x + w), y);
-    }
-    for (let i = x; i < x + w; i += dashLength + gapLength) {
-      gfx.moveTo(i, y + h);
-      gfx.lineTo(Math.min(i + dashLength, x + w), y + h);
-    }
-    for (let i = y; i < y + h; i += dashLength + gapLength) {
-      gfx.moveTo(x, i);
-      gfx.lineTo(x, Math.min(i + dashLength, y + h));
-    }
-    for (let i = y; i < y + h; i += dashLength + gapLength) {
-      gfx.moveTo(x + w, i);
-      gfx.lineTo(x + w, Math.min(i + dashLength, y + h));
-    }
-    gfx.strokePath();
   }
 }

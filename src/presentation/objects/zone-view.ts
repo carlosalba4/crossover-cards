@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { drawDashedRect } from "@presentation/utils/graphics-utils";
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -219,48 +220,9 @@ export class ZoneView extends Phaser.GameObjects.Container {
 
     for (const y of ys) {
       for (const x of xs) {
-        this.drawDashedRect(gfx, x, y, SLOT_WIDTH, SLOT_HEIGHT);
+        drawDashedRect(gfx, x, y, SLOT_WIDTH, SLOT_HEIGHT);
       }
     }
-  }
-
-  /**
-   * Helper para dibujar un rectángulo con borde punteado/discontinuo.
-   */
-  private drawDashedRect(
-    gfx: Phaser.GameObjects.Graphics,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-  ): void {
-    const dashLength = 6;
-    const gapLength = 6;
-
-    gfx.beginPath();
-
-    // Superior
-    for (let i = x; i < x + w; i += dashLength + gapLength) {
-      gfx.moveTo(i, y);
-      gfx.lineTo(Math.min(i + dashLength, x + w), y);
-    }
-    // Inferior
-    for (let i = x; i < x + w; i += dashLength + gapLength) {
-      gfx.moveTo(i, y + h);
-      gfx.lineTo(Math.min(i + dashLength, x + w), y + h);
-    }
-    // Izquierdo
-    for (let i = y; i < y + h; i += dashLength + gapLength) {
-      gfx.moveTo(x, i);
-      gfx.lineTo(x, Math.min(i + dashLength, y + h));
-    }
-    // Derecho
-    for (let i = y; i < y + h; i += dashLength + gapLength) {
-      gfx.moveTo(x + w, i);
-      gfx.lineTo(x + w, Math.min(i + dashLength, y + h));
-    }
-
-    gfx.strokePath();
   }
 
   override destroy(fromScene?: boolean): void {

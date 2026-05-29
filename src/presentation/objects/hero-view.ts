@@ -34,6 +34,25 @@ const ARCHETYPE_COLOR: Record<string, number> = {
   Neutral: 0x8c9099,
 };
 
+// -- Dimensiones del retrato del héroe ---------------------------------------
+
+/** Lado del retrato cuadrado del héroe, en px. */
+const PORTRAIT_SIZE = 64;
+/** Centro del retrato (para posicionar imagen/placeholder), en px. */
+const PORTRAIT_CENTER = PORTRAIT_SIZE / 2;
+/** Radio de las esquinas redondeadas del retrato y borde, en px. */
+const PORTRAIT_RADIUS = 6;
+/** Desplazamiento del glow respecto al borde del retrato, en px. */
+const GLOW_OFFSET = 2;
+/** Lado del glow (retrato + margen a ambos lados), en px. */
+const GLOW_SIZE = PORTRAIT_SIZE + GLOW_OFFSET * 2;
+/** Radio de las esquinas del glow, en px. */
+const GLOW_RADIUS = 8;
+/** Posición X del icono de corazón del contador de vida, en px. */
+const HEALTH_ICON_X = 76;
+/** Posición X del texto numérico de vida, en px. */
+const HEALTH_TEXT_X = 104;
+
 // ---------------------------------------------------------------------------
 // Clase HeroView
 // ---------------------------------------------------------------------------
@@ -47,6 +66,8 @@ export class HeroView extends Phaser.GameObjects.Container {
   private dangerGlow: Phaser.GameObjects.Graphics;
   private portraitImg: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
   private powerIconPlaceholder: Phaser.GameObjects.Text;
+  /** Flash rojo de daño reutilizable (pre-instanciado para evitar fugas). */
+  private readonly damageFlash: Phaser.GameObjects.Graphics;
 
   // UI
   private healthIcon: Phaser.GameObjects.Text;
@@ -64,30 +85,44 @@ export class HeroView extends Phaser.GameObjects.Container {
     // 1. Glow activo (Teal)
     this.activeGlow = scene.add.graphics();
     this.activeGlow.lineStyle(4, COLOR_TEAL, 1);
-    this.activeGlow.strokeRoundedRect(-2, -2, 68, 68, 8);
+    this.activeGlow.strokeRoundedRect(
+      -GLOW_OFFSET,
+      -GLOW_OFFSET,
+      GLOW_SIZE,
+      GLOW_SIZE,
+      GLOW_RADIUS,
+    );
     this.activeGlow.setAlpha(0);
 
     // 2. Glow peligro (Rojo)
     this.dangerGlow = scene.add.graphics();
     this.dangerGlow.lineStyle(4, COLOR_DANGER, 1);
-    this.dangerGlow.strokeRoundedRect(-2, -2, 68, 68, 8);
+    this.dangerGlow.strokeRoundedRect(
+      -GLOW_OFFSET,
+      -GLOW_OFFSET,
+      GLOW_SIZE,
+      GLOW_SIZE,
+      GLOW_RADIUS,
+    );
     this.dangerGlow.setAlpha(0);
 
     // 3. Borde normal
     const borderColor = ARCHETYPE_COLOR[heroData.archetype] || 0xffffff;
     this.portraitBorder = scene.add.graphics();
     this.portraitBorder.lineStyle(3, borderColor, 1);
-    this.portraitBorder.strokeRoundedRect(0, 0, 64, 64, 6);
+    this.portraitBorder.strokeRoundedRect(0, 0, PORTRAIT_SIZE, PORTRAIT_SIZE, PORTRAIT_RADIUS);
 
     // 4. Retrato
     if (scene.textures.exists(heroData.spriteKey)) {
-      this.portraitImg = scene.add.image(32, 32, heroData.spriteKey).setDisplaySize(64, 64);
+      this.portraitImg = scene.add
+        .image(PORTRAIT_CENTER, PORTRAIT_CENTER, heroData.spriteKey)
+        .setDisplaySize(PORTRAIT_SIZE, PORTRAIT_SIZE);
     } else {
       this.portraitImg = scene.add.graphics();
       this.portraitImg.fillStyle(COLOR_BG_SURFACE, 1);
-      this.portraitImg.fillRoundedRect(0, 0, 64, 64, 6);
+      this.portraitImg.fillRoundedRect(0, 0, PORTRAIT_SIZE, PORTRAIT_SIZE, PORTRAIT_RADIUS);
       const nameTxt = scene.add
-        .text(32, 32, heroData.name.substring(0, 3).toUpperCase(), {
+        .text(PORTRAIT_CENTER, PORTRAIT_CENTER, heroData.name.substring(0, 3).toUpperCase(), {
           fontFamily: "Bangers",
           fontSize: "20px",
           color: "#F0EAD6",
@@ -98,7 +133,7 @@ export class HeroView extends Phaser.GameObjects.Container {
 
     // Icono placeholder para playHeroPowerAnimation
     this.powerIconPlaceholder = scene.add
-      .text(32, 32, "⚡", {
+      .text(PORTRAIT_CENTER, PORTRAIT_CENTER, "⚡", {
         fontFamily: "system-ui",
         fontSize: "32px",
         color: "#F5C842",
@@ -106,9 +141,15 @@ export class HeroView extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
     this.powerIconPlaceholder.setAlpha(0);
 
+    // Flash de daño reutilizable (evita crear/destruir Graphics en cada golpe)
+    this.damageFlash = scene.add.graphics();
+    this.damageFlash.fillStyle(COLOR_DANGER, 0.4);
+    this.damageFlash.fillRoundedRect(0, 0, PORTRAIT_SIZE, PORTRAIT_SIZE, PORTRAIT_RADIUS);
+    this.damageFlash.setAlpha(0);
+
     // 5. Contador de Vida
     this.healthIcon = scene.add
-      .text(76, 32, "❤", {
+      .text(HEALTH_ICON_X, PORTRAIT_CENTER, "❤", {
         fontFamily: "system-ui",
         fontSize: "24px",
         color: TEXT_COLOR_OK,
@@ -116,7 +157,7 @@ export class HeroView extends Phaser.GameObjects.Container {
       .setOrigin(0, 0.5);
 
     this.healthText = scene.add
-      .text(104, 32, String(heroData.maxHealth), {
+      .text(HEALTH_TEXT_X, PORTRAIT_CENTER, String(heroData.maxHealth), {
         fontFamily: "Bangers",
         fontSize: "28px",
         color: TEXT_COLOR_OK,
@@ -129,6 +170,7 @@ export class HeroView extends Phaser.GameObjects.Container {
       this.dangerGlow,
       this.portraitBorder,
       this.portraitImg,
+      this.damageFlash,
       this.healthIcon,
       this.healthText,
       this.powerIconPlaceholder,
@@ -193,19 +235,13 @@ export class HeroView extends Phaser.GameObjects.Container {
         ease: "Quad.easeOut",
       });
 
-      // Flash feedback-damage en el retrato
-      const flash = this.scene.add.graphics();
-      flash.fillStyle(COLOR_DANGER, 0.4);
-      flash.fillRoundedRect(0, 0, 64, 64, 6);
-      this.add(flash);
-
+      // Flash feedback-damage en el retrato (reutiliza el Graphics pre-instanciado)
+      this.scene.tweens.killTweensOf(this.damageFlash);
+      this.damageFlash.setAlpha(0.4);
       this.scene.tweens.add({
-        targets: flash,
+        targets: this.damageFlash,
         alpha: 0,
         duration: 300,
-        onComplete: () => {
-          flash.destroy();
-        },
       });
     }
 
@@ -280,6 +316,8 @@ export class HeroView extends Phaser.GameObjects.Container {
   override destroy(fromScene?: boolean): void {
     if (this.activeTween) this.activeTween.stop();
     if (this.dangerTween) this.dangerTween.stop();
+    this.scene.tweens.killTweensOf(this.damageFlash);
+    this.scene.tweens.killTweensOf([this.healthText, this.healthIcon]);
     super.destroy(fromScene);
   }
 }

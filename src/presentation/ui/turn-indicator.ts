@@ -9,6 +9,9 @@ const PHASES: Array<{ id: TurnPhase; label: string }> = [
   { id: "End", label: "FIN" },
 ];
 
+/** Anchura total del banner del indicador, en px. */
+const INDICATOR_WIDTH = 200;
+
 export class TurnIndicator extends Phaser.GameObjects.Container {
   private bgGraphics: Phaser.GameObjects.Graphics;
   private phaseTexts: Map<TurnPhase, Phaser.GameObjects.Text> = new Map();
@@ -18,16 +21,18 @@ export class TurnIndicator extends Phaser.GameObjects.Container {
 
     this.bgGraphics = scene.add.graphics();
     this.bgGraphics.fillStyle(0x252240, 1);
-    this.bgGraphics.fillRect(-100, -16, 200, 32);
+    this.bgGraphics.fillRect(-INDICATOR_WIDTH / 2, -16, INDICATOR_WIDTH, 32);
 
     this.add(this.bgGraphics);
 
-    // Repartir 4 textos a lo largo de los 200px
-    const positions = [-72, -18, 32, 75];
+    // Reparte las fases uniformemente a lo largo del ancho del banner,
+    // centrando cada etiqueta en su tramo (extensible si cambia el nº de fases).
+    const slotWidth = INDICATOR_WIDTH / PHASES.length;
 
     PHASES.forEach((phase, index) => {
+      const x = -INDICATOR_WIDTH / 2 + slotWidth * (index + 0.5);
       const text = scene.add
-        .text(positions[index], 0, phase.label, {
+        .text(x, 0, phase.label, {
           fontFamily: "Bangers",
           fontSize: "18px",
           color: "#9B96B0",
@@ -53,9 +58,9 @@ export class TurnIndicator extends Phaser.GameObjects.Container {
     // Actualizar borde de todo el banner
     this.bgGraphics.clear();
     this.bgGraphics.fillStyle(0x252240, 1);
-    this.bgGraphics.fillRect(-100, -16, 200, 32);
+    this.bgGraphics.fillRect(-INDICATOR_WIDTH / 2, -16, INDICATOR_WIDTH, 32);
     this.bgGraphics.lineStyle(2, activeBorderColor, 1);
-    this.bgGraphics.strokeRect(-100, -16, 200, 32);
+    this.bgGraphics.strokeRect(-INDICATOR_WIDTH / 2, -16, INDICATOR_WIDTH, 32);
 
     // Resaltar el texto de la fase activa
     this.phaseTexts.forEach((text, id) => {
