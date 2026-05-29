@@ -1850,3 +1850,144 @@ combate priorizado por amenazas criticas y value trades, y logica de Crossover d
 4. QA Manual visual (IMPL-052) detectó fallo por nombres harcodeados en carga de mazos. Se corrigió a `DECK-LICH-01` y `DECK-AXEL-01`.
 5. QA Manual detectó texto de la lista de cartas saliendo del HeroPortrait. Se redimensionó el panel a 640px de altura y se reajustó la posición relativa (`portraitY = -120`, `nameY = 60`).
 6. El flujo final Boot -> Menu -> Seleccionar Héroe funciona sin errores en consola y con las visuales adecuadas.
+
+---
+
+### Interacción #040 — 2026-05-28 / 2026-05-29 (Bloque IMPL-F: Turno IA con delays visuales — Tarea IMPL-066)
+
+- **Fase**: Implementación (días 5-10)
+- **Agente especialista**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/phaser-dev-agent`)
+- **Modelo del especialista**: Gemini 3.1 Pro (High) → Claude Sonnet 4.6 Thinking (corrección de bugs)
+- **Tokens (entrada ≈ / salida ≈)**: ~35000 / ~20000
+
+**Objetivo**: Implementar la Tarea IMPL-066 del bloque IMPL-F: gestionar el turno del oponente (IA) en
+`GameScene` con delays visuales perceptibles (~800 ms entre acciones), bloqueo de la UI del jugador
+durante el turno rival, indicador visual "TURNO RIVAL", y limpieza de todos los timers activos en
+`shutdown()`. Incluye la refactorización de `OpponentService.executeAITurn` → `executeTurn` (async, con
+`delayFn` inyectable) para respetar la prohibición de `setTimeout` directo en Phaser.
+
+**Archivos leídos antes de implementar**:
+
+- `src/presentation/scenes/game-scene.ts` (v3 de IMPL-065)
+- `src/application/services/opponent-service.ts`
+- `src/domain/events/game-event.ts`
+- `src/domain/ai/game-state-snapshot.ts`
+- `src/application/services/match-service.ts`
+- `src/domain/services/nostalgia-system.ts`
+- `src/domain/services/turn-engine.ts`
+- `src/application/commands/attack-command.ts`
+- `.agent/skills/phaser-patterns/SKILL.md`
+- `docs/02-architecture.md` (sección 6.2 intercalación jugador vs IA)
+
+**Resultado** (fase 1 — implementación IMPL-066):
+
+- **`src/application/services/opponent-service.ts`** — método `executeAITurn` renombrado a `executeTurn`
+  con firma `async executeTurn(match, aiPlayerId, matchService, delayFn: (ms: number) => Promise<void>)`.
+  Pausa de `await delayFn(800)` antes de cada acción de fase principal y combate.
+- **`src/presentation/scenes/game-scene.ts`** — integración del flujo de turno IA:
+  - Al recibir `TurnStarted` con `playerId !== "p1"`: deshabilita `handPlayer`, muestra overlay
+    negro semitransparente (`alpha 0.4`) sobre la mano, oculta `TurnIndicator` y muestra texto
+    "TURNO RIVAL" en Bangers rojo `#FF3B3B`.
+  - Construye una `delayFn` que envuelve `this.time.delayedCall` en una `Promise<void>`, evitando
+    `setTimeout` y manteniendo el loop de Phaser como fuente única de tiempo.
+  - Invoca `opponentService.executeTurn(match, playerId, matchService, delayFn).catch(console.error)`.
+  - Al recibir `TurnStarted` con `playerId === "p1"`: reactiva mano, oculta overlay y restaura
+    `TurnIndicator`.
+  - `shutdown()` llama a `this.time.removeAllEvents()` + `this.tweens.killAll()` para evitar fugas
+    de memoria al cambiar de escena.
+- **Tests actualizados** (`opponent-service.test.ts`, `ai-opponent-flow.integration.test.ts`) — firma
+  async adaptada con `dummyDelay = async () => Promise.resolve()`.
+- `npm run typecheck` → 0 errores. `npm run lint` → exit 0.
+
+**Bugs detectados por el usuario en QA manual y correcciones aplicadas** (fase 2 — 2026-05-29):
+
+Tras la primera sesión el usuario reportó 4 síntomas:
+1. El turno de la IA transcurre pero no juega ninguna carta (Nostalgia = 0).
+2. Al volver al turno del jugador tampoco se puede jugar cartas.
+3. Las animaciones no se disparan porque ninguna acción tiene éxito.
+4. La IA no ataca porque no tiene personajes en tablero.
+
+**Diagnóstico**:
+
+- **Bug A — Nostalgia bloqueada en 0**: `MatchService` no llamaba a
+  `NostalgiaSystem.onTurnStart(playerId)` al recibir el evento `TurnStarted`. El sistema se inicializaba
+  en cero y nunca incrementaba, así que tanto la IA como el jugador leían siempre 0 de Nostalgia.
+- **Bug B — Snapshot con nostalgia ficticia**: `createSnapshot` en `game-state-snapshot.ts` tenía
+  `nostalgiaCurrent: 0` y `nostalgiaMax: 0` como literales fijos (marcados como "pendiente de
+  implementación"). La IA leía siempre 0 aunque el sistema tuviese el valor real.
+- **Bug C — Ataques bloqueados por fase**: `AttackCommand` validaba que la fase fuera exactamente
+  `"combat"`, pero ni la UI del jugador ni el flujo de la IA transicionaban explícitamente a combate
+  antes de atacar. Todo ataque fallaba silenciosamente con `PhaseViolationError`.
+
+**Correcciones implementadas**:
+
+- **`src/application/services/match-service.ts`**:
+  - Añadida llamada `this.nostalgiaSystem?.onTurnStart(payload.playerId)` dentro del handler de
+    `TurnStarted`. La Nostalgia ahora crece +1 por turno (hasta máx. 10) y se recarga en cada inicio.
+  - Añadido método público `getNostalgia(playerId): { current, max }` para exponer los valores reales
+    a la capa de aplicación sin romper el encapsulamiento del `NostalgiaSystem`.
+- **`src/domain/ai/game-state-snapshot.ts`** — `createSnapshot` acepta ahora los parámetros opcionales
+  `nostalgiaCurrent` y `nostalgiaMax` con valores por defecto 0. Los literales fijos eliminados.
+- **`src/application/services/opponent-service.ts`** — `executeTurn` llama a
+  `matchService.getNostalgia(aiPlayerId)` y pasa los valores reales a `createSnapshot`. La IA ya puede
+  decidir qué cartas jugar con información fidedigna.
+- **`src/application/commands/attack-command.ts`** — Eliminado el bloqueo duro en fase `"main"`.
+  Si la fase actual es `"main"`, el comando auto-transiciona llamando a
+  `this.turnEngine.handleAction({ type: "END_PHASE" })` antes de resolver el combate. Si la fase
+  no es `"main"` ni `"combat"`, retorna `PhaseViolationError`. El `TurnEngine` se recibe ahora
+  como parámetro del constructor.
+- **`src/application/services/match-service.ts`** — `AttackCommand` instanciado pasando
+  `this.turnEngine` como quinto argumento.
+- **Tests actualizados** (`attack-command.test.ts`, `opponent-service.test.ts`):
+  - `createMockMatchService` incluye `getNostalgia: vi.fn().mockReturnValue({ current: 10, max: 10 })`.
+  - `makeMockTurnEngine` añadida como helper con `handleAction: vi.fn()`.
+  - Caso de test de fase incorrecta actualizado: usa fase `"draw"` (no `"main"`) para seguir validando
+    la ruta de error.
+  - Añadido test nuevo: "debería llamar a `turnEngine.handleAction({ type: 'END_PHASE' })` si la fase
+    es 'main'" → assertion sobre el mock del TurnEngine.
+- `npm run test` → **463 tests** en verde (0 fallidos). `npm run lint` → exit 0.
+
+**Decisiones clave**:
+
+- **Inyección de `delayFn`**: el `delayFn` que envuelve `this.time.delayedCall` es la pieza que
+  desacopla `OpponentService` (dominio/aplicación) del motor de Phaser, permitiendo tests unitarios
+  con un delay dummy sin necesidad de mockear el scene clock.
+- **Auto-transición de fase en `AttackCommand`**: preferida frente a añadir un botón "Fase de Combate"
+  en la UI, que no existía en el wireframe. La transición es transparente al jugador y elimina fricción.
+- **`getNostalgia` en `MatchService`**: método acotado que expone solo lo necesario (current/max) sin
+  filtrar la referencia al `NostalgiaSystem` privado. Cumple el principio de mínima exposición.
+- **`createSnapshot` con parámetros opcionales**: decisión de no romper la firma existente (backward
+  compatible) usando valores por defecto `= 0`. Los tests sin MatchService real siguen compilando.
+
+**Criterios de aceptación verificados**:
+
+- La IA recibe Nostalgia real al inicio de su turno y juega cartas de acuerdo a su coste. ✓
+- Cada acción de la IA tiene una pausa visual de ~800 ms (usando `this.time.delayedCall`). ✓
+- La mano del jugador queda bloqueada durante el turno rival y se rehabilita al regresar. ✓
+- El indicador "TURNO RIVAL" aparece y desaparece en sincronía con los eventos `TurnStarted`/`TurnEnded`. ✓
+- Ataques de la IA y del jugador transicionan automáticamente a fase de combate si es necesario. ✓
+- `shutdown()` limpia todos los `TimerEvent` activos sin fugas de memoria. ✓
+- Suite de tests: 463 tests pasando, exit 0. ✓
+
+**Iteraciones**:
+
+1. Lectura de todos los archivos fuente requeridos por la tarea.
+2. Refactorización de `OpponentService` a firma `async executeTurn(..., delayFn)`.
+3. Integración en `GameScene`: overlay, `rivalTurnText`, handlers `TurnStarted`/`TurnEnded`.
+4. Actualización de tests con `dummyDelay`.
+5. `npm run typecheck` + `npm run lint` → OK.
+6. QA manual del usuario detecta 4 síntomas (turno IA sin cartas, jugador sin nostalgia, ataques bloqueados).
+7. Diagnóstico de 3 bugs raíz (Nostalgia nunca incrementada, snapshot con valor 0 fijo, fase combat requerida).
+8. Corrección de `MatchService` (onTurnStart + getNostalgia).
+9. Corrección de `createSnapshot` (parámetros opcionales reales).
+10. Corrección de `AttackCommand` (auto-transición main → combat + TurnEngine como dependencia).
+11. Actualización de todos los tests afectados (mock de getNostalgia, mock de TurnEngine, caso de test de fase).
+12. `npm run test` → 463 tests en verde. `npm run lint` → exit 0.
+
+**Capturas asociadas**:
+
+- `docs/screenshots/04-implementation/2026-05-28_04-impl_impl066-turno-ia-overlay_040a.png`
+- `docs/screenshots/04-implementation/2026-05-28_04-impl_impl066-nostalgia-fix-tests-verdes_040b.png`
+- `docs/screenshots/04-implementation/2026-05-29_04-impl_impl066-atacar-auto-combat_040c.png`
+
