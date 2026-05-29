@@ -1,4 +1,4 @@
-﻿# Registro de Interacciones con IA
+# Registro de Interacciones con IA
 
 Este archivo registra todas las interacciones con herramientas de IA durante el proyecto.  
 Es un entregable clave de la rúbrica: "es fundamental documentar todas las interacciones
@@ -2156,6 +2156,83 @@ de ausencia de funciones puras en `CardSprite`.
 6. Segunda ejecución: 14/16 pasan; 2 fallos (`-0 vs +0`, error flotante `900.0000000000001`).
 7. Corrección con `toBeCloseTo(0, 10)` y `toBeCloseTo(WIDTH_900, 5)`.
 8. Tercera ejecución: **16/16 pasan** en ~2s.
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
+
+---
+
+### Interacción #069 — 2026-05-29 (Auditoría QA bloque IMPL-F)
+
+- **Fase**: Implementación
+- **Agente**: QA-Reviewer-Agent
+- **Herramienta**: Antigravity (chat de agente)
+- **Modelo**: Claude Sonnet 4.6 (Thinking)
+- **Tokens (entrada ≈ / salida ≈)**: ~18000 / ~5500
+
+**Objetivo**: Auditoría de código del bloque IMPL-F completo (IMPL-053 a IMPL-067).
+Revisar los 15 archivos de la capa de presentación contra: SOLID (SRP y DIP),
+Clean Code, AGENTS.md, ADR-005 (EventBus por inyección) y la restricción
+arquitectónica de que `presentation` no importe de `domain` salvo tipos de datos puros.
+
+**Prompt** (tarea IMPL-069 en formato YAML):
+
+> Auditoría de código del bloque IMPL-F completo. Revisar todos los archivos
+> creados en IMPL-053 a IMPL-067 contra: SOLID (SRP y DIP), Clean Code,
+> AGENTS.md, ADR-005, restricción arquitectónica de capas.
+> Identificar: acoplamiento excesivo, magic numbers, handlers no desuscritos,
+> usos de setTimeout/setInterval directos, imports cruzados entre capas.
+> Output: docs/qa/impl-f-qa-report.md
+
+**Resultado**:
+
+- `docs/qa/impl-f-qa-report.md` generado con **17 issues** priorizados:
+  - **4 Alta severidad**: DIP violado (GameEventBus instanciado directamente en
+    `game-scene.ts`; repositorios de infraestructura instanciados en escena;
+    `GreedyAI` instanciado en escena); coerción estructural `as unknown as` para
+    acceder a propiedad privada `vidText` de `CardSprite` en `board-view.ts`.
+  - **9 Media severidad**: `GameScene.create()` con 5+ responsabilidades (SRP);
+    `HUDOverlay` mezcla dos variantes de HUD (SRP); magic numbers en zonas de drop
+    y dimensiones de héroe; estado estático mutable en `Toast.activeToasts`;
+    4 coerciones `as unknown as GameAction` en handlers de UI; `HeroView` crea
+    `Graphics` dinámicamente sin garantía de destrucción; entidad `Character`
+    importada en `board-view.ts`; narrowing inseguro en poblado de mano inicial.
+  - **4 Baja severidad**: constante `-60` sin nombre en `ZoneBanner`; posiciones
+    hardcodeadas en `TurnIndicator`; callback de pausa vacío en `HUDOverlay`;
+    función `drawDashedRect` duplicada en `board-view.ts` y `zone-view.ts`.
+
+- **Criterios críticos verificados**:
+  - Sin `setTimeout`/`setInterval` directos ✅
+  - Sin `any` explícito ✅
+  - `game-scene.ts` limpia suscripciones en `shutdown()` ✅
+  - `GameEventBus` instanciado directamente ⚠️ (ISSUE-F-01)
+  - `board-view.ts` importa entidad `Character` del dominio ⚠️ (ISSUE-F-12)
+
+**Decisiones clave**:
+
+- Los issues de severidad Alta (ISSUE-F-01 a ISSUE-F-03) comparten la misma
+  causa raíz: `GameScene` actúa como raíz de composición de toda la infraestructura.
+  La solución estructural es un `GameSceneComposer` que inyecte servicios ya
+  construidos; como parche quirúrgico se puede pasar `matchService` y `eventBus`
+  como datos de `scene.start()`.
+- `board-view.ts` importa la entidad `Character` (que tiene lógica de negocio como
+  `takeDamage()`) en lugar de un DTO puro. El refactor recomendado es introducir
+  `CharacterBoardData` como tipo de presentación propio y adaptar el mapper en
+  `game-scene.ts`.
+- La coerción `as unknown as SpriteWithText` en `board-view.ts:182` es la deuda
+  técnica más urgente porque silencia el compilador sobre una propiedad privada;
+  se resuelve añadiendo `CardSprite.updateHealth()` público.
+- El informe **no modifica ningún archivo de código**; es solo lectura y propuesta.
+
+**Iteraciones**:
+
+1. Lectura del workflow `qa-reviewer-agent.md` y los tres skills relevantes.
+2. Lectura en paralelo de ADR-005 y 8 archivos de objetos y UI de presentación.
+3. Lectura de `game-scene.ts` (835 líneas) y `end-scene.ts`.
+4. Búsquedas con `grep` sobre patrones críticos: `setTimeout`, `setInterval`,
+   `as unknown`, `@domain`, `@infrastructure`, `GameEventBus.getInstance`.
+5. Generación del informe con 17 issues y tabla de prioridad de refactors.
 
 **Capturas asociadas**:
 
