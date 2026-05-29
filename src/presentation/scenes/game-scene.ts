@@ -487,8 +487,20 @@ export class GameScene extends Phaser.Scene {
     // 18. MatchEnded
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.MatchEnded, (payload) => {
-        this.time.delayedCall(1500, () => {
-          this.scene.start("EndScene", { result: payload.winnerId === "p1" ? "win" : "loss" });
+        // Recopilar estadísticas básicas disponibles
+        const stats = {
+          turns: 0, // Métrica futura; placeholder sin errores
+          damageDealt: 0,
+          cardsPlayed: 0,
+        };
+        this.cameras.main.fadeOut(600, 13, 11, 30);
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+          this.scene.start("EndScene", {
+            winnerId: payload.winnerId,
+            loserId: payload.loserId,
+            isDraw: payload.isDraw,
+            stats,
+          });
         });
       }),
     );
@@ -602,7 +614,9 @@ export class GameScene extends Phaser.Scene {
         return;
       }
 
-      if (this.currentPhase === "combat" && this.selectedAttacker) {
+      // El AttackCommand auto-transiciona main→combat, así que se permite
+      // declarar el ataque al héroe rival también desde la fase main.
+      if (this.canAttackNow() && this.selectedAttacker) {
         const result = this.matchService.handlePlayerAction({
           type: "ATTACK",
           attackerId: this.selectedAttacker,
@@ -705,7 +719,9 @@ export class GameScene extends Phaser.Scene {
         return;
       }
 
-      if (this.currentPhase !== "combat") return;
+      // Permitir seleccionar atacante y declarar ataques en main o combat:
+      // el AttackCommand auto-transiciona main→combat al resolver el ataque.
+      if (!this.canAttackNow()) return;
 
       if (isPlayer) {
         this.selectAttacker(sprite, characterId);
@@ -724,6 +740,15 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
+  }
+
+  /**
+   * Indica si el jugador puede declarar ataques en este momento. El combate
+   * se permite tanto en la fase main como en combat porque el AttackCommand
+   * auto-transiciona main→combat al resolver el primer ataque.
+   */
+  private canAttackNow(): boolean {
+    return this.isPlayerTurn && (this.currentPhase === "main" || this.currentPhase === "combat");
   }
 
   private selectAttacker(sprite: CardSprite, characterId: string): void {

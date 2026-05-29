@@ -285,6 +285,59 @@ describe("AttackCommand", () => {
     expect((result.error as InvalidTargetError).message).toContain("Provocación");
   });
 
+  // ── Éxito: ataque directo al héroe rival ─────────────────────────────────
+
+  it("debería permitir atacar directamente al héroe rival usando su staticId", () => {
+    // Arrange
+    const attacker = makeCharacter({ attack: 4, health: 4 });
+    const match = makeMatch([attacker], []);
+    const heroStaticId = match.player2.hero.staticId;
+    const heroHealthBefore = match.player2.hero.currentHealth;
+
+    const command = new AttackCommand(
+      match,
+      attacker.instanceId,
+      heroStaticId,
+      eventBus,
+      combatResolver,
+      turnEngine,
+    );
+
+    // Act
+    const result = command.execute();
+
+    // Assert
+    expect(result.success).toBe(true);
+    expect(result.eventsEmitted).toContain(GameEvent.AttackDeclared);
+    expect(result.eventsEmitted).toContain(GameEvent.AttackResolved);
+    // El héroe rival recibió el daño del atacante (4)
+    expect(match.player2.hero.currentHealth).toBe(heroHealthBefore - 4);
+  });
+
+  it("debería bloquear el ataque al héroe rival si hay un Personaje con Taunt", () => {
+    // Arrange
+    const attacker = makeCharacter({ attack: 4, health: 4 });
+    const tauntDefender = makeCharacter({ name: "Patricio", abilities: [Ability.Taunt] });
+    const match = makeMatch([attacker], [tauntDefender]);
+
+    const command = new AttackCommand(
+      match,
+      attacker.instanceId,
+      match.player2.hero.staticId,
+      eventBus,
+      combatResolver,
+      turnEngine,
+    );
+
+    // Act
+    const result = command.execute();
+
+    // Assert: debe obligar a atacar al Taunt primero
+    expect(result.success).toBe(false);
+    expect(result.error).toBeInstanceOf(InvalidTargetError);
+    expect((result.error as InvalidTargetError).message).toContain("Provocación");
+  });
+
   it("debería permitir atacar al Personaje con Taunt cuando existe uno en el tablero", () => {
     // Arrange
     const attacker = makeCharacter({ attack: 5, health: 5 });

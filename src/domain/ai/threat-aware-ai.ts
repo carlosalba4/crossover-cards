@@ -228,10 +228,12 @@ export class ThreatAwareAI implements IAIStrategy {
   decideCombatActions(snapshot: GameStateSnapshot): readonly AICombatAction[] {
     const actions: AICombatAction[] = [];
 
-    // Obtiene todos los Personajes de la IA disponibles para atacar.
+    // Obtiene todos los Personajes de la IA disponibles para atacar:
+    // no han atacado y no están exhaustos (evita ataques que el comando
+    // rechazaría, p.ej. Personajes recién jugados sin Charge).
     const availableAttackers = snapshot.aiBoard
       .flat()
-      .filter((character) => !character.hasAttackedThisTurn);
+      .filter((character) => !character.hasAttackedThisTurn && !character.isExhausted);
 
     if (availableAttackers.length === 0) {
       actions.push({ type: "END_COMBAT" });

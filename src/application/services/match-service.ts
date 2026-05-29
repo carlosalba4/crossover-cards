@@ -22,6 +22,8 @@ export class MatchService {
   private combatResolver: CombatResolver | null = null;
   private nostalgiaSystem: NostalgiaSystem | null = null;
   private internalUnsubscribers: Array<() => void> = [];
+  /** Evita emitir MatchEnded más de una vez por partida. */
+  private matchEnded = false;
 
   constructor(
     private readonly deckService: DeckService,
@@ -110,6 +112,7 @@ export class MatchService {
     };
 
     this.currentMatch = new Match(p1State, p2State);
+    this.matchEnded = false;
 
     // Determinar activo al azar
     const isP1Active = Math.random() < 0.5;
@@ -134,12 +137,9 @@ export class MatchService {
           this.currentMatch.activePlayerId = payload.playerId;
           this.currentMatch.currentPhase = payload.phase;
 
-          // Resetear estado de combate de los personajes del jugador activo
-          const activePlayer = this.currentMatch.getActivePlayer();
-          this.currentMatch.getAllBoardCharacters(activePlayer).forEach((char) => {
-            char.isExhausted = false;
-            char.hasAttackedThisTurn = false;
-          });
+          // Reset del estado de combate del jugador activo: la regla vive en el
+          // dominio (entidad Match); aquí solo se orquesta al iniciar el turno.
+          this.currentMatch.resetCombatStateForActivePlayer();
         }
         this.nostalgiaSystem?.onTurnStart(payload.playerId);
       }),
@@ -240,7 +240,7 @@ export class MatchService {
   }
 
   private checkMatchEnd(): void {
-    if (!this.currentMatch) return;
+    if (!this.currentMatch || this.matchEnded) return;
 
     const p1Hero = this.currentMatch.player1.hero;
     const p2Hero = this.currentMatch.player2.hero;
@@ -249,6 +249,7 @@ export class MatchService {
     const p2Dead = !p2Hero.isAlive();
 
     if (p1Dead || p2Dead) {
+      this.matchEnded = true;
       let winnerId: string | null = null;
       let loserId: string | null = null;
       let isDraw = false;

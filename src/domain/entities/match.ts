@@ -100,6 +100,30 @@ export class Match {
   }
 
   /**
+   * Resetea el estado de combate de los Personajes del jugador activo al
+   * iniciar su turno: vuelven a estar disponibles para atacar
+   * (`isExhausted = false`, `hasAttackedThisTurn = false`).
+   *
+   * Esta lógica vive en el dominio porque es una regla del juego (el "despertar"
+   * de los Personajes al inicio del turno), no una preocupación de presentación
+   * ni de aplicación.
+   *
+   * Sobre la excepción "Personajes recién jugados sin Charge":
+   * en el momento de iniciar el turno el tablero del jugador activo solo
+   * contiene Personajes de turnos ANTERIORES (todavía no ha jugado nada este
+   * turno). Los Personajes que juegue después en su Fase Principal quedan
+   * exhaustos vía `PlayCardCommand` (salvo que tengan Charge), por lo que la
+   * excepción se satisface de forma natural por el orden temporal y no requiere
+   * marcar individualmente qué Personaje es "nuevo".
+   */
+  resetCombatStateForActivePlayer(): void {
+    for (const character of this.getAllBoardCharacters(this.getActivePlayer())) {
+      character.isExhausted = false;
+      character.hasAttackedThisTurn = false;
+    }
+  }
+
+  /**
    * Elimina un Personaje destruido del tablero de un jugador.
    */
   removeCharacterFromBoard(player: PlayerState, instanceId: string): void {

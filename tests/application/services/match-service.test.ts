@@ -126,4 +126,23 @@ describe("MatchService", () => {
     expect(result.success).toBe(false);
     expect(result.error?.message).toContain("Nostalgia insuficiente");
   });
+
+  it("should emit MatchEnded exactly once when a hero reaches 0 HP", async () => {
+    // Arrange
+    const match = await matchService.initMatch("DECK-1", "DECK-1");
+    const activeId = match.activePlayerId;
+    // El héroe del jugador 2 muere
+    match.player2.hero.currentHealth = 0;
+
+    // Act: cualquier acción dispara checkMatchEnd
+    matchService.handlePlayerAction({ type: "END_TURN", playerId: activeId });
+    // Una segunda acción no debe re-emitir MatchEnded (guard de unicidad)
+    matchService.handlePlayerAction({ type: "END_TURN", playerId: match.activePlayerId });
+
+    // Assert
+    const matchEndedCalls = eventBus.emit.mock.calls.filter((c) => c[0] === GameEvent.MatchEnded);
+    expect(matchEndedCalls).toHaveLength(1);
+    expect((matchEndedCalls[0][1] as { winnerId: string }).winnerId).toBe("p1");
+    expect((matchEndedCalls[0][1] as { loserId: string }).loserId).toBe("p2");
+  });
 });

@@ -16,7 +16,7 @@
  *
  *   Fase de Combate
  *   ───────────────
- *   1. Obtiene los Personajes propios aún disponibles (hasAttackedThisTurn === false).
+ *   1. Obtiene los Personajes propios aún disponibles (no han atacado y no están exhaustos).
  *   2. Si el oponente tiene Personajes con Provocación → ataca el de menor vida.
  *   3. Si no hay Provocación → ataca al héroe oponente directamente.
  *   4. Termina con END_COMBAT.
@@ -135,8 +135,12 @@ export class GreedyAI implements IAIStrategy {
   decideCombatActions(snapshot: GameStateSnapshot): readonly AICombatAction[] {
     const actions: AICombatAction[] = [];
 
-    // Personajes propios disponibles (aún no han atacado este turno)
-    const availableAttackers = snapshot.aiBoard.flat().filter((c) => !c.hasAttackedThisTurn);
+    // Personajes propios disponibles: no han atacado y no están exhaustos.
+    // (Se excluyen los exhaustos —p.ej. recién jugados sin Charge— para no
+    // declarar ataques que el AttackCommand rechazaría.)
+    const availableAttackers = snapshot.aiBoard
+      .flat()
+      .filter((c) => !c.hasAttackedThisTurn && !c.isExhausted);
 
     if (availableAttackers.length === 0) {
       actions.push({ type: "END_COMBAT" });
