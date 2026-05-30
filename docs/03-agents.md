@@ -469,7 +469,7 @@ El catálogo recoge 19 fichas organizadas por fase de la cascada. Las fichas #00
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Nombre**                   | Deploy-Agent                                                                                                        |
 | **Fase**                     | Despliegue (días 12-13)                                                                                             |
-| **Rol**                      | DevOps Engineer. Configura build de producción con Vite, GitHub Actions CI y publicación en GitHub Pages o itch.io. |
+| **Rol**                      | DevOps Engineer. Configura el pipeline de integración continua con GitHub Actions (typecheck, lint, tests, build de producción y subida del `dist/` como artifact descargable). Expande el README con guía completa de instalación y ejecución. Documenta en ADR-008 la decisión de no desplegar como URL pública, justificando la protección de assets con copyright, el coste cero y la verificabilidad de la CI. |
 | **Modelo principal**         | Gemini 3.1 Pro                                                                                                      |
 | **Modelo respaldo 1**        | Claude Sonnet 4.6 Thinking                                                                                          |
 | **Modelo respaldo 2**        | Gemini 3 Flash                                                                                                      |
@@ -478,9 +478,9 @@ El catálogo recoge 19 fichas organizadas por fase de la cascada. Las fichas #00
 | **Rules aplicables**         | AGENTS.md                                                                                                           |
 | **MCP Servers utilizados**   | Ninguno                                                                                                             |
 | **Entradas esperadas**       | Repositorio con build funcionando, credenciales de despliegue.                                                      |
-| **Salidas esperadas**        | .github/workflows/ci.yml, URL pública del juego.                                                                    |
-| **Estado actual**            | Pendiente                                                                                                           |
-| **Interacción en ai-log.md** | Pendiente                                                                                                           |
+| **Salidas esperadas**        | `.github/workflows/ci.yml`, `README.md` expandido con guía de instalación/ejecución, `docs/decisions/ADR-008-entrega-sin-despliegue-publico.md`. |
+| **Estado actual**            | Ejecutado                                                                                                                                         |
+| **Interacción en ai-log.md** | #072                                                                                                                                              |
 | **Prompt template**          | .agent/workflows/deploy-agent.md                                                                                    |
 
 ---

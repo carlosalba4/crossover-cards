@@ -2284,7 +2284,6 @@ arquitectónica de que `presentation` no importe de `domain` salvo tipos de dato
 - **Agente**: QA-Reviewer-Agent
 - **Herramienta**: Antigravity (workflow invocado con `/qa-reviewer-agent`)
 - **Modelo**: Claude Sonnet 4.6 Thinking
-- **Tokens (entrada ≈ / salida ≈)**: ~[XX] / ~[XX]
 
 **Objetivo**: Realizar la revisión global de calidad del proyecto como producto 
 terminado al cierre de la Fase 3 de Implementación, en modo crítico (solo hallazgos 
@@ -2436,7 +2435,6 @@ Próximo paso: Fase 5 (Despliegue) con Deploy-Agent.
 - **Agente**: Deploy-Agent
 - **Herramienta**: Antigravity (workflow invocado con `/deploy-agent`)
 - **Modelo**: Claude Sonnet 4.6 Thinking
-- **Tokens (entrada ≈ / salida ≈)**: ~[XX] / ~[XX]
 
 **Objetivo**: Cumplir el punto "Despliegue de la aplicación" del enunciado del 
 proyecto sin desplegar como URL pública. Tras revisar el enunciado (entregables 
@@ -2462,7 +2460,7 @@ abordar la fase mediante:
 - `docs/decisions/ADR-008-entrega-sin-despliegue-publico.md` creado siguiendo 
   el formato estándar del proyecto.
 - Primer push a `fase-5-despliegue` disparó el workflow correctamente: build 
-  verde en ~[X] minutos, los 486 tests pasaron en CI, artifact del `dist/` 
+  verde en 1m 18s, los 486 tests pasaron en CI, artifact del `dist/` 
   generado y descargable desde la run.
 
 **Decisiones clave**:

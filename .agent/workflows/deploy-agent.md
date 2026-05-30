@@ -1,5 +1,5 @@
 ---
-description: "Configura el despliegue del juego: build de producción con Vite, GitHub Actions de CI (lint + test + build) y publicación en GitHub Pages o itch.io. Documenta el proceso completo."
+description: "Configura el empaquetado y la integración continua del proyecto: workflow de GitHub Actions con typecheck + lint + test + build en cada push, guía de instalación y ejecución en README expandido, y ADR-008 documentando la decisión de
 ---
 
 ---
