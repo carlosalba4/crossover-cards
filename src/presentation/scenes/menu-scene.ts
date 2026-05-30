@@ -192,8 +192,8 @@ export class MenuScene extends Phaser.Scene {
    */
   private createButtons(cx: number, cy: number): void {
     const BTN_W = 320;
-    const BTN_H = 56;
-    const BTN_GAP = 24;
+    const BTN_H = 86;
+    const BTN_GAP = 16;
     const startY = cy + 20;
 
     // Botón 1 — Nueva Partida (accent-teal)
@@ -203,7 +203,7 @@ export class MenuScene extends Phaser.Scene {
       y: startY,
       width: BTN_W,
       height: BTN_H,
-      label: "NUEVA PARTIDA",
+      label: "",
       backgroundColor: COLOR_ACCENT_TEAL,
       textColor: COLOR_TEXT_BG_DEEP,
       fontSize: "28px",
@@ -219,7 +219,8 @@ export class MenuScene extends Phaser.Scene {
       y: startY + BTN_H + BTN_GAP,
       width: BTN_W,
       height: BTN_H,
-      label: "CÓMO JUGAR",
+      label: "",
+      texturePrefix: "instrucciones",
       backgroundColor: COLOR_BG_SURFACE,
       textColor: "#F0EAD6",
       fontSize: "20px",
@@ -236,7 +237,8 @@ export class MenuScene extends Phaser.Scene {
       y: startY + (BTN_H + BTN_GAP) * 2,
       width: BTN_W,
       height: BTN_H,
-      label: "CRÉDITOS",
+      label: "",
+      texturePrefix: "creditos",
       backgroundColor: COLOR_BG_SURFACE,
       textColor: "#F0EAD6",
       fontSize: "20px",
