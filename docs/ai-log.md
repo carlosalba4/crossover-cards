@@ -2237,3 +2237,121 @@ arquitectónica de que `presentation` no importe de `domain` salvo tipos de dato
 **Capturas asociadas**:
 
 - (pendiente de captura manual)
+
+---
+
+### Interacción #070 — 2026-05-30 (Ajustes Visuales y Legibilidad UI)
+
+- **Fase**: Implementación / Pulido UI
+- **Agente**: Phaser-Dev-Agent (Asistido por Antigravity)
+- **Herramienta**: Antigravity
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: N/A
+
+**Objetivo**: Corregir problemas de legibilidad en las cartas (`CardSprite`) y mejorar el diseño de la pantalla de selección de héroe (`HeroSelectScene`).
+
+**Acciones realizadas**:
+
+- **`card-sprite.ts`**:
+  - Cambio de fuente de `Bangers` a `Nunito Bold` con borde negro (`stroke` 2px) para el nombre y tipo, mejorando enormemente la legibilidad.
+  - Ajuste del `maxWidth` del nombre para evitar que el texto solape el círculo de coste.
+  - Cambio del color del texto del coste de Nostalgia a dorado `#F5C842` con stroke negro.
+  - Ajustes sutiles en la posición Y de los textos para que respiren dentro del marco.
+- **`boot-scene.ts`**:
+  - Inclusión de la precarga del asset gráfico `elige.png`.
+- **`hero-select-scene.ts`**:
+  - Reemplazo del texto "Elige tu Héroe" por la imagen `elige.png` centrada horizontalmente.
+  - Reemplazo del botón "< VOLVER" por un componente `Button` usando la textura `volver` con todos sus estados.
+  - Ajuste dinámico de las coordenadas de los retratos de los héroes (`cx / 2` y `cx + cx / 2`) para un centrado perfecto de cada uno en su mitad del layout, adaptativo ante cambios de resolución.
+
+**Decisiones clave**:
+
+- Aplicar `stroke` a fuentes superpuestas a ilustraciones/marcos garantiza un contraste suficiente sin alterar el arte original.
+- Evitar offsets fijos como `cx - 200` y transicionar a divisiones del canvas (`cx / 2`) favorece las buenas prácticas en diseño adaptativo.
+
+**Iteraciones**:
+
+1. Identificación de superposiciones y falta de contraste en `card-sprite.ts`. Modificación aplicada y compilada.
+2. Identificación del botón "volver" genérico y el texto plano en `hero-select-scene.ts`.
+3. Inserción de asset faltante en `boot-scene.ts` y aplicación paralela de assets en la UI, más refactor de posiciones X de los héroes.
+4. Verificación de compilación TypeScript exitosa.
+
+---
+
+### Interacción #071 — 2026-05-30 (Auditoría QA global — Fase 4)
+
+- **Fase**: QA / Pre-Despliegue
+- **Agente**: QA-Reviewer-Agent
+- **Herramienta**: Antigravity (workflow `/qa-reviewer-agent`)
+- **Modelo**: Claude Sonnet 4.6 (Thinking)
+- **Tokens (entrada ≈ / salida ≈)**: ~28000 / ~7000
+
+**Objetivo**: Revisión completa del proyecto como producto terminado al cierre de la Fase 4.
+Alcance global: coherencia PRD/arquitectura/código, aplicación efectiva de los 7 ADRs,
+calidad SOLID y Clean Code en las capas de dominio, aplicación e infraestructura,
+cobertura y relevancia de los 486 tests, separación dominio/presentación en Phaser,
+y verificación de la deuda técnica conocida (sistemas innovadores desconectados del MatchService).
+
+**Archivos inspeccionados**:
+
+- `docs/01-prd.md`, `docs/02-architecture.md`, `docs/decisions/ADR-001` a `ADR-007`
+- `src/application/services/match-service.ts`, `opponent-service.ts`, `deck-service.ts`
+- `src/application/commands/` (todos los comandos: PlayCard, Attack, EndTurn, UseHeroPower, ActivateCrossover, ActivateQuest)
+- `src/domain/services/` (TurnEngine, CombatResolver, NostalgiaSystem, MomentumSystem, CrossoverManager, QuestManager, TribalSynergySystem, ZoneManager)
+- `src/domain/ai/` (ai-strategy.ts, greedy-ai.ts, threat-aware-ai.ts, game-state-snapshot.ts)
+- `src/composition/game-dependencies.ts`
+- `src/infrastructure/events/game-event-bus.ts`
+- `src/presentation/scenes/game-scene.ts` (1043 líneas)
+- `tests/` (exploración estructural de las 48 suites)
+
+**Resultado**:
+
+- `docs/qa/fase-4-qa-report.md` generado.
+- **Veredicto: APTO CON CORRECCIONES** (486 tests en verde; arquitectura en capas respetada).
+- **2 Hallazgos Críticos**:
+  - **CRÍTICO-F4.1** — La IA nunca ejecuta su poder de héroe. `OpponentService.executeTurn()`
+    entra al `case "USE_HERO_POWER"` y dispara únicamente un `console.warn`. `UseHeroPowerCommand`
+    ya existe y está implementado; el parche es cablearlo en ese `case` (~5 líneas).
+  - **CRÍTICO-F4.2** — `UseHeroPowerCommand` emite `HeroPowerUsed` al vacío. Ningún handler
+    en la aplicación suscribe ese evento para aplicar el efecto real. El jugador gasta Nostalgia
+    y consume el uso del turno, pero la curación/daño/efecto del poder nunca ocurre.
+    Esta deuda no estaba registrada en el ai-log ni en los ADRs.
+- **3 Hallazgos Mayores**:
+  - **MAYOR-F4.1** — `"p1"` hardcodeado como literal en 18+ ubicaciones de `GameScene`.
+    Funciona por coincidencia de orden de argumentos en `initMatch`; frágil si ese orden cambia.
+  - **MAYOR-F4.2** — `MomentumSystem` no está instanciado en `MatchService`. La UI tiene
+    un widget activo para Momentum pero el sistema nunca emite valores. Incoherencia observable.
+  - **MAYOR-F4.3** — `dispose()` de `MatchService` no desregistra las suscripciones internas
+    de los subsistemas al EventBus. Riesgo de leak en flujo "Jugar de nuevo" sin recargar.
+- **Deuda técnica conocida** (Camino A — mecánicas innovadoras desconectadas del MatchService):
+  - `TribalSynergySystem`, `QuestManager`, `ZoneManager` y `MomentumSystem` existen, tienen tests,
+    pero no están instanciados ni conectados al flujo principal de la partida.
+  - `CrossoverManager` está instanciado pero solo parcialmente integrado (solo `ActivateCrossoverCommand`).
+  - **Incoherencia documental**: el PRD presenta las mecánicas M1-M5 como diseñadas sin indicar
+    que son deuda del MVP. Esta es la primera entrada en `ai-log.md` que documenta explícitamente
+    la decisión de cerrar el MVP sin conectar estos sistemas.
+  - Justificación: entregar el MVP funcional en el plazo de 14 días (ADR-001).
+  - Los sistemas están implementados y testeados, listos para conectarse en una iteración futura.
+
+**Decisiones clave**:
+
+- Los hallazgos CRÍTICO-F4.1 y CRÍTICO-F4.2 se marcan como pendientes de corrección antes del
+  despliegue final (Fase 5). El parche de F4.1 es trivial; F4.2 requiere un `HeroPowerResolver`.
+- Se detectaron 12 observaciones menores de estilo no incluidas en el informe (uso de `as` justificado,
+  magic strings residuales, fallback `??` hardcoded).
+- El informe **no modifica ningún archivo de código**; es solo auditoría y propuesta.
+
+**Iteraciones**:
+
+1. Lectura del workflow `qa-reviewer-agent.md` y estructura del proyecto.
+2. Inspección paralela de ADRs, match-service, opponent-service, game-scene.
+3. Inspección de comandos, servicios de dominio (systems), AI y composition root.
+4. Búsquedas `grep` sobre: `"p1"` literal, `MomentumSystem`, `TribalSynergySystem`, `QuestManager`,
+   `ZoneManager`, `USE_HERO_POWER`, `HeroPowerUsed`, `pendiente`.
+5. Ejecución de `vitest run` para verificar estado real de la suite (486 passed, exit 0).
+6. Generación del informe `docs/qa/fase-4-qa-report.md`.
+7. Registro de esta entrada en `ai-log.md`.
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
