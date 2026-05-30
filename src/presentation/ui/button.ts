@@ -27,6 +27,8 @@ export interface ButtonConfig {
    * (fallback), sin error.
    */
   iconKey?: string;
+  /** Prefijo para texturas de los estados (ej. 'button', 'instrucciones'). Por defecto 'button'. */
+  texturePrefix?: string;
   onClick: () => void;
   disabled?: boolean;
 }
@@ -59,23 +61,18 @@ const DISABLED_ALPHA = 0.5;
  * Referencia de diseño: docs/05-ui-design.md §4.7 (EndTurnButton) y §3.2
  * (botones de MenuScene).
  */
-/**
- * Claves de textura de los sprites de botón por estado. Si están cargadas, el
- * botón se renderiza con ellas; si no, recurre al fondo de Graphics (fallback).
- */
-const BUTTON_TEXTURES = {
-  default: "button-default",
-  hover: "button-hover",
-  pressed: "button-pressed",
-  disabled: "button-disabled",
-} as const;
-
 export class Button extends Phaser.GameObjects.Container {
   // Hijos internos
   private readonly bg: Phaser.GameObjects.Graphics;
   /** Sprite de fondo del botón (si los assets están disponibles); si no, null. */
   private readonly bgImage: Phaser.GameObjects.Image | null;
   private readonly label: Phaser.GameObjects.Text;
+
+  // Texturas de estados
+  private readonly _textureDefault: string;
+  private readonly _textureHover: string;
+  private readonly _texturePressed: string;
+  private readonly _textureDisabled: string;
 
   // Estado
   private _disabled: boolean;
@@ -97,11 +94,17 @@ export class Button extends Phaser.GameObjects.Container {
     this._onClick = config.onClick;
     this._disabled = config.disabled ?? false;
 
-    // --- Fondo: sprite button-default si está cargado; si no, Graphics ---
+    const prefix = config.texturePrefix ?? "button";
+    this._textureDefault = `${prefix}-default`;
+    this._textureHover = `${prefix}-hover`;
+    this._texturePressed = `${prefix}-pressed`;
+    this._textureDisabled = `${prefix}-disabled`;
+
+    // --- Fondo: sprite por defecto si está cargado; si no, Graphics ---
     this.bg = config.scene.add.graphics();
-    this.bgImage = config.scene.textures.exists(BUTTON_TEXTURES.default)
+    this.bgImage = config.scene.textures.exists(this._textureDefault)
       ? config.scene.add
-          .image(0, 0, BUTTON_TEXTURES.default)
+          .image(0, 0, this._textureDefault)
           .setDisplaySize(this._width, this._height)
       : null;
     // drawBackground es no-op cuando hay sprite (lo cubre la imagen).
@@ -220,7 +223,7 @@ export class Button extends Phaser.GameObjects.Container {
   private applyNormalState(): void {
     this.setAlpha(1);
     this.setInteractive({ useHandCursor: true });
-    this.setStateTexture(BUTTON_TEXTURES.default);
+    this.setStateTexture(this._textureDefault);
     this.drawBackground(this._backgroundColor);
     this.scaleTo(SCALE_NORMAL, TWEEN_HOVER_MS);
   }
@@ -228,7 +231,7 @@ export class Button extends Phaser.GameObjects.Container {
   private applyDisabledState(): void {
     this.setAlpha(DISABLED_ALPHA);
     this.disableInteractive();
-    this.setStateTexture(BUTTON_TEXTURES.disabled);
+    this.setStateTexture(this._textureDisabled);
     this.drawBackground(this._backgroundColor);
     this.scene.tweens.killTweensOf(this);
     this.setScale(SCALE_NORMAL);
@@ -270,28 +273,28 @@ export class Button extends Phaser.GameObjects.Container {
 
   private onPointerOver(): void {
     if (this._disabled) return;
-    this.setStateTexture(BUTTON_TEXTURES.hover);
+    this.setStateTexture(this._textureHover);
     this.drawBackground(lightenColor(this._backgroundColor, LIGHTEN_FACTOR));
     this.scaleTo(SCALE_HOVER, TWEEN_HOVER_MS);
   }
 
   private onPointerOut(): void {
     if (this._disabled) return;
-    this.setStateTexture(BUTTON_TEXTURES.default);
+    this.setStateTexture(this._textureDefault);
     this.drawBackground(this._backgroundColor);
     this.scaleTo(SCALE_NORMAL, TWEEN_HOVER_MS);
   }
 
   private onPointerDown(): void {
     if (this._disabled) return;
-    this.setStateTexture(BUTTON_TEXTURES.pressed);
+    this.setStateTexture(this._texturePressed);
     this.scaleTo(SCALE_PRESSED, TWEEN_PRESS_MS);
   }
 
   private onPointerUp(): void {
     if (this._disabled) return;
     // Vuelve a escala hover (el cursor sigue sobre el botón)
-    this.setStateTexture(BUTTON_TEXTURES.hover);
+    this.setStateTexture(this._textureHover);
     this.scaleTo(SCALE_HOVER, TWEEN_HOVER_MS);
     this._onClick();
   }

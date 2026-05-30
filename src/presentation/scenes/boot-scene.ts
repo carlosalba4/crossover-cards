@@ -272,7 +272,20 @@ export class BootScene extends Phaser.Scene {
     }
 
     // Botones (assets/ui/buttons/)
-    const buttons = ["button-default", "button-hover", "button-pressed", "button-disabled"];
+    const buttons = [
+      "button-default",
+      "button-hover",
+      "button-pressed",
+      "button-disabled",
+      "instrucciones-default",
+      "instrucciones-hover",
+      "instrucciones-pressed",
+      "instrucciones-disabled",
+      "creditos-default",
+      "creditos-hover",
+      "creditos-pressed",
+      "creditos-disabled",
+    ];
     for (const key of buttons) {
       this.load.image(key, `assets/ui/buttons/${key}.png`);
     }
