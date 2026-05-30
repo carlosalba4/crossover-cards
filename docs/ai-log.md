@@ -2427,3 +2427,64 @@ al alcance del PRD, citando esta interacción.
 **Notas**: Esta interacción cierra la Fase 4 (Pruebas) del proyecto. El informe 
 del QA-Reviewer queda como entregable principal en `docs/qa/fase-4-qa-report.md`. 
 Próximo paso: Fase 5 (Despliegue) con Deploy-Agent.
+
+---
+
+### Interacción #072 — 2026-05-30 (Fase 5: Empaquetado y CI sin despliegue público)
+
+- **Fase**: Despliegue (Fase 5)
+- **Agente**: Deploy-Agent
+- **Herramienta**: Antigravity (workflow invocado con `/deploy-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~[XX] / ~[XX]
+
+**Objetivo**: Cumplir el punto "Despliegue de la aplicación" del enunciado del 
+proyecto sin desplegar como URL pública. Tras revisar el enunciado (entregables 
+formales: PDF + ZIP + Grupo.txt + repo compartido con `rubteacher`), se decide 
+abordar la fase mediante:
+1. Workflow de GitHub Actions con CI real (typecheck + lint + test + build).
+2. README expandido con guía de instalación y ejecución.
+3. ADR-008 documentando la decisión arquitectónica.
+
+**Invocación**:
+> /deploy-agent + prompt corto con versiones detectadas (Node 24.13, npm 11.6, 
+> Vite 8.0.13), restricción de tiempo (<1h), y confirmación de no ejecutar 
+> commits desde el agente.
+
+**Resultado**:
+- Plan aprobado en una sola iteración.
+- `.github/workflows/ci.yml` creado con pipeline en Ubuntu + Node 24: checkout, 
+  setup-node con cache npm, `npm ci`, typecheck, lint, test, build, upload-artifact 
+  del `dist/` con retención de 7 días.
+- `README.md` expandido con secciones de Requisitos previos, Instalación y 
+  ejecución, Build de producción, Verificación, Estructura del proyecto, 
+  Documentación adicional, Integración Continua.
+- `docs/decisions/ADR-008-entrega-sin-despliegue-publico.md` creado siguiendo 
+  el formato estándar del proyecto.
+- Primer push a `fase-5-despliegue` disparó el workflow correctamente: build 
+  verde en ~[X] minutos, los 486 tests pasaron en CI, artifact del `dist/` 
+  generado y descargable desde la run.
+
+**Decisiones clave**:
+- Sonnet 4.6 Thinking elegido por ser tarea estructurada con razonamiento sobre 
+  el enunciado del proyecto. Opus innecesario.
+- GitHub Actions sobre script `package.json`: CI real demostrable supera a 
+  empaquetado manual.
+- Ejecución de CI en cada push (no solo en main) para máxima visibilidad del 
+  estado del proyecto.
+- No se generan secrets ni credenciales: el workflow es CI puro sin despliegue.
+- El ADR-008 documenta las cuatro alternativas descartadas (Pages privado, 
+  Pages público, itch.io, simulación) con justificación de cada descarte.
+
+**Iteraciones**: 1 plan + 1 generación, aprobada sin modificaciones.
+
+**Capturas asociadas**:
+- `docs/screenshots/06-deployment/2026-05-30_06-deployment_deploy-agent-invocacion_01.png`
+- `docs/screenshots/06-deployment/2026-05-30_06-deployment_github-actions-build-verde_02.png`
+- `docs/screenshots/06-deployment/2026-05-30_06-deployment_readme-renderizado_03.png`
+
+**Notas**: Esta interacción cierra la Fase 5 (Despliegue) del proyecto. La 
+fase se redefinió como "Empaquetado + CI + documentación" tras verificar que 
+el enunciado no exige URL pública. La build de producción está lista para ser 
+subida a itch.io en un futuro si las condiciones del proyecto cambiasen. 
+Próximo paso: Fase 6 (Memoria) con Memory-Agent.
