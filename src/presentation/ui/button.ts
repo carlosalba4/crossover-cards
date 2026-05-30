@@ -104,8 +104,8 @@ export class Button extends Phaser.GameObjects.Container {
     this.bg = config.scene.add.graphics();
     this.bgImage = config.scene.textures.exists(this._textureDefault)
       ? config.scene.add
-          .image(0, 0, this._textureDefault)
-          .setDisplaySize(this._width, this._height)
+        .image(0, 0, this._textureDefault)
+        .setDisplaySize(this._width, this._height)
       : null;
     // drawBackground es no-op cuando hay sprite (lo cubre la imagen).
     this.drawBackground(this._backgroundColor);

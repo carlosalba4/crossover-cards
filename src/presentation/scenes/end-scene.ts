@@ -326,11 +326,12 @@ export class EndScene extends Phaser.Scene {
   private createNavigationButtons(cx: number, cy: number): void {
     new Button({
       scene: this,
-      x: cx - 90,
+      x: cx - 100,
       y: cy,
-      width: 144,
-      height: 56,
-      label: "JUGAR DE NUEVO",
+      width: 180,
+      height: 48,
+      label: "",
+      texturePrefix: "jugardenuevo",
       backgroundColor: ACCENT_TEAL_NUM,
       textColor: "#0D0B1E",
       fontSize: "18px",
@@ -342,11 +343,12 @@ export class EndScene extends Phaser.Scene {
 
     new Button({
       scene: this,
-      x: cx + 90,
+      x: cx + 100,
       y: cy,
-      width: 144,
-      height: 56,
-      label: "VOLVER AL MENÚ",
+      width: 180,
+      height: 48,
+      label: "",
+      texturePrefix: "volver",
       backgroundColor: BG_SURFACE_NUM,
       textColor: TEXT_PRIMARY,
       fontSize: "18px",

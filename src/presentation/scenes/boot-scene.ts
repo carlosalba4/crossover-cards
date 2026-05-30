@@ -285,6 +285,18 @@ export class BootScene extends Phaser.Scene {
       "creditos-hover",
       "creditos-pressed",
       "creditos-disabled",
+      "power-default",
+      "power-hover",
+      "power-pressed",
+      "power-disabled",
+      "jugardenuevo-default",
+      "jugardenuevo-hover",
+      "jugardenuevo-pressed",
+      "jugardenuevo-disabled",
+      "volver-default",
+      "volver-hover",
+      "volver-pressed",
+      "volver-disabled",
     ];
     for (const key of buttons) {
       this.load.image(key, `assets/ui/buttons/${key}.png`);

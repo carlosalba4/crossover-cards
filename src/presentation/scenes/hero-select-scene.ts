@@ -113,7 +113,7 @@ export class HeroSelectScene extends Phaser.Scene {
       y: height - 80,
       width: 320,
       height: 64,
-      label: "INICIAR PARTIDA",
+      label: "",
       backgroundColor: 0x3ecfcf, // accent-teal
       textColor: "#0D0B1E",
       fontSize: "28px",
