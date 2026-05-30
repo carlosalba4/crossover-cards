@@ -90,44 +90,58 @@ const COLOR_ACCENT_GOLD = 0xf5c842;
 interface CardDimensions {
   width: number;
   height: number;
+  /** Lado del retrato cuadrado (centrado), contenido dentro del marco. */
   portraitW: number;
   portraitH: number;
+  /** Centro vertical del retrato (relativo al centro de la carta). */
+  artCenterY: number;
+  /** Margen interior seguro respecto al borde de la carta (holgura del frame). */
+  pad: number;
+  /** Y de la fila de stats (números e iconos de ATQ/VID). */
+  statY: number;
+  /** Lado de los iconos de stat (icon-attack / icon-health). */
+  statIconSize: number;
   borderThickness: number;
   archetypeBandW: number;
   costCircleR: number;
   nameFontSize: string;
   statFontSize: string;
-  descFontSize: string;
   typeFontSize: string;
 }
 
 const HAND_DIMS: CardDimensions = {
   width: 80,
   height: 112,
-  portraitW: 56,
-  // Retrato reducido respecto al diseño original para reservar una banda
-  // legible para la descripción entre el retrato y la fila de stats (Bug 5).
-  portraitH: 46,
+  portraitW: 44,
+  portraitH: 44,
+  artCenterY: 8,
+  pad: 8,
+  statY: 41,
+  statIconSize: 10,
   borderThickness: 3,
   archetypeBandW: 6,
-  costCircleR: 14,
+  costCircleR: 13,
   nameFontSize: "11px",
-  statFontSize: "11px",
-  descFontSize: "9px",
+  statFontSize: "12px",
   typeFontSize: "9px",
 };
 
 const BOARD_DIMS: CardDimensions = {
   width: 72,
   height: 96,
-  portraitW: 52,
-  portraitH: 52,
+  // En tablero no hay nombre ni tipo, así que el arte puede ser mayor y ocupar
+  // el centro de la carta.
+  portraitW: 50,
+  portraitH: 50,
+  artCenterY: -2,
+  pad: 7,
+  statY: 35,
+  statIconSize: 8,
   borderThickness: 2,
   archetypeBandW: 5,
-  costCircleR: 12,
+  costCircleR: 11,
   nameFontSize: "0px", // no se muestra nombre en tablero
   statFontSize: "11px",
-  descFontSize: "0px",
   typeFontSize: "0px",
 };
 
@@ -142,13 +156,11 @@ const HOVER_ELEVATION_PX = 20;
 const DISABLED_ALPHA = 0.4;
 
 // ---------------------------------------------------------------------------
-// Texto de descripción
+// Texto
 // ---------------------------------------------------------------------------
 
-/** Máximo de líneas de la descripción en la carta de mano (resto se recorta). */
-const DESC_MAX_LINES = 2;
-/** Carácter de elipsis usado al recortar la descripción. */
-const DESC_ELLIPSIS = "…";
+/** Carácter de elipsis usado al recortar el nombre si no cabe en la carta. */
+const ELLIPSIS = "…";
 
 // ---------------------------------------------------------------------------
 // Clase CardSprite
@@ -202,8 +214,6 @@ export class CardSprite extends Phaser.GameObjects.Container {
   private readonly atkText: Phaser.GameObjects.Text;
   /** Texto del valor de VID. */
   private readonly vidText: Phaser.GameObjects.Text;
-  /** Texto de descripción / habilidad. */
-  private readonly descText: Phaser.GameObjects.Text;
   /** Texto del tipo de carta. */
   private readonly typeText: Phaser.GameObjects.Text;
   /** Gráfico del borde seleccionado (teal glow). */
@@ -248,17 +258,17 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.costText = this.buildCostText(scene);
     this.atkText = this.buildAtkText(scene);
     this.vidText = this.buildVidText(scene);
-    this.descText = this.buildDescText(scene);
     this.typeText = this.buildTypeText(scene);
     this.selectedBorder = scene.add.graphics();
     this.disabledOverlay = this.buildDisabledOverlay(scene);
 
     // Marco de rareza (sprite) e iconos de stats — solo si el asset existe;
     // en caso contrario se conservan los placeholders dibujados con Graphics.
+    // Los iconos se anclan a las esquinas inferiores, dentro del margen seguro.
     this.frame = this.buildFrame(scene);
-    const halfWidth = this._dims.width / 2;
-    const atkIconX = -halfWidth + this._dims.archetypeBandW + this._dims.borderThickness + 6;
-    const vidIconX = halfWidth - this._dims.borderThickness - 6;
+    const d = this._dims;
+    const atkIconX = -d.width / 2 + d.pad + d.statIconSize / 2;
+    const vidIconX = d.width / 2 - d.pad - d.statIconSize / 2;
     this.atkIcon = this.buildStatIcon(scene, "icon-attack", atkIconX);
     this.vidIcon = this.buildStatIcon(scene, "icon-health", vidIconX);
 
@@ -269,13 +279,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     layers.push(this.portrait, this.nameText, this.costText, this.atkText, this.vidText);
     if (this.atkIcon) layers.push(this.atkIcon);
     if (this.vidIcon) layers.push(this.vidIcon);
-    layers.push(
-      this.descText,
-      this.typeText,
-      this.selectedBorder,
-      this.backLayer,
-      this.disabledOverlay,
-    );
+    layers.push(this.typeText, this.selectedBorder, this.backLayer, this.disabledOverlay);
     this.add(layers);
 
     // Tamaño del hit-area del contenedor
@@ -427,47 +431,32 @@ export class CardSprite extends Phaser.GameObjects.Container {
       d.height - d.borderThickness * 2,
     );
 
-    // Zona del retrato (fondo bg-card)
-    const portraitAreaX = -halfW + d.archetypeBandW + d.borderThickness;
-    const portraitAreaY = -halfH + d.borderThickness + (this._size === CardSize.Hand ? 18 : 2);
-    const portraitAreaW = d.width - d.archetypeBandW - d.borderThickness * 2;
-
+    // Zona del retrato (fondo bg-card), centrada y contenida dentro del marco
     this.cardBg.fillStyle(COLOR_BG_CARD, 1);
-    this.cardBg.fillRect(portraitAreaX, portraitAreaY, portraitAreaW, d.portraitH);
+    this.cardBg.fillRect(
+      -d.portraitW / 2,
+      d.artCenterY - d.portraitH / 2,
+      d.portraitW,
+      d.portraitH,
+    );
 
-    // Zona ATQ (triángulo-ish, inferior izquierda) — solo Character
+    // Zonas de stats (ATQ inferior izquierda, VID inferior derecha) — Character
     if (this._card.type === CardType.Character) {
+      const zoneW = d.statIconSize + 16;
+      const zoneH = 16;
       this.cardBg.fillStyle(COLOR_FEEDBACK_DAMAGE, 0.2);
-      this.cardBg.fillRect(
-        -halfW + d.archetypeBandW + d.borderThickness,
-        halfH - 22,
-        (d.width - d.archetypeBandW - d.borderThickness * 2) / 2,
-        16,
-      );
-
-      // Zona VID (triángulo-ish, inferior derecha)
+      this.cardBg.fillRect(-halfW + d.pad, d.statY - zoneH / 2, zoneW, zoneH);
       this.cardBg.fillStyle(COLOR_FEEDBACK_OK, 0.2);
-      this.cardBg.fillRect(
-        halfW - (d.width - d.archetypeBandW - d.borderThickness * 2) / 2 - d.borderThickness,
-        halfH - 22,
-        (d.width - d.archetypeBandW - d.borderThickness * 2) / 2,
-        16,
-      );
+      this.cardBg.fillRect(halfW - d.pad - zoneW, d.statY - zoneH / 2, zoneW, zoneH);
     }
 
-    // Círculo del coste (superior izquierda)
+    // Círculo del coste (esquina superior izquierda, dentro del margen seguro)
+    const costCx = -halfW + d.pad + d.costCircleR;
+    const costCy = -halfH + d.pad + d.costCircleR;
     this.cardBg.fillStyle(COLOR_BG_DEEP, 1);
-    this.cardBg.fillCircle(
-      -halfW + d.archetypeBandW + d.borderThickness + d.costCircleR,
-      -halfH + d.borderThickness + d.costCircleR,
-      d.costCircleR,
-    );
+    this.cardBg.fillCircle(costCx, costCy, d.costCircleR);
     this.cardBg.lineStyle(1, COLOR_ACCENT_GOLD, 0.8);
-    this.cardBg.strokeCircle(
-      -halfW + d.archetypeBandW + d.borderThickness + d.costCircleR,
-      -halfH + d.borderThickness + d.costCircleR,
-      d.costCircleR,
-    );
+    this.cardBg.strokeCircle(costCx, costCy, d.costCircleR);
   }
 
   /** Crea el marco decorativo de rareza (frame-<rarity>) si el asset existe. */
@@ -493,26 +482,23 @@ export class CardSprite extends Phaser.GameObjects.Container {
     if (this._card.type !== CardType.Character) return null;
     if (!scene.textures.exists(key)) return null;
     const d = this._dims;
-    const size = this._size === CardSize.Hand ? 11 : 9;
-    const img = scene.add.image(x, d.height / 2 - 14, key);
+    const img = scene.add.image(x, d.statY, key);
     img.setOrigin(0.5, 0.5);
-    img.setDisplaySize(size, size);
+    img.setDisplaySize(d.statIconSize, d.statIconSize);
     return img;
   }
 
-  /** Crea la imagen del retrato o un Graphics placeholder si falta el asset. */
+  /**
+   * Crea la imagen del retrato (o un Graphics placeholder si falta el asset),
+   * centrada horizontalmente y escalada a un cuadrado contenido dentro del marco
+   * para que el arte NUNCA sobresalga de la carta.
+   */
   private buildPortrait(
     scene: Phaser.Scene,
   ): Phaser.GameObjects.Image | Phaser.GameObjects.Graphics {
     const d = this._dims;
-    const portraitY =
-      -d.height / 2 + d.borderThickness + (this._size === CardSize.Hand ? 18 : 2) + d.portraitH / 2;
-    const portraitX =
-      (d.archetypeBandW + d.borderThickness) / 2 +
-      (d.width - d.archetypeBandW - d.borderThickness * 2) / 2 -
-      d.width / 2 +
-      d.archetypeBandW +
-      d.borderThickness;
+    const portraitX = 0;
+    const portraitY = d.artCenterY;
 
     if (scene.textures.exists(this._card.spriteKey)) {
       const img = scene.add.image(portraitX, portraitY, this._card.spriteKey);
@@ -520,7 +506,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
       return img;
     }
 
-    // Placeholder: rectángulo del color del arquetipo con texto del nombre
+    // Placeholder: rectángulo del color del arquetipo
     const gfx = scene.add.graphics();
     gfx.fillStyle(ARCHETYPE_COLOR[this._card.archetype], 0.4);
     gfx.fillRect(
@@ -582,22 +568,30 @@ export class CardSprite extends Phaser.GameObjects.Container {
 
   private buildNameText(scene: Phaser.Scene): Phaser.GameObjects.Text {
     const d = this._dims;
-    const x = d.archetypeBandW / 2 + 2;
-    const y = -d.height / 2 + d.borderThickness + 2;
-    const txt = scene.add.text(x, y, this._card.name, {
+    const isHand = this._size === CardSize.Hand;
+    const y = -d.height / 2 + d.pad + 1;
+    const txt = scene.add.text(0, y, "", {
       fontFamily: "Bangers",
       fontSize: d.nameFontSize,
       color: COLOR_TEXT_ON_FRAME,
     });
-    txt.setOrigin(0, 0);
-    txt.setVisible(this._size === CardSize.Hand);
+    txt.setOrigin(0.5, 0);
+    // El nombre se centra arriba y se recorta para que no sobresalga por los
+    // lados de la carta (el nombre completo está disponible en el tooltip).
+    if (isHand) {
+      const maxWidth = d.width - d.pad * 2;
+      txt.setText(this.fitSingleLine(txt, this._card.name, maxWidth));
+    } else {
+      txt.setText(this._card.name);
+    }
+    txt.setVisible(isHand);
     return txt;
   }
 
   private buildCostText(scene: Phaser.Scene): Phaser.GameObjects.Text {
     const d = this._dims;
-    const cx = -d.width / 2 + d.archetypeBandW + d.borderThickness + d.costCircleR;
-    const cy = -d.height / 2 + d.borderThickness + d.costCircleR;
+    const cx = -d.width / 2 + d.pad + d.costCircleR;
+    const cy = -d.height / 2 + d.pad + d.costCircleR;
     const txt = scene.add.text(cx, cy, String(this._card.nostalgyCost), {
       fontFamily: "Nunito",
       fontSize: `${d.costCircleR}px`,
@@ -612,17 +606,16 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const d = this._dims;
     const isCharacter = this._card.type === CardType.Character;
     const atk = isCharacter ? String(this._card.attack ?? 0) : "";
-    const halfW = d.width / 2;
-    const halfH = d.height / 2;
-    const sectionW = (d.width - d.archetypeBandW - d.borderThickness * 2) / 2;
-    const x = -halfW + d.archetypeBandW + d.borderThickness + sectionW / 2;
-    const txt = scene.add.text(x, halfH - 14, atk, {
+    // Anclado a la izquierda, justo a la derecha del icono de ATQ: el número
+    // crece hacia el centro y nunca se sale por el borde izquierdo.
+    const x = -d.width / 2 + d.pad + d.statIconSize + 3;
+    const txt = scene.add.text(x, d.statY, atk, {
       fontFamily: "Nunito",
       fontSize: d.statFontSize,
       color: "#FF6B6B",
       fontStyle: "bold",
     });
-    txt.setOrigin(0.5, 0.5);
+    txt.setOrigin(0, 0.5);
     txt.setVisible(isCharacter);
     return txt;
   }
@@ -631,118 +624,52 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const d = this._dims;
     const isCharacter = this._card.type === CardType.Character;
     const vid = isCharacter ? String(this._card.health ?? 0) : "";
-    const halfW = d.width / 2;
-    const halfH = d.height / 2;
-    const sectionW = (d.width - d.archetypeBandW - d.borderThickness * 2) / 2;
-    const x = halfW - d.borderThickness - sectionW / 2;
-    const txt = scene.add.text(x, halfH - 14, vid, {
+    // Anclado a la derecha, justo a la izquierda del icono de VID: el número
+    // crece hacia el centro y nunca se sale por el borde derecho.
+    const x = d.width / 2 - d.pad - d.statIconSize - 3;
+    const txt = scene.add.text(x, d.statY, vid, {
       fontFamily: "Nunito",
       fontSize: d.statFontSize,
       color: "#6BFF8E",
       fontStyle: "bold",
     });
-    txt.setOrigin(0.5, 0.5);
+    txt.setOrigin(1, 0.5);
     txt.setVisible(isCharacter);
     return txt;
   }
 
-  private buildDescText(scene: Phaser.Scene): Phaser.GameObjects.Text {
-    const d = this._dims;
-    const isHand = this._size === CardSize.Hand;
-    const areaX = -d.width / 2 + d.archetypeBandW + d.borderThickness + 2;
-    const areaW = d.width - d.archetypeBandW - d.borderThickness * 2 - 4;
-    // La descripción ocupa la banda situada justo debajo del retrato y por
-    // encima de la fila de stats (Bug 5: evita el desbordamiento y el solape).
-    const portraitTopOffset = isHand ? 18 : 2;
-    const areaY = -d.height / 2 + d.borderThickness + portraitTopOffset + d.portraitH + 1;
-
-    // Alto disponible de la banda de descripción: desde justo debajo del retrato
-    // (areaY) hasta el borde superior de la zona de stats (height/2 - 22). El
-    // recorte garantiza que el texto NUNCA invada esa zona ni el borde inferior.
-    const availableHeight = d.height / 2 - 22 - areaY;
-
-    const txt = scene.add.text(areaX, areaY, "", {
-      fontFamily: "Nunito",
-      fontSize: d.descFontSize,
-      color: COLOR_TEXT_ON_FRAME,
-      wordWrap: { width: areaW, useAdvancedWrap: true },
-      // maxLines recorta el render a un máximo de líneas (evita el desborde
-      // vertical aunque la medición de elipsis no estuviera disponible).
-      maxLines: isHand ? DESC_MAX_LINES : 0,
-    });
-    txt.setOrigin(0, 0);
-
-    if (isHand) {
-      txt.setText(
-        this.fitDescription(txt, this._card.description, DESC_MAX_LINES, availableHeight),
-      );
-    } else {
-      txt.setText(this._card.description);
-    }
-
-    txt.setVisible(isHand);
-    return txt;
-  }
-
   /**
-   * Devuelve la descripción recortada con elipsis para que NUNCA sobrepase el
-   * área asignada dentro de la carta: ni en número de líneas (`maxLines`) ni en
-   * altura renderizada (`maxHeight`). Si el texto completo ya cabe, lo devuelve
-   * tal cual; en caso contrario reduce palabra a palabra y, como último recurso
-   * (palabra única muy larga), por caracteres. La medición usa `getWrappedText`
-   * y `txt.height`, que respetan el word-wrap del propio objeto de texto.
-   *
-   * El detalle completo siempre está disponible en el tooltip al hacer hover,
-   * por lo que dentro de la carta basta con un resumen contenido.
+   * Recorta un texto de una sola línea con elipsis para que su anchura
+   * renderizada no supere `maxWidth`, evitando que sobresalga de la carta. Si ya
+   * cabe, lo devuelve tal cual. La medición usa `txt.width`.
    */
-  private fitDescription(
-    txt: Phaser.GameObjects.Text,
-    full: string,
-    maxLines: number,
-    maxHeight: number,
-  ): string {
-    // Un candidato "cabe" si no excede ni el máximo de líneas ni la altura de la
-    // banda de descripción (clamp estricto en ambos ejes).
-    const fits = (candidate: string): boolean => {
-      txt.setText(candidate);
-      return txt.getWrappedText(candidate).length <= maxLines && txt.height <= maxHeight;
-    };
-
-    if (fits(full)) {
+  private fitSingleLine(txt: Phaser.GameObjects.Text, full: string, maxWidth: number): string {
+    txt.setText(full);
+    if (txt.width <= maxWidth) {
       return full;
     }
-
-    const words = full.split(/\s+/).filter((w) => w.length > 0);
-    // Reduce palabra a palabra hasta que el texto + elipsis quepa.
-    for (let count = words.length - 1; count >= 1; count--) {
-      const candidate = words.slice(0, count).join(" ") + DESC_ELLIPSIS;
-      if (fits(candidate)) {
+    for (let len = full.length - 1; len >= 1; len--) {
+      const candidate = full.slice(0, len).trimEnd() + ELLIPSIS;
+      txt.setText(candidate);
+      if (txt.width <= maxWidth) {
         return candidate;
       }
     }
-
-    // Última palabra demasiado larga para una sola línea: recortar por caracteres.
-    const first = words.length > 0 ? words[0] : "";
-    for (let len = first.length - 1; len >= 1; len--) {
-      const candidate = first.slice(0, len) + DESC_ELLIPSIS;
-      if (fits(candidate)) {
-        return candidate;
-      }
-    }
-
-    return DESC_ELLIPSIS;
+    return ELLIPSIS;
   }
 
   private buildTypeText(scene: Phaser.Scene): Phaser.GameObjects.Text {
     const d = this._dims;
     const label = this.resolveTypeLabel();
-    const txt = scene.add.text(0, d.height / 2 - 6, label, {
+    // Etiqueta de tipo centrada, justo debajo del nombre (solo en mano).
+    const y = -d.height / 2 + d.pad + 14;
+    const txt = scene.add.text(0, y, label, {
       fontFamily: "Nunito",
       fontSize: d.typeFontSize,
       color: COLOR_TEXT_ON_FRAME,
       fontStyle: "bold",
     });
-    txt.setOrigin(0.5, 1);
+    txt.setOrigin(0.5, 0);
     txt.setVisible(this._size === CardSize.Hand);
     return txt;
   }
@@ -777,7 +704,6 @@ export class CardSprite extends Phaser.GameObjects.Container {
     this.vidText.setVisible(showFront && isCharacter);
     this.atkIcon?.setVisible(showFront && isCharacter);
     this.vidIcon?.setVisible(showFront && isCharacter);
-    this.descText.setVisible(showFront && this._size === CardSize.Hand);
     this.typeText.setVisible(showFront && this._size === CardSize.Hand);
     this.backLayer.setVisible(this._showBack);
   }

@@ -59,9 +59,22 @@ const DISABLED_ALPHA = 0.5;
  * Referencia de diseño: docs/05-ui-design.md §4.7 (EndTurnButton) y §3.2
  * (botones de MenuScene).
  */
+/**
+ * Claves de textura de los sprites de botón por estado. Si están cargadas, el
+ * botón se renderiza con ellas; si no, recurre al fondo de Graphics (fallback).
+ */
+const BUTTON_TEXTURES = {
+  default: "button-default",
+  hover: "button-hover",
+  pressed: "button-pressed",
+  disabled: "button-disabled",
+} as const;
+
 export class Button extends Phaser.GameObjects.Container {
   // Hijos internos
   private readonly bg: Phaser.GameObjects.Graphics;
+  /** Sprite de fondo del botón (si los assets están disponibles); si no, null. */
+  private readonly bgImage: Phaser.GameObjects.Image | null;
   private readonly label: Phaser.GameObjects.Text;
 
   // Estado
@@ -84,8 +97,14 @@ export class Button extends Phaser.GameObjects.Container {
     this._onClick = config.onClick;
     this._disabled = config.disabled ?? false;
 
-    // --- Fondo (Graphics) ---
+    // --- Fondo: sprite button-default si está cargado; si no, Graphics ---
     this.bg = config.scene.add.graphics();
+    this.bgImage = config.scene.textures.exists(BUTTON_TEXTURES.default)
+      ? config.scene.add
+          .image(0, 0, BUTTON_TEXTURES.default)
+          .setDisplaySize(this._width, this._height)
+      : null;
+    // drawBackground es no-op cuando hay sprite (lo cubre la imagen).
     this.drawBackground(this._backgroundColor);
 
     // --- Etiqueta (Text) centrada en el contenedor ---
@@ -96,19 +115,23 @@ export class Button extends Phaser.GameObjects.Container {
     });
     this.label.setOrigin(0.5, 0.5);
 
-    // --- Icono opcional a la izquierda de la etiqueta ---
-    // Solo se añade si la textura existe; en caso contrario el botón conserva
-    // su apariencia de solo texto (fallback sin error).
+    // --- Ensamblar capas: fondo (Graphics + sprite) → icono opcional → texto ---
+    const layers: Phaser.GameObjects.GameObject[] = [this.bg];
+    if (this.bgImage) layers.push(this.bgImage);
+
+    // Icono opcional a la izquierda de la etiqueta. Solo se añade si la textura
+    // existe; en caso contrario el botón conserva su apariencia de solo texto.
     if (config.iconKey && config.scene.textures.exists(config.iconKey)) {
       const iconSize = this._height * 0.5;
       const icon = config.scene.add.image(-this._width / 2 + iconSize / 2 + 8, 0, config.iconKey);
       icon.setDisplaySize(iconSize, iconSize);
       // Desplazar ligeramente la etiqueta para dejar sitio al icono.
       this.label.setX(iconSize / 2 + 4);
-      this.add([this.bg, icon, this.label]);
-    } else {
-      this.add([this.bg, this.label]);
+      layers.push(icon);
     }
+
+    layers.push(this.label);
+    this.add(layers);
 
     // --- Interactividad ---
     this.setSize(this._width, this._height);
@@ -163,9 +186,11 @@ export class Button extends Phaser.GameObjects.Container {
   // -------------------------------------------------------------------------
 
   /**
-   * Redibuja el fondo con el color indicado, centrado en (0, 0).
+   * Redibuja el fondo de Graphics con el color indicado, centrado en (0, 0).
+   * Es no-op cuando hay sprite de fondo (button-default), que ya cubre el botón.
    */
   private drawBackground(color: number): void {
+    if (this.bgImage) return;
     this.bg.clear();
     this.bg.fillStyle(color, 1);
     this.bg.fillRoundedRect(
@@ -177,6 +202,17 @@ export class Button extends Phaser.GameObjects.Container {
     );
   }
 
+  /**
+   * Cambia la textura del sprite de fondo al estado indicado (si hay sprites y
+   * la textura existe). En modo fallback (Graphics) no hace nada.
+   */
+  private setStateTexture(key: string): void {
+    if (this.bgImage && this.scene.textures.exists(key)) {
+      this.bgImage.setTexture(key);
+      this.bgImage.setDisplaySize(this._width, this._height);
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Gestión de estados visuales
   // -------------------------------------------------------------------------
@@ -184,6 +220,7 @@ export class Button extends Phaser.GameObjects.Container {
   private applyNormalState(): void {
     this.setAlpha(1);
     this.setInteractive({ useHandCursor: true });
+    this.setStateTexture(BUTTON_TEXTURES.default);
     this.drawBackground(this._backgroundColor);
     this.scaleTo(SCALE_NORMAL, TWEEN_HOVER_MS);
   }
@@ -191,6 +228,7 @@ export class Button extends Phaser.GameObjects.Container {
   private applyDisabledState(): void {
     this.setAlpha(DISABLED_ALPHA);
     this.disableInteractive();
+    this.setStateTexture(BUTTON_TEXTURES.disabled);
     this.drawBackground(this._backgroundColor);
     this.scene.tweens.killTweensOf(this);
     this.setScale(SCALE_NORMAL);
@@ -232,24 +270,28 @@ export class Button extends Phaser.GameObjects.Container {
 
   private onPointerOver(): void {
     if (this._disabled) return;
+    this.setStateTexture(BUTTON_TEXTURES.hover);
     this.drawBackground(lightenColor(this._backgroundColor, LIGHTEN_FACTOR));
     this.scaleTo(SCALE_HOVER, TWEEN_HOVER_MS);
   }
 
   private onPointerOut(): void {
     if (this._disabled) return;
+    this.setStateTexture(BUTTON_TEXTURES.default);
     this.drawBackground(this._backgroundColor);
     this.scaleTo(SCALE_NORMAL, TWEEN_HOVER_MS);
   }
 
   private onPointerDown(): void {
     if (this._disabled) return;
+    this.setStateTexture(BUTTON_TEXTURES.pressed);
     this.scaleTo(SCALE_PRESSED, TWEEN_PRESS_MS);
   }
 
   private onPointerUp(): void {
     if (this._disabled) return;
     // Vuelve a escala hover (el cursor sigue sobre el botón)
+    this.setStateTexture(BUTTON_TEXTURES.hover);
     this.scaleTo(SCALE_HOVER, TWEEN_HOVER_MS);
     this._onClick();
   }
