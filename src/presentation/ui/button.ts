@@ -21,6 +21,12 @@ export interface ButtonConfig {
   fontSize?: string;
   /** Familia tipográfica. Por defecto 'Bangers'. */
   fontFamily?: string;
+  /**
+   * Clave de textura de un icono opcional mostrado a la izquierda de la
+   * etiqueta. Si la textura no existe, el botón se renderiza solo con texto
+   * (fallback), sin error.
+   */
+  iconKey?: string;
   onClick: () => void;
   disabled?: boolean;
 }
@@ -90,8 +96,19 @@ export class Button extends Phaser.GameObjects.Container {
     });
     this.label.setOrigin(0.5, 0.5);
 
-    // --- Ensamblar contenedor ---
-    this.add([this.bg, this.label]);
+    // --- Icono opcional a la izquierda de la etiqueta ---
+    // Solo se añade si la textura existe; en caso contrario el botón conserva
+    // su apariencia de solo texto (fallback sin error).
+    if (config.iconKey && config.scene.textures.exists(config.iconKey)) {
+      const iconSize = this._height * 0.5;
+      const icon = config.scene.add.image(-this._width / 2 + iconSize / 2 + 8, 0, config.iconKey);
+      icon.setDisplaySize(iconSize, iconSize);
+      // Desplazar ligeramente la etiqueta para dejar sitio al icono.
+      this.label.setX(iconSize / 2 + 4);
+      this.add([this.bg, icon, this.label]);
+    } else {
+      this.add([this.bg, this.label]);
+    }
 
     // --- Interactividad ---
     this.setSize(this._width, this._height);

@@ -39,6 +39,9 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
   private readonly crossoverBtn: Button;
   private readonly endTurnBtn: Button;
 
+  /** Texto del contador de cartas en mano (junto al icono de mano). */
+  private handCountText!: Phaser.GameObjects.Text;
+
   // Momentum
   private momentumBarContainer!: Phaser.GameObjects.Container;
   private momentumGraphics!: Phaser.GameObjects.Graphics;
@@ -76,6 +79,7 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
       label: "CROSSOVER",
       backgroundColor: 0x7b4fdb,
       textColor: "#F0EAD6",
+      iconKey: "icon-crossover",
       onClick: () => {
         this.emit("crossover");
       },
@@ -95,11 +99,17 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
       label: "FIN DE TURNO",
       backgroundColor: 0x3ecfcf,
       textColor: "#0d0b1e",
+      iconKey: "icon-end-turn",
       onClick: () => {
         this.emit("endTurn");
       },
     });
     this.add(this.endTurnBtn);
+
+    // Indicador de cartas en mano (icono + contador). Se coloca DEBAJO del botón
+    // de fin de turno, en un hueco libre del panel, para que el icono no quede
+    // tapado por el botón de Crossover.
+    this.buildHandIndicator(scene, 50, 432);
 
     scene.add.existing(this);
   }
@@ -115,6 +125,43 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
 
     this.momentumBarContainer.setAlpha(0);
     this.add(this.momentumBarContainer);
+
+    // Icono de Momentum, siempre visible junto a la barra (la barra solo aparece
+    // cuando el Momentum se activa). Sprite si existe; si no, no se muestra.
+    if (scene.textures.exists("icon-momentum")) {
+      const icon = scene.add.image(x + 8, y - 16, "icon-momentum").setDisplaySize(22, 22);
+      this.add(icon);
+    }
+  }
+
+  /**
+   * Indicador de número de cartas en la mano del jugador: icono "icon-hand"
+   * (con fallback de Graphics) y un contador numérico a su derecha.
+   */
+  private buildHandIndicator(scene: Phaser.Scene, x: number, y: number): void {
+    const container = scene.add.container(x, y);
+
+    if (scene.textures.exists("icon-hand")) {
+      const icon = scene.add.image(10, 14, "icon-hand").setDisplaySize(24, 24);
+      container.add(icon);
+    } else {
+      // Fallback: abanico de cartas simplificado dibujado con Graphics.
+      const gfx = scene.add.graphics();
+      gfx.lineStyle(2, 0xf0ead6, 1);
+      gfx.strokeRoundedRect(0, 2, 12, 22, 3);
+      gfx.strokeRoundedRect(8, 6, 12, 22, 3);
+      container.add(gfx);
+    }
+
+    this.handCountText = scene.add.text(28, 6, "0", {
+      fontFamily: "Nunito",
+      fontSize: "14px",
+      fontStyle: "bold",
+      color: "#F0EAD6",
+    });
+    container.add(this.handCountText);
+
+    this.add(container);
   }
 
   private buildQuestPanel(scene: Phaser.Scene, x: number, y: number): void {
@@ -163,6 +210,13 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
     this.questContainer.setVisible(false);
     this.add(this.questContainer);
 
+    // Icono de Misión, siempre visible a la izquierda del panel (que solo se
+    // muestra cuando hay una misión activa). Sprite si existe; si no, no aparece.
+    if (scene.textures.exists("icon-quest")) {
+      const questIcon = scene.add.image(x - 90, y, "icon-quest").setDisplaySize(26, 26);
+      this.add(questIcon);
+    }
+
     // Popup expandido
     this.questPopup = scene.add.container(x - 80, y);
     const popBg = scene.add.graphics();
@@ -210,6 +264,11 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
 
   public updateDeck(count: number): void {
     this.deckCounter.update(count);
+  }
+
+  /** Actualiza el contador de cartas en mano mostrado junto al icono de mano. */
+  public updateHand(count: number): void {
+    this.handCountText.setText(String(count));
   }
 
   public updateMomentum(points: number, isActive: boolean): void {

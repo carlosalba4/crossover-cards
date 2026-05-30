@@ -137,8 +137,24 @@ export class MenuScene extends Phaser.Scene {
     }
   }
 
-  /** Crea el logo "CROSSOVER / CARDS" con sombra de texto. */
+  /**
+   * Muestra el logo del juego. Si el sprite "logo" está cargado, lo usa como
+   * título visual centrado en la parte superior; en caso contrario, recurre al
+   * título tipográfico "CROSSOVER / CARDS" con sombra.
+   */
   private createLogo(cx: number, cy: number): void {
+    if (this.textures.exists("logo")) {
+      const logo = this.add.image(cx, cy - 160, "logo").setOrigin(0.5);
+
+      // Escalar el logo para que ocupe un ancho razonable sin deformarse,
+      // limitando también la altura para no invadir los botones.
+      const maxWidth = 520;
+      const maxHeight = 260;
+      const scale = Math.min(maxWidth / logo.width, maxHeight / logo.height, 1);
+      logo.setScale(scale);
+      return;
+    }
+
     this.add
       .text(cx, cy - 200, "CROSSOVER", {
         fontFamily: "Bangers, system-ui",

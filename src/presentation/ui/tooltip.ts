@@ -232,17 +232,32 @@ export class Tooltip extends Phaser.GameObjects.Container {
     this.add(this.portraitContainer);
   }
 
+  /**
+   * Posiciona el tooltip de forma inteligente respecto a la carta (coordenadas
+   * de MUNDO). Si la carta está en la mitad inferior de la pantalla (mano del
+   * jugador) el tooltip se muestra ENCIMA; si está arriba, debajo. Finalmente se
+   * recorta (clamp) a los bordes visibles para que nunca quede cortado (Bug 7).
+   *
+   * @param x Centro horizontal de la carta (mundo).
+   * @param y Centro vertical de la carta (mundo).
+   * @param cardHeight Altura de la carta, para separar el tooltip de su borde.
+   * @param tooltipHeight Altura del tooltip a posicionar.
+   */
   private positionTooltip(x: number, y: number, cardHeight: number, tooltipHeight: number): void {
-    // x es relativo al centro de la carta. Lo centramos.
-    const finalX = x - WIDTH / 2;
-    let finalY: number;
+    const margin = 8;
+    const screenW = this.scene.scale.width;
+    const screenH = this.scene.scale.height;
+    const halfCard = cardHeight / 2;
 
-    // Posición inteligente según los requerimientos
-    if (y >= 300) {
-      finalY = y - tooltipHeight - 8;
-    } else {
-      finalY = y + cardHeight + 8;
-    }
+    let finalX = x - WIDTH / 2;
+
+    // Encima si la carta está en la mitad inferior de la pantalla; debajo si no.
+    const showAbove = y > screenH / 2;
+    let finalY = showAbove ? y - halfCard - tooltipHeight - margin : y + halfCard + margin;
+
+    // Clamp a los límites visibles de la pantalla en ambos ejes.
+    finalX = Phaser.Math.Clamp(finalX, margin, screenW - WIDTH - margin);
+    finalY = Phaser.Math.Clamp(finalY, margin, screenH - tooltipHeight - margin);
 
     this.setPosition(finalX, finalY);
   }

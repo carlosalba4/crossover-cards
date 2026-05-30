@@ -22,6 +22,7 @@ import type { IDeckRepository } from "@domain/repositories/i-deck-repository";
 import { GameEvent } from "@domain/events/game-event";
 import type { Unsubscribe, IEventBus } from "@domain/events/event-bus";
 import { Character } from "@domain/entities/character";
+import { CardType } from "@domain/types/card-types";
 import { createGameDependencies, type GameDependencies } from "@/composition/game-dependencies";
 
 // ---------------------------------------------------------------------------
@@ -81,6 +82,16 @@ export class GameScene extends Phaser.Scene {
 
   private aiOverlay?: Phaser.GameObjects.Rectangle;
   private rivalTurnText!: Phaser.GameObjects.Text;
+
+  // Estadísticas de la partida, acumuladas desde los eventos del dominio y
+  // entregadas a EndScene al terminar (Bug 4). Solo se contabiliza lo que se
+  // puede derivar de forma fiable de los eventos actuales.
+  /** Número total de turnos iniciados en la partida. */
+  private statTurns = 0;
+  /** Daño total infligido por el jugador humano (p1) a rivales. */
+  private statDamageDealt = 0;
+  /** Número de cartas jugadas por el jugador humano (p1). */
+  private statCardsPlayed = 0;
 
   constructor() {
     super({ key: "GameScene" });
@@ -271,6 +282,7 @@ export class GameScene extends Phaser.Scene {
           );
           this.makeHandCardDraggable(sprite, c.instanceId);
         });
+        this.hudRight.updateHand(this.handPlayer.size());
 
         p2.hand.getCards().forEach((c) => {
           const isCharacter = c instanceof Character;
@@ -339,8 +351,10 @@ export class GameScene extends Phaser.Scene {
       this.eventBus.on(GameEvent.CardPlayed, (payload) => {
         if (!payload.cardId) return;
         const isPlayer = payload.playerId === "p1";
+        if (isPlayer) this.statCardsPlayed += 1;
         const hand = isPlayer ? this.handPlayer : this.handRival;
         hand.removeCard(payload.cardId, false);
+        if (isPlayer) this.hudRight.updateHand(this.handPlayer.size());
       }),
     );
 
@@ -381,6 +395,12 @@ export class GameScene extends Phaser.Scene {
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.AttackResolved, (payload) => {
         this.board.clearHighlights();
+        // Contabilizar el daño ofensivo del jugador: durante su turno, el
+        // atacante es siempre p1, por lo que damageToDefender es daño infligido
+        // por el jugador humano (a un Personaje o al héroe rival).
+        if (this.isPlayerTurn && payload.damageToDefender) {
+          this.statDamageDealt += payload.damageToDefender;
+        }
         if (payload.attackerId && payload.defenderId) {
           this.board.playAttackAnimation(payload.attackerId, payload.defenderId);
         }
@@ -434,6 +454,7 @@ export class GameScene extends Phaser.Scene {
         const isPlayer = payload.playerId === "p1";
         this.isPlayerTurn = isPlayer;
         this.currentPhase = payload.phase;
+        this.statTurns += 1;
 
         if (!isPlayer) {
           this.clearAttackerSelection();
@@ -599,11 +620,12 @@ export class GameScene extends Phaser.Scene {
     // 18. MatchEnded
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.MatchEnded, (payload) => {
-        // Recopilar estadísticas básicas disponibles
+        // Estadísticas reales acumuladas durante la partida desde los eventos
+        // del dominio (turnos, daño ofensivo del jugador y cartas jugadas).
         const stats = {
-          turns: 0, // Métrica futura; placeholder sin errores
-          damageDealt: 0,
-          cardsPlayed: 0,
+          turns: this.statTurns,
+          damageDealt: this.statDamageDealt,
+          cardsPlayed: this.statCardsPlayed,
         };
         this.cameras.main.fadeOut(600, 13, 11, 30);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -790,7 +812,12 @@ export class GameScene extends Phaser.Scene {
     // lo gestiona internamente Tooltip.showForCard (IMPL-057). No interfiere con
     // la elevación de hover de CardSprite ni con el drag.
     sprite.on(Phaser.Input.Events.POINTER_OVER, () => {
-      this.tooltip.showForCard(sprite.getCardData(), sprite.x, sprite.y, sprite.height);
+      // La carta es hija del contenedor HandView, así que sprite.x/y son
+      // coordenadas LOCALES. El Tooltip vive a nivel de escena (coordenadas de
+      // mundo), por lo que convertimos a mundo con la matriz de transformación
+      // para posicionarlo correctamente respecto a la carta (Bug 7).
+      const m = sprite.getWorldTransformMatrix();
+      this.tooltip.showForCard(sprite.getCardData(), m.tx, m.ty, sprite.height);
     });
     sprite.on(Phaser.Input.Events.POINTER_OUT, () => {
       this.tooltip.hide();
@@ -820,6 +847,17 @@ export class GameScene extends Phaser.Scene {
 
       const zoneId = this.getDropZone(pointer.x, pointer.y);
       if (zoneId) {
+        // Cada slot acepta UNA sola carta: si la zona destino ya está llena de
+        // Personajes, rechazamos el drop y devolvemos la carta a la mano para
+        // evitar cartas superpuestas en el tablero (Bug 6). Los Hechizos/Objetos
+        // no ocupan slot, por lo que no se les aplica el límite de zona.
+        const isCharacterCard = sprite.getCardData().type === CardType.Character;
+        if (isCharacterCard && this.board.isZoneFull(zoneId, true)) {
+          Toast.show(this, "Esa zona está llena", "warn");
+          this.handPlayer.rearrange();
+          return;
+        }
+
         const result = this.matchService.handlePlayerAction({
           type: "PLAY_CARD",
           playerId: "p1",

@@ -87,6 +87,11 @@ export class HandView extends Phaser.GameObjects.Container {
     return sprite;
   }
 
+  /** Número de cartas actualmente en la mano. */
+  public size(): number {
+    return this.cardEntries.length;
+  }
+
   /**
    * Elimina una carta de la mano por su id.
    */

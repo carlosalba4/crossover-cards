@@ -9,6 +9,7 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
   private readonly hourHandGraphics: Phaser.GameObjects.Graphics;
   private readonly minuteHandGraphics: Phaser.GameObjects.Graphics;
   private readonly digitalText: Phaser.GameObjects.Text;
+  private readonly nostalgiaIcon: Phaser.GameObjects.Image | null;
 
   private currentNostalgia: number = 0;
 
@@ -81,6 +82,12 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
       })
       .setOrigin(0.5);
 
+    // 8. Icono de Nostalgia (badge decorativo sobre el dial). Sprite si existe;
+    //    si no, simplemente no se muestra (el reloj ya identifica el recurso).
+    this.nostalgiaIcon = scene.textures.exists("icon-nostalgia")
+      ? scene.add.image(0, -82, "icon-nostalgia").setDisplaySize(28, 28)
+      : null;
+
     // Añadir al container en orden de dibujado
     const clockLayers: Phaser.GameObjects.GameObject[] = [];
     if (this.clockImage) clockLayers.push(this.clockImage);
@@ -94,6 +101,7 @@ export class NostalgiaClockUI extends Phaser.GameObjects.Container {
       centerDot,
       this.digitalText,
     );
+    if (this.nostalgiaIcon) clockLayers.push(this.nostalgiaIcon);
     this.add(clockLayers);
 
     scene.add.existing(this);

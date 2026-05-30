@@ -2,12 +2,19 @@ import Phaser from "phaser";
 
 export class DeckCounter extends Phaser.GameObjects.Container {
   private iconGraphics: Phaser.GameObjects.Graphics;
+  private iconImage: Phaser.GameObjects.Image | null;
   private countText: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
 
+    // Icono del mazo: sprite "icon-deck" si está cargado; si no, placeholder
+    // dibujado con Graphics (fallback).
     this.iconGraphics = scene.add.graphics();
+    this.iconImage = scene.textures.exists("icon-deck")
+      ? scene.add.image(10, 14, "icon-deck").setDisplaySize(24, 28)
+      : null;
+
     this.countText = scene.add.text(28, 6, "30", {
       fontFamily: "Nunito",
       fontSize: "14px",
@@ -15,10 +22,13 @@ export class DeckCounter extends Phaser.GameObjects.Container {
       color: "#F0EAD6",
     });
 
-    this.add([this.iconGraphics, this.countText]);
+    const layers: Phaser.GameObjects.GameObject[] = [this.iconGraphics];
+    if (this.iconImage) layers.push(this.iconImage);
+    layers.push(this.countText);
+    this.add(layers);
     scene.add.existing(this);
 
-    // Render inicial
+    // Render inicial (solo dibuja el placeholder si no hay sprite)
     this.renderIcon(0xf0ead6);
   }
 
@@ -57,6 +67,8 @@ export class DeckCounter extends Phaser.GameObjects.Container {
    */
   private renderIcon(color: number): void {
     this.iconGraphics.clear();
+    // Si hay sprite de icono, no dibujamos el placeholder de Graphics.
+    if (this.iconImage) return;
     this.iconGraphics.lineStyle(2, color, 1);
     this.iconGraphics.strokeRoundedRect(0, 0, 20, 28, 4);
 

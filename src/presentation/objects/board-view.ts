@@ -39,6 +39,12 @@ interface SlotData {
 // ---------------------------------------------------------------------------
 
 export class BoardView extends Phaser.GameObjects.Container {
+  /**
+   * Número máximo de Personajes que caben sin solaparse en una zona del tablero
+   * (ancho de zona 160px, ancho de carta de tablero 72px ⇒ 2 slots por zona).
+   */
+  public static readonly MAX_SLOTS_PER_ZONE = 2;
+
   private leftZone: ZoneView;
   private centerZone: ZoneView;
   private rightZone: ZoneView;
@@ -151,7 +157,9 @@ export class BoardView extends Phaser.GameObjects.Container {
       if (zoneId === "center") zx += 160;
       if (zoneId === "right") zx += 320;
 
-      cx = slotIndex === 0 ? zx + 40 : zx + 120;
+      // Cada slot ocupa una posición horizontal propia dentro de la zona
+      // (slot 0 → +40, slot 1 → +120, …) para que las cartas no se solapen.
+      cx = zx + 40 + slotIndex * 80;
     }
 
     sprite.setPosition(cx, cy);
@@ -168,6 +176,20 @@ export class BoardView extends Phaser.GameObjects.Container {
 
   public getSpriteByInstanceId(instanceId: string): CardSprite | null {
     return this.spriteMap.get(instanceId) ?? null;
+  }
+
+  /** Número de Personajes actualmente colocados en una zona de un jugador. */
+  public getZoneCount(zoneId: BoardZoneId, isPlayer: boolean): number {
+    const side = isPlayer ? "player" : "opponent";
+    return this.slots[side][zoneId].length;
+  }
+
+  /**
+   * Indica si una zona de un jugador ya alcanzó su capacidad visual de slots
+   * (no caben más cartas sin solaparse). Lo usa la escena para rechazar drops.
+   */
+  public isZoneFull(zoneId: BoardZoneId, isPlayer: boolean): boolean {
+    return this.getZoneCount(zoneId, isPlayer) >= BoardView.MAX_SLOTS_PER_ZONE;
   }
 
   public removeCharacterSprite(characterId: string, animate: boolean = true): void {

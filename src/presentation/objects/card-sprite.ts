@@ -72,7 +72,12 @@ const COLOR_BG_DEEP = 0x0d0b1e;
 const COLOR_BG_CARD = 0x1a1730;
 const COLOR_BG_SURFACE = 0x252240;
 const COLOR_TEXT_PRIMARY = "#F0EAD6";
-const COLOR_TEXT_SECONDARY = "#9B96B0";
+/**
+ * Color oscuro para los textos del cuerpo de la carta (nombre, tipo y
+ * descripción) que se dibujan sobre el fondo claro/beige del frame de rareza,
+ * donde el texto claro no contrasta. El coste/ATQ/VID conservan sus colores.
+ */
+const COLOR_TEXT_ON_FRAME = "#1A1A1A";
 const COLOR_ACCENT_TEAL = 0x3ecfcf;
 const COLOR_FEEDBACK_DAMAGE = 0xff3b3b;
 const COLOR_FEEDBACK_OK = 0x4caf6e;
@@ -582,7 +587,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const txt = scene.add.text(x, y, this._card.name, {
       fontFamily: "Bangers",
       fontSize: d.nameFontSize,
-      color: COLOR_TEXT_PRIMARY,
+      color: COLOR_TEXT_ON_FRAME,
     });
     txt.setOrigin(0, 0);
     txt.setVisible(this._size === CardSize.Hand);
@@ -651,10 +656,15 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const portraitTopOffset = isHand ? 18 : 2;
     const areaY = -d.height / 2 + d.borderThickness + portraitTopOffset + d.portraitH + 1;
 
+    // Alto disponible de la banda de descripción: desde justo debajo del retrato
+    // (areaY) hasta el borde superior de la zona de stats (height/2 - 22). El
+    // recorte garantiza que el texto NUNCA invada esa zona ni el borde inferior.
+    const availableHeight = d.height / 2 - 22 - areaY;
+
     const txt = scene.add.text(areaX, areaY, "", {
       fontFamily: "Nunito",
       fontSize: d.descFontSize,
-      color: COLOR_TEXT_PRIMARY,
+      color: COLOR_TEXT_ON_FRAME,
       wordWrap: { width: areaW, useAdvancedWrap: true },
       // maxLines recorta el render a un máximo de líneas (evita el desborde
       // vertical aunque la medición de elipsis no estuviera disponible).
@@ -663,7 +673,9 @@ export class CardSprite extends Phaser.GameObjects.Container {
     txt.setOrigin(0, 0);
 
     if (isHand) {
-      txt.setText(this.fitDescription(txt, this._card.description, DESC_MAX_LINES));
+      txt.setText(
+        this.fitDescription(txt, this._card.description, DESC_MAX_LINES, availableHeight),
+      );
     } else {
       txt.setText(this._card.description);
     }
@@ -673,26 +685,52 @@ export class CardSprite extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Devuelve la descripción recortada con elipsis para que no supere `maxLines`
-   * al renderizarse con el word-wrap configurado en `txt`. Si ya cabe, devuelve
-   * el texto completo. La medición usa `getWrappedText`, que respeta el ancho
-   * de envoltura del propio objeto de texto.
+   * Devuelve la descripción recortada con elipsis para que NUNCA sobrepase el
+   * área asignada dentro de la carta: ni en número de líneas (`maxLines`) ni en
+   * altura renderizada (`maxHeight`). Si el texto completo ya cabe, lo devuelve
+   * tal cual; en caso contrario reduce palabra a palabra y, como último recurso
+   * (palabra única muy larga), por caracteres. La medición usa `getWrappedText`
+   * y `txt.height`, que respetan el word-wrap del propio objeto de texto.
+   *
+   * El detalle completo siempre está disponible en el tooltip al hacer hover,
+   * por lo que dentro de la carta basta con un resumen contenido.
    */
-  private fitDescription(txt: Phaser.GameObjects.Text, full: string, maxLines: number): string {
-    txt.setText(full);
-    if (txt.getWrappedText(full).length <= maxLines) {
+  private fitDescription(
+    txt: Phaser.GameObjects.Text,
+    full: string,
+    maxLines: number,
+    maxHeight: number,
+  ): string {
+    // Un candidato "cabe" si no excede ni el máximo de líneas ni la altura de la
+    // banda de descripción (clamp estricto en ambos ejes).
+    const fits = (candidate: string): boolean => {
+      txt.setText(candidate);
+      return txt.getWrappedText(candidate).length <= maxLines && txt.height <= maxHeight;
+    };
+
+    if (fits(full)) {
       return full;
     }
 
     const words = full.split(/\s+/).filter((w) => w.length > 0);
-    // Reduce palabra a palabra hasta que el texto + elipsis quepa en maxLines.
+    // Reduce palabra a palabra hasta que el texto + elipsis quepa.
     for (let count = words.length - 1; count >= 1; count--) {
       const candidate = words.slice(0, count).join(" ") + DESC_ELLIPSIS;
-      if (txt.getWrappedText(candidate).length <= maxLines) {
+      if (fits(candidate)) {
         return candidate;
       }
     }
-    return words.length > 0 ? words[0] + DESC_ELLIPSIS : DESC_ELLIPSIS;
+
+    // Última palabra demasiado larga para una sola línea: recortar por caracteres.
+    const first = words.length > 0 ? words[0] : "";
+    for (let len = first.length - 1; len >= 1; len--) {
+      const candidate = first.slice(0, len) + DESC_ELLIPSIS;
+      if (fits(candidate)) {
+        return candidate;
+      }
+    }
+
+    return DESC_ELLIPSIS;
   }
 
   private buildTypeText(scene: Phaser.Scene): Phaser.GameObjects.Text {
@@ -701,7 +739,7 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const txt = scene.add.text(0, d.height / 2 - 6, label, {
       fontFamily: "Nunito",
       fontSize: d.typeFontSize,
-      color: COLOR_TEXT_SECONDARY,
+      color: COLOR_TEXT_ON_FRAME,
       fontStyle: "bold",
     });
     txt.setOrigin(0.5, 1);

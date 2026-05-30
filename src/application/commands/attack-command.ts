@@ -71,6 +71,18 @@ export class AttackCommand implements ICommand {
       };
     }
 
+    // ── 3a. Atacante vivo ────────────────────────────────────────────────────
+    // Defensa adicional: un atacante sin vida no puede declarar ataque. En el
+    // flujo normal los muertos ya se retiran del tablero, pero esto evita que un
+    // estado inconsistente alcance al CombatResolver (cuya guarda lanzaría).
+    if (!attacker.isAlive()) {
+      return {
+        success: false,
+        error: new InvalidTargetError(`El Personaje "${attacker.name}" ya está destruido.`),
+        eventsEmitted,
+      };
+    }
+
     // ── 3. Atacante no exhausto ──────────────────────────────────────────────
     if (attacker.isExhausted || attacker.hasAttackedThisTurn) {
       return {
@@ -106,6 +118,20 @@ export class AttackCommand implements ICommand {
     const defenderCharacter = this.match.findCharacterOnBoard(inactivePlayer, this.defenderId);
 
     if (defenderCharacter) {
+      // Un Personaje sin vida (p.ej. invocado con 0 PV por un Battlecry aún no
+      // implementado) no es un objetivo válido: rechazamos el ataque con un
+      // error de aplicación en lugar de dejar que la guarda del CombatResolver
+      // lance una excepción que bloquearía la escena (Bug 5, requisito b).
+      if (!defenderCharacter.isAlive()) {
+        return {
+          success: false,
+          error: new InvalidTargetError(
+            `El objetivo "${defenderCharacter.name}" ya está destruido.`,
+          ),
+          eventsEmitted,
+        };
+      }
+
       // Character vs Character
       this.combatResolver.resolveAttack(
         attacker,

@@ -245,9 +245,37 @@ export class MatchService {
 
     const result = command.execute();
 
+    // Barrido de seguridad: retira del tablero cualquier Personaje con vida <= 0
+    // que haya quedado tras la acción. Cubre tanto la limpieza post-combate como
+    // el caso de un Personaje invocado ya muerto (p.ej. Jake con 0/0 porque su
+    // Battlecry de elección de forma aún no está implementado). Mantiene
+    // coherentes el estado del Match y el tablero visual (Bug 5).
+    this.cleanupDeadCharacters();
+
     this.checkMatchEnd();
 
     return result;
+  }
+
+  /**
+   * Elimina de ambos tableros los Personajes con vida <= 0 que sigan presentes y
+   * emite `CharacterDestroyed` por cada uno. Es idempotente: los muertos en
+   * combate ya retirados por el comando no se vuelven a emitir.
+   */
+  private cleanupDeadCharacters(): void {
+    if (!this.currentMatch) return;
+
+    for (const player of [this.currentMatch.player1, this.currentMatch.player2]) {
+      const dead = this.currentMatch.getAllBoardCharacters(player).filter((c) => !c.isAlive());
+      for (const character of dead) {
+        this.currentMatch.removeCharacterFromBoard(player, character.instanceId);
+        this.eventBus.emit(GameEvent.CharacterDestroyed, {
+          playerId: player.playerId,
+          character,
+          cause: "effect",
+        });
+      }
+    }
   }
 
   public getCurrentMatch(): Match | null {
