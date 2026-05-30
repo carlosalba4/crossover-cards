@@ -71,11 +71,10 @@ const ARCHETYPE_COLOR: Record<Archetype, number> = {
 const COLOR_BG_DEEP = 0x0d0b1e;
 const COLOR_BG_CARD = 0x1a1730;
 const COLOR_BG_SURFACE = 0x252240;
-const COLOR_TEXT_PRIMARY = "#F0EAD6";
 /**
  * Color oscuro para los textos del cuerpo de la carta (nombre, tipo y
  * descripción) que se dibujan sobre el fondo claro/beige del frame de rareza,
- * donde el texto claro no contrasta. El coste/ATQ/VID conservan sus colores.
+ * donde el texto claro no contrasta.
  */
 const COLOR_TEXT_ON_FRAME = "#1A1A1A";
 const COLOR_ACCENT_TEAL = 0x3ecfcf;
@@ -569,17 +568,24 @@ export class CardSprite extends Phaser.GameObjects.Container {
   private buildNameText(scene: Phaser.Scene): Phaser.GameObjects.Text {
     const d = this._dims;
     const isHand = this._size === CardSize.Hand;
-    const y = -d.height / 2 + d.pad + 1;
+    // +2 para dejar 1px de respiración sobre el borde interior
+    const y = -d.height / 2 + d.pad + 2;
     const txt = scene.add.text(0, y, "", {
-      fontFamily: "Bangers",
+      fontFamily: "Nunito",
       fontSize: d.nameFontSize,
+      fontStyle: "bold",
       color: COLOR_TEXT_ON_FRAME,
+      // Stroke negro para legibilidad sobre cualquier fondo del frame
+      stroke: "#000000",
+      strokeThickness: 2,
     });
     txt.setOrigin(0.5, 0);
-    // El nombre se centra arriba y se recorta para que no sobresalga por los
-    // lados de la carta (el nombre completo está disponible en el tooltip).
+    // El nombre evita la zona del círculo de coste (esquina superior izquierda).
+    // maxWidth = ancho total menos el diámetro del círculo de coste y su margen
+    // derecho, más el pad simétrico del lado derecho.
     if (isHand) {
-      const maxWidth = d.width - d.pad * 2;
+      const costDiameter = (d.costCircleR + d.pad) * 2;
+      const maxWidth = d.width - costDiameter - d.pad;
       txt.setText(this.fitSingleLine(txt, this._card.name, maxWidth));
     } else {
       txt.setText(this._card.name);
@@ -592,11 +598,16 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const d = this._dims;
     const cx = -d.width / 2 + d.pad + d.costCircleR;
     const cy = -d.height / 2 + d.pad + d.costCircleR;
+    // Color dorado para máximo contraste sobre el círculo oscuro (COLOR_BG_DEEP).
+    // Stroke negro para que el número sea legible incluso si el círculo se
+    // superpone con el frame de rareza.
     const txt = scene.add.text(cx, cy, String(this._card.nostalgyCost), {
       fontFamily: "Nunito",
-      fontSize: `${d.costCircleR}px`,
-      color: COLOR_TEXT_PRIMARY,
+      fontSize: `${d.costCircleR + 1}px`,
+      color: "#F5C842",
       fontStyle: "bold",
+      stroke: "#000000",
+      strokeThickness: 2,
     });
     txt.setOrigin(0.5, 0.5);
     return txt;
@@ -662,12 +673,16 @@ export class CardSprite extends Phaser.GameObjects.Container {
     const d = this._dims;
     const label = this.resolveTypeLabel();
     // Etiqueta de tipo centrada, justo debajo del nombre (solo en mano).
-    const y = -d.height / 2 + d.pad + 14;
+    // +16 para 1px de respiración extra entre nombre (≈13px alto) y tipo.
+    const y = -d.height / 2 + d.pad + 16;
     const txt = scene.add.text(0, y, label, {
       fontFamily: "Nunito",
       fontSize: d.typeFontSize,
       color: COLOR_TEXT_ON_FRAME,
       fontStyle: "bold",
+      // Stroke para legibilidad sobre el frame de rareza (claro u oscuro)
+      stroke: "#000000",
+      strokeThickness: 1,
     });
     txt.setOrigin(0.5, 0);
     txt.setVisible(this._size === CardSize.Hand);

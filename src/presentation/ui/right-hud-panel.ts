@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import { NostalgiaClockUI } from "@presentation/objects/nostalgia-clock-ui";
 import { DeckCounter } from "@presentation/ui/deck-counter";
-import { Button } from "@presentation/ui/button";
 import type { IHUDPanel } from "@presentation/ui/i-hud-panel";
 
 // ---------------------------------------------------------------------------
@@ -36,8 +35,8 @@ const MOMENTUM_SEGMENT_H = 8;
 export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDPanel {
   private readonly nostalgiaClock: NostalgiaClockUI;
   private readonly deckCounter: DeckCounter;
-  private readonly crossoverBtn: Button;
-  private readonly endTurnBtn: Button;
+  private readonly crossoverBtn: Phaser.GameObjects.Image;
+  private readonly endTurnBtn: Phaser.GameObjects.Image;
 
   /** Texto del contador de cartas en mano (junto al icono de mano). */
   private handCountText!: Phaser.GameObjects.Text;
@@ -70,40 +69,115 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
     this.add(this.deckCounter);
 
     // Crossover Button
-    this.crossoverBtn = new Button({
-      scene,
-      x: 80,
-      y: 230,
-      width: 144,
-      height: 40,
-      label: "CROSSOVER",
-      backgroundColor: 0x7b4fdb,
-      textColor: "#F0EAD6",
-      iconKey: "icon-crossover",
-      onClick: () => {
-        this.emit("crossover");
-      },
+    this.crossoverBtn = scene.add
+      .image(80, 230, "icon-crossover")
+      .setDisplaySize(80, 80)
+      .setInteractive({ useHandCursor: true });
+
+    const crossBaseScale = this.crossoverBtn.scale;
+    const crossHoverScale = crossBaseScale * 1.05;
+    const crossPressScale = crossBaseScale * 0.95;
+
+    this.crossoverBtn.on("pointerover", () => {
+      if (this.crossoverBtn.input!.enabled) {
+        scene.tweens.killTweensOf(this.crossoverBtn);
+        scene.tweens.add({
+          targets: this.crossoverBtn,
+          scale: crossHoverScale,
+          duration: 80,
+          ease: "Power1",
+        });
+      }
     });
+    this.crossoverBtn.on("pointerout", () => {
+      if (this.crossoverBtn.input!.enabled) {
+        scene.tweens.killTweensOf(this.crossoverBtn);
+        scene.tweens.add({
+          targets: this.crossoverBtn,
+          scale: crossBaseScale,
+          duration: 80,
+          ease: "Power1",
+        });
+      }
+    });
+    this.crossoverBtn.on("pointerdown", () => {
+      if (this.crossoverBtn.input!.enabled) {
+        scene.tweens.killTweensOf(this.crossoverBtn);
+        scene.tweens.add({
+          targets: this.crossoverBtn,
+          scale: crossPressScale,
+          duration: 60,
+          ease: "Power1",
+        });
+      }
+    });
+    this.crossoverBtn.on("pointerup", () => {
+      if (this.crossoverBtn.input!.enabled) {
+        scene.tweens.killTweensOf(this.crossoverBtn);
+        scene.tweens.add({
+          targets: this.crossoverBtn,
+          scale: crossHoverScale,
+          duration: 80,
+          ease: "Power1",
+        });
+        this.emit("crossover");
+      }
+    });
+
     this.add(this.crossoverBtn);
 
     // Quest Panel
     this.buildQuestPanel(scene, 80, 290);
 
     // End Turn Button
-    this.endTurnBtn = new Button({
-      scene,
-      x: 80,
-      y: 360,
-      width: 144,
-      height: 56,
-      label: "FIN DE TURNO",
-      backgroundColor: 0x3ecfcf,
-      textColor: "#0d0b1e",
-      iconKey: "icon-end-turn",
-      onClick: () => {
-        this.emit("endTurn");
-      },
+    this.endTurnBtn = scene.add
+      .image(80, 360, "icon-end-turn")
+      .setDisplaySize(96, 96)
+      .setInteractive({ useHandCursor: true });
+
+    // Guardamos la escala base para las animaciones
+    const baseScale = this.endTurnBtn.scale;
+    const hoverScale = baseScale * 1.05;
+    const pressScale = baseScale * 0.95;
+
+    this.endTurnBtn.on("pointerover", () => {
+      scene.tweens.killTweensOf(this.endTurnBtn);
+      scene.tweens.add({
+        targets: this.endTurnBtn,
+        scale: hoverScale,
+        duration: 80,
+        ease: "Power1",
+      });
     });
+    this.endTurnBtn.on("pointerout", () => {
+      scene.tweens.killTweensOf(this.endTurnBtn);
+      scene.tweens.add({
+        targets: this.endTurnBtn,
+        scale: baseScale,
+        duration: 80,
+        ease: "Power1",
+      });
+    });
+    this.endTurnBtn.on("pointerdown", () => {
+      scene.tweens.killTweensOf(this.endTurnBtn);
+      scene.tweens.add({
+        targets: this.endTurnBtn,
+        scale: pressScale,
+        duration: 60,
+        ease: "Power1",
+      });
+    });
+    this.endTurnBtn.on("pointerup", () => {
+      scene.tweens.killTweensOf(this.endTurnBtn);
+      scene.tweens.add({
+        targets: this.endTurnBtn,
+        scale: hoverScale,
+        duration: 80,
+        ease: "Power1",
+      });
+      this.emit("endTurn");
+    });
+
     this.add(this.endTurnBtn);
 
     // Indicador de cartas en mano (icono + contador). Se coloca DEBAJO del botón
@@ -142,7 +216,7 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
     const container = scene.add.container(x, y);
 
     if (scene.textures.exists("icon-hand")) {
-      const icon = scene.add.image(10, 14, "icon-hand").setDisplaySize(24, 24);
+      const icon = scene.add.image(10, 14, "icon-hand").setDisplaySize(48, 48);
       container.add(icon);
     } else {
       // Fallback: abanico de cartas simplificado dibujado con Graphics.
@@ -153,9 +227,9 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
       container.add(gfx);
     }
 
-    this.handCountText = scene.add.text(28, 6, "0", {
+    this.handCountText = scene.add.text(42, 6, "0", {
       fontFamily: "Nunito",
-      fontSize: "14px",
+      fontSize: "20px",
       fontStyle: "bold",
       color: "#F0EAD6",
     });
@@ -213,7 +287,7 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
     // Icono de Misión, siempre visible a la izquierda del panel (que solo se
     // muestra cuando hay una misión activa). Sprite si existe; si no, no aparece.
     if (scene.textures.exists("icon-quest")) {
-      const questIcon = scene.add.image(x - 90, y, "icon-quest").setDisplaySize(26, 26);
+      const questIcon = scene.add.image(x - 90, y, "icon-quest").setDisplaySize(48, 48);
       this.add(questIcon);
     }
 
@@ -312,12 +386,28 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
   }
 
   public setCrossoverUsed(used: boolean): void {
-    this.crossoverBtn.setDisabled(used);
-    this.crossoverBtn.setAlpha(used ? 0.5 : 1.0);
+    if (used) {
+      this.crossoverBtn.setAlpha(0.5);
+      this.crossoverBtn.disableInteractive();
+      this.scene.tweens.killTweensOf(this.crossoverBtn);
+      this.crossoverBtn.setDisplaySize(80, 80);
+    } else {
+      this.crossoverBtn.setAlpha(1.0);
+      this.crossoverBtn.setInteractive({ useHandCursor: true });
+    }
   }
 
   public setEndTurnEnabled(enabled: boolean): void {
-    this.endTurnBtn.setDisabled(!enabled);
+    if (enabled) {
+      this.endTurnBtn.setAlpha(1);
+      this.endTurnBtn.setInteractive({ useHandCursor: true });
+    } else {
+      this.endTurnBtn.setAlpha(0.5);
+      this.endTurnBtn.disableInteractive();
+      this.scene.tweens.killTweensOf(this.endTurnBtn);
+      // Restauramos la escala base
+      this.endTurnBtn.setDisplaySize(96, 96);
+    }
   }
 
   public setActiveQuest(quest: QuestData | null): void {

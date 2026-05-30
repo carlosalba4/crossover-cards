@@ -84,22 +84,30 @@ export class HeroSelectScene extends Phaser.Scene {
     }
 
     // --- UI Superior ---
-    this.add
-      .text(cx, 60, "Elige tu Héroe", {
-        fontFamily: "Bangers, system-ui",
-        fontSize: "40px",
-        color: "#F5C842",
-      })
-      .setOrigin(0.5);
+    // Imagen "elige.png" como título de la pantalla, centrada en la parte superior.
+    if (this.textures.exists("elige")) {
+      this.add.image(cx, 60, "elige").setDisplaySize(320, 72).setOrigin(0.5);
+    } else {
+      // Fallback texto si el asset aún no se ha cargado
+      this.add
+        .text(cx, 60, "Elige tu Héroe", {
+          fontFamily: "Bangers, system-ui",
+          fontSize: "40px",
+          color: "#F5C842",
+        })
+        .setOrigin(0.5);
+    }
 
+    // Botón "Volver" con la misma textura que en EndScene
     new Button({
       scene: this,
-      x: 120,
-      y: 60,
-      width: 160,
+      x: 90,
+      y: 40,
+      width: 180,
       height: 48,
-      label: "< VOLVER",
-      backgroundColor: 0x252240, // bg-surface
+      label: "",
+      texturePrefix: "volver",
+      backgroundColor: 0x252240,
       textColor: "#F0EAD6",
       fontFamily: "Nunito, system-ui",
       fontSize: "20px",
@@ -202,9 +210,12 @@ export class HeroSelectScene extends Phaser.Scene {
       textureKey,
     });
 
+    // Cada héroe se centra en su mitad del fondo:
+    //   p1 → centro de la mitad izquierda = cx / 2
+    //   p2 → centro de la mitad derecha  = cx + cx / 2
     const p1 = new HeroPortrait({
       scene: this,
-      x: cx - 200,
+      x: cx / 2,
       y: cy + 20,
       heroData: mapHeroData(data.hero1.hero, "hero-el-lich"),
       deckCardNames: data.hero1.cards,
@@ -212,7 +223,7 @@ export class HeroSelectScene extends Phaser.Scene {
 
     const p2 = new HeroPortrait({
       scene: this,
-      x: cx + 200,
+      x: cx + cx / 2,
       y: cy + 20,
       heroData: mapHeroData(data.hero2.hero, "hero-axel-blaze"),
       deckCardNames: data.hero2.cards,

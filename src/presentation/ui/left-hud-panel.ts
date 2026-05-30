@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { ActionLog } from "@presentation/ui/action-log";
-import { Button } from "@presentation/ui/button";
 import type { IHUDPanel } from "@presentation/ui/i-hud-panel";
 
 // ---------------------------------------------------------------------------
@@ -14,7 +13,7 @@ import type { IHUDPanel } from "@presentation/ui/i-hud-panel";
  */
 export class LeftHUDPanel extends Phaser.GameObjects.Container implements IHUDPanel {
   private readonly actionLog: ActionLog;
-  private readonly pauseBtn: Button;
+  private readonly pauseBtn: Phaser.GameObjects.Image;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
@@ -26,21 +25,34 @@ export class LeftHUDPanel extends Phaser.GameObjects.Container implements IHUDPa
     // Indicadores de estado del oponente (escudo y zona) con sus iconos.
     this.buildStatusIcons(scene, 40, 390);
 
-    // Botón Pausa / Ajustes (icono icon-settings con fallback de texto)
-    this.pauseBtn = new Button({
-      scene,
-      x: 60,
-      y: 450,
-      width: 104,
-      height: 40,
-      label: "PAUSA",
-      backgroundColor: 0x1a1730,
-      textColor: "#F0EAD6",
-      iconKey: "icon-settings",
-      onClick: () => {
-        this.emit("pause");
-      },
+    // Botón Pausa / Ajustes
+    this.pauseBtn = scene.add
+      .image(60, 450, "icon-settings")
+      .setDisplaySize(64, 64)
+      .setInteractive({ useHandCursor: true });
+
+    const baseScale = this.pauseBtn.scale;
+    const hoverScale = baseScale * 1.05;
+    const pressScale = baseScale * 0.95;
+
+    this.pauseBtn.on("pointerover", () => {
+      scene.tweens.killTweensOf(this.pauseBtn);
+      scene.tweens.add({ targets: this.pauseBtn, scale: hoverScale, duration: 80, ease: "Power1" });
     });
+    this.pauseBtn.on("pointerout", () => {
+      scene.tweens.killTweensOf(this.pauseBtn);
+      scene.tweens.add({ targets: this.pauseBtn, scale: baseScale, duration: 80, ease: "Power1" });
+    });
+    this.pauseBtn.on("pointerdown", () => {
+      scene.tweens.killTweensOf(this.pauseBtn);
+      scene.tweens.add({ targets: this.pauseBtn, scale: pressScale, duration: 60, ease: "Power1" });
+    });
+    this.pauseBtn.on("pointerup", () => {
+      scene.tweens.killTweensOf(this.pauseBtn);
+      scene.tweens.add({ targets: this.pauseBtn, scale: hoverScale, duration: 80, ease: "Power1" });
+      this.emit("pause");
+    });
+
     this.add(this.pauseBtn);
 
     scene.add.existing(this);

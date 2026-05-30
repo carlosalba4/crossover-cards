@@ -305,6 +305,7 @@ export class BootScene extends Phaser.Scene {
     // Elementos de HUD (assets/ui/hud/)
     this.load.image("logo", "assets/ui/hud/logo.png");
     this.load.image("nostalgia-clock", "assets/ui/hud/nostalgia-clock.png");
+    this.load.image("elige", "assets/ui/hud/elige.png");
   }
 
   /** Carga los fondos de zona del tablero y los sprites de efectos. */
