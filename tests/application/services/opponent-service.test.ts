@@ -47,6 +47,15 @@ describe("OpponentService", () => {
       player2: p2State,
       currentPhase: "main",
       activePlayerId: "ai-player",
+      // OpponentService consulta el estado vivo del atacante antes de cada ATTACK
+      // (re-evaluación tras combate). En este mock todos los atacantes están
+      // disponibles, preservando la intención de los tests (verificar el reenvío
+      // de las acciones de la IA a MatchService).
+      findCharacterOnBoard: () => ({
+        isAlive: () => true,
+        isExhausted: false,
+        hasAttackedThisTurn: false,
+      }),
     } as unknown as Match; // Usar unknown para no tener que implementar todos los métodos
   }
 
