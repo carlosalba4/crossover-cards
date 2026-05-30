@@ -2237,3 +2237,193 @@ arquitectónica de que `presentation` no importe de `domain` salvo tipos de dato
 **Capturas asociadas**:
 
 - (pendiente de captura manual)
+
+---
+
+### Interacción #070 — 2026-05-30 (Ajustes Visuales y Legibilidad UI)
+
+- **Fase**: Implementación / Pulido UI
+- **Agente**: Phaser-Dev-Agent (Asistido por Antigravity)
+- **Herramienta**: Antigravity
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: N/A
+
+**Objetivo**: Corregir problemas de legibilidad en las cartas (`CardSprite`) y mejorar el diseño de la pantalla de selección de héroe (`HeroSelectScene`).
+
+**Acciones realizadas**:
+
+- **`card-sprite.ts`**:
+  - Cambio de fuente de `Bangers` a `Nunito Bold` con borde negro (`stroke` 2px) para el nombre y tipo, mejorando enormemente la legibilidad.
+  - Ajuste del `maxWidth` del nombre para evitar que el texto solape el círculo de coste.
+  - Cambio del color del texto del coste de Nostalgia a dorado `#F5C842` con stroke negro.
+  - Ajustes sutiles en la posición Y de los textos para que respiren dentro del marco.
+- **`boot-scene.ts`**:
+  - Inclusión de la precarga del asset gráfico `elige.png`.
+- **`hero-select-scene.ts`**:
+  - Reemplazo del texto "Elige tu Héroe" por la imagen `elige.png` centrada horizontalmente.
+  - Reemplazo del botón "< VOLVER" por un componente `Button` usando la textura `volver` con todos sus estados.
+  - Ajuste dinámico de las coordenadas de los retratos de los héroes (`cx / 2` y `cx + cx / 2`) para un centrado perfecto de cada uno en su mitad del layout, adaptativo ante cambios de resolución.
+
+**Decisiones clave**:
+
+- Aplicar `stroke` a fuentes superpuestas a ilustraciones/marcos garantiza un contraste suficiente sin alterar el arte original.
+- Evitar offsets fijos como `cx - 200` y transicionar a divisiones del canvas (`cx / 2`) favorece las buenas prácticas en diseño adaptativo.
+
+**Iteraciones**:
+
+1. Identificación de superposiciones y falta de contraste en `card-sprite.ts`. Modificación aplicada y compilada.
+2. Identificación del botón "volver" genérico y el texto plano en `hero-select-scene.ts`.
+3. Inserción de asset faltante en `boot-scene.ts` y aplicación paralela de assets en la UI, más refactor de posiciones X de los héroes.
+4. Verificación de compilación TypeScript exitosa.
+
+---
+
+### Interacción #071 — 2026-05-30 (Fase 4: QA Review global del proyecto)
+
+- **Fase**: Pruebas (Fase 4)
+- **Agente**: QA-Reviewer-Agent
+- **Herramienta**: Antigravity (workflow invocado con `/qa-reviewer-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~[XX] / ~[XX]
+
+**Objetivo**: Realizar la revisión global de calidad del proyecto como producto 
+terminado al cierre de la Fase 3 de Implementación, en modo crítico (solo hallazgos 
+Críticos y Mayores, no observaciones menores). Verificar coherencia entre PRD, 
+arquitectura y código implementado, aplicación efectiva de los 7 ADRs, calidad 
+SOLID/Clean Code, cobertura y relevancia de los 486 tests, y honestidad documental 
+de la deuda técnica conocida derivada del "Camino A" elegido en el cierre del 
+bloque IMPL-F.
+
+**Invocación**:
+> /qa-reviewer-agent + prompt corto con alcance global, modo crítico, contexto 
+> de Camino A (cerrar MVP funcional sin cablear las 5 mecánicas innovadoras), 
+> entregable `docs/qa/fase-4-qa-report.md` y restricción explícita de no aplicar 
+> refactors (solo informe).
+
+**Resultado**:
+- Plan aprobado en una sola iteración.
+- `docs/qa/fase-4-qa-report.md` generado con resumen ejecutivo, veredicto y 
+  hallazgos clasificados.
+- Veredicto: **APTO CON CORRECCIONES** (MVP funcional y desplegable).
+- 2 hallazgos Críticos: CRÍTICO-F4.1 (poder de héroe de la IA silenciado en 
+  OpponentService), CRÍTICO-F4.2 (HeroPowerUsed emitido sin handler que aplique 
+  el efecto).
+- 3 hallazgos Mayores: MAYOR-F4.1 (playerId "p1" hardcodeado en 15+ ubicaciones 
+  de GameScene), MAYOR-F4.2 (MomentumSystem instanciado pero desconectado del 
+  flujo de turnos), MAYOR-F4.3 (dispose() incompleto en subsistemas suscriptores 
+  del EventBus).
+- Verificación favorable de aplicación de los 7 ADRs.
+- 486 tests verdes y cobertura considerada satisfactoria para el alcance MVP.
+
+---
+
+## Decisiones del equipo sobre los hallazgos del QA
+
+Esta sección documenta las decisiones tomadas tras leer el informe, antes de 
+pasar a Fase 5 (Despliegue). Se sigue la estrategia "Camino A" definida al 
+cierre del bloque IMPL-F: cerrar el MVP funcional sin cablear las 5 mecánicas 
+innovadoras del PRD (Sinergia Tribal M1, Momentum M2, Zonas Dinámicas M3, 
+Quests M4, Crossover M5), documentando la deuda técnica de forma explícita y 
+honesta en lugar de ocultarla o presentarla como olvido.
+
+### Sobre los hallazgos Críticos
+
+**CRÍTICO-F4.1 (poder de héroe de la IA silenciado)**: NO se aplica el fix 
+propuesto. Arreglarlo provocaría que la IA gastase Nostalgia llamando a 
+`UseHeroPowerCommand`, que emite `HeroPowerUsed`, que ningún handler procesa 
+(CRÍTICO-F4.2). Es decir, eliminaríamos la asimetría observable solo para 
+introducir el mismo defecto funcional en la IA. Más coherente mantener ambos 
+lados del juego con el mismo estado: el poder de héroe está pendiente de cablear 
+para los dos.
+
+**CRÍTICO-F4.2 (poder de héroe sin efecto real)**: NO se implementa `HeroPowerResolver` 
+en este ciclo. El equipo decide conscientemente que el botón del poder de héroe 
+del jugador humano permanece visible y funcional desde el punto de vista de UI 
+(la pulsación es válida y consume Nostalgia), pero ningún efecto real se aplica 
+sobre el campo de batalla. Esta limitación queda documentada como deuda técnica 
+explícita del MVP.
+
+Si tras la finalización de la Fase 6 (Memoria) sobra tiempo dentro del plazo 
+de entrega, se valora retomar este hallazgo implementando un `HeroPowerResolver` 
+mínimo (efectos `damage` y `heal`) en un sub-bloque opcional. En tal caso se 
+documentaría con una interacción adicional en este log. Si no sobra tiempo, 
+queda como mejora futura conocida.
+
+### Sobre los hallazgos Mayores
+
+**MAYOR-F4.1 (playerId "p1" hardcodeado)**: NO se refactoriza en este ciclo. 
+El propio informe confirma que la inconsistencia no causa bug observable en el 
+flujo actual del MVP, donde el héroe seleccionado por el jugador siempre se 
+asigna al primer mazo y por tanto el jugador humano siempre obtiene `playerId === "p1"`. 
+La fragilidad arquitectónica queda registrada como deuda técnica menor para 
+una hipotética Fase 7 de robustecimiento.
+
+**MAYOR-F4.2 (MomentumSystem desconectado)**: forma parte del paquete consciente 
+de las 5 mecánicas innovadoras dejadas como trabajo futuro en el cierre de IMPL-F. 
+El sistema `MomentumSystem` está implementado con tests propios y emisión de 
+`MomentumChanged` correctamente preparada, pero NO se instancia en `MatchService` 
+ni se invoca su `onTurnStart`. El handler de UI en `GameScene` está cableado 
+pero como el evento nunca se emite, el widget de Momentum nunca aparece 
+visualmente. No produce inconsistencia observable para el usuario final.
+
+**MAYOR-F4.3 (dispose incompleto)**: NO se aplica el refactor. En el flujo actual 
+del MVP (una partida por sesión de navegador, "Jugar de nuevo" implementado mediante 
+recarga implícita de escena) los handlers de subsistemas no se acumulan en la 
+práctica. Queda documentado como deuda técnica menor sin impacto observable.
+
+### Mapa completo de la deuda técnica del MVP
+
+A efectos de la memoria final (Fase 6) y de la trazabilidad del proyecto, se 
+consolida aquí el inventario completo de deuda técnica asumida por el "Camino A":
+
+| Elemento | Estado del código | Estado del cableado | Severidad |
+|---|---|---|---|
+| Poder de héroe (jugador) | Comando implementado y testeado | Botón activo, evento emitido sin handler | Crítica (deuda) |
+| Poder de héroe (IA) | Comando implementado y testeado | OpponentService devuelve console.warn | Crítica (deuda) |
+| MomentumSystem | Sistema implementado y testeado | No instanciado en MatchService | Mayor (deuda) |
+| TribalSynergySystem | Sistema implementado y testeado | No instanciado en MatchService | Mayor (deuda) |
+| QuestManager | Sistema + ActivateQuestCommand implementados y testeados | No instanciado en MatchService | Mayor (deuda) |
+| ZoneManager | Sistema implementado y testeado, zonas mostradas visualmente | Lógica de buffs/debuffs sin aplicar | Mayor (deuda) |
+| CrossoverManager | Sistema implementado y comando cableado parcialmente | Robo visual a mano pendiente | Mayor (deuda) |
+| Identificadores hardcodeados "p1" | — | Asumido por inicialización fija de la partida | Menor (deuda) |
+| dispose() de subsistemas EventBus | — | Limpieza incompleta sin impacto observable | Menor (deuda) |
+
+Esta deuda técnica es **consciente y documentada**, no un olvido. La elección 
+del Camino A se tomó priorizando un MVP funcional jugable de extremo a extremo 
+sobre una implementación parcial de las mecánicas innovadoras que comprometiera 
+la estabilidad del producto entregado.
+
+### Verificación de coherencia PRD ↔ implementación
+
+El informe del QA-Reviewer señala una incoherencia entre lo que el PRD describe 
+y lo que el código implementa: las mecánicas M1-M5 figuran en `docs/01-prd.md` 
+como funcionalidades sin marcar su estado real. Esta entrada queda como la 
+referencia canónica del estado real de cada mecánica. En la memoria final 
+(Fase 6) se incluirá una sección dedicada al alcance efectivo del MVP frente 
+al alcance del PRD, citando esta interacción.
+
+---
+
+**Decisiones clave**:
+- Sonnet 4.6 Thinking elegido por capacidad de razonamiento estructural sobre 
+  el conjunto completo del proyecto, sin agotar la cuota de Opus.
+- Modo crítico (solo Críticos y Mayores) priorizado por restricciones de tiempo 
+  del proyecto académico.
+- Veredicto APTO CON CORRECCIONES aceptado como APTO PARA DESPLIEGUE con 
+  limitaciones conocidas documentadas en esta entrada del log.
+- Decisión consciente de no aplicar ningún refactor derivado del informe en 
+  esta fase, manteniendo la pureza del flujo de cascada (Fase 4 produce informe, 
+  no código).
+
+**Iteraciones**: 1 plan + 1 generación, aprobada sin modificaciones.
+
+**Capturas asociadas**:
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-invocacion_01.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-plan_02.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-generado_03.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-report-veredicto_04.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-report-hallazgos_05.png`
+
+**Notas**: Esta interacción cierra la Fase 4 (Pruebas) del proyecto. El informe 
+del QA-Reviewer queda como entregable principal en `docs/qa/fase-4-qa-report.md`. 
+Próximo paso: Fase 5 (Despliegue) con Deploy-Agent.
