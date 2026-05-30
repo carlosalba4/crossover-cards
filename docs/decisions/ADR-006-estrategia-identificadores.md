@@ -20,24 +20,27 @@ Se adopta una **estrategia híbrida de identificadores** clasificada según la n
 ## Justificación
 
 Esta estrategia híbrida se sustenta en los siguientes pilares de mantenibilidad y trazabilidad:
+
 - **Legibilidad y Ergonomía para el Game Designer**: El equipo puede crear, editar y balancear cartas manualmente en el JSON utilizando IDs descriptivos (`LIC-001`) sin la fricción ni el riesgo de error humano que supone copiar y pegar secuencias alfanuméricas aleatorias complejas.
 - **Prevención de Colisiones en Juego**: Si un jugador tiene en su mazo dos copias físicas del personaje `LIC-001`, y ambas se juegan en la misma zona del tablero, la lógica del juego debe poder diferenciarlas inequívocamente al procesar ataques, objetivos de hechizos y expiración de bufos. Asignarles un UUID v4 individual a cada instancia al momento de entrar a la partida solventa este problema de manera absoluta.
-- **Facilidad de Depuración (Debugging)**: Al leer el flujo de eventos en la consola (ejemplo: *"Pops el Gentil (ID: LIC-001, Instancia: b3f8...) ataca a Lich (ID: HERO-001)"*), es sumamente sencillo para el programador entender qué carta estática desencadenó la acción y qué instancia concreta del tablero recibió el impacto.
+- **Facilidad de Depuración (Debugging)**: Al leer el flujo de eventos en la consola (ejemplo: _"Pops el Gentil (ID: LIC-001, Instancia: b3f8...) ataca a Lich (ID: HERO-001)"_), es sumamente sencillo para el programador entender qué carta estática desencadenó la acción y qué instancia concreta del tablero recibió el impacto.
 - **Desacoplamiento del Event Loop en Tests**: El uso de UUIDs para partidas y modificadores garantiza que cada ejecución de test unitario en Vitest sea hermética e independiente, sin peligro de arrastrar IDs residuales de ejecuciones previas.
 
 ## Consecuencias
 
 **Positivas**:
+
 - Cero colisiones lógicas al tener múltiples instancias de la misma carta física en juego.
 - Estructura de JSON limpia, legible y auto-descriptiva para mantenimiento manual.
 - Trazabilidad perfecta de modificadores y ciclos de vida de cartas a través de logs en el Event Bus.
 
 **Negativas / Riesgos**:
-- **Sobrecarga de almacenamiento en red**: Los UUID v4 ocupan 36 caracteres en comparación con enteros simples, incrementando ligeramente el tamaño del estado serializado. *Mitigación*: Tratándose de un juego cliente-side sin sincronización constante con servidor multijugador en tiempo real, esta sobrecarga de memoria en el navegador es completamente imperceptible y despreciable.
-- **Riesgo de desincronización manual en el JSON**: Si un programador escribe un ID estático duplicado en el archivo de cartas (ej. dos cartas con ID `LIC-001`), el cargador fallará. *Mitigación*: Se implementará un test unitario de validación estática de datos en Vitest que recorra los JSONs al iniciar los tests y verifique que no existan duplicados, garantizando la integridad referencial antes del despliegue.
+
+- **Sobrecarga de almacenamiento en red**: Los UUID v4 ocupan 36 caracteres en comparación con enteros simples, incrementando ligeramente el tamaño del estado serializado. _Mitigación_: Tratándose de un juego cliente-side sin sincronización constante con servidor multijugador en tiempo real, esta sobrecarga de memoria en el navegador es completamente imperceptible y despreciable.
+- **Riesgo de desincronización manual en el JSON**: Si un programador escribe un ID estático duplicado en el archivo de cartas (ej. dos cartas con ID `LIC-001`), el cargador fallará. _Mitigación_: Se implementará un test unitario de validación estática de datos en Vitest que recorra los JSONs al iniciar los tests y verifique que no existan duplicados, garantizando la integridad referencial antes del despliegue.
 
 ## Alternativas consideradas
 
-- **Alternativa 1**: **Estrategia pura de UUID v4 para todo**. Asignar UUIDs generados desde el inicio en el archivo JSON a cada carta y héroe estático. *Descartada porque*: Hace extremadamente doloroso editar los mazos en `decks.json` (ya que referenciar cartas requeriría enlazar secuencias complejas como `"LIC-001"` vs `"8f9e2b10-fa32-4731..."`), disminuyendo la velocidad de desarrollo del equipo de 2 personas.
-- **Alternativa 2**: **Estrategia pura de strings legibles con sufijos autoincrementales**. Crear IDs dinámicos concatenando el ID de carta base con un contador global de instancias (ejemplo: `LIC-001-inst-1`, `LIC-001-inst-2`). *Descartada porque*: Obliga al dominio a mantener un estado centralizado (un contador mutable global) para generar los sufijos, lo que introduce un acoplamiento indeseado, dificulta el paralelismo y la limpieza de estado en tests unitarios, y es propenso a reinicios inconsistentes de contadores.
-- **Alternativa 3**: **IDs numéricos secuenciales simples (autoincrementales enteros)**. *Descartada porque*: Requiere un coordinado estricto en la base de datos o sistema de persistencia y carece de semántica legible al depurar flujos complejos de combate en la consola.
+- **Alternativa 1**: **Estrategia pura de UUID v4 para todo**. Asignar UUIDs generados desde el inicio en el archivo JSON a cada carta y héroe estático. _Descartada porque_: Hace extremadamente doloroso editar los mazos en `decks.json` (ya que referenciar cartas requeriría enlazar secuencias complejas como `"LIC-001"` vs `"8f9e2b10-fa32-4731..."`), disminuyendo la velocidad de desarrollo del equipo de 2 personas.
+- **Alternativa 2**: **Estrategia pura de strings legibles con sufijos autoincrementales**. Crear IDs dinámicos concatenando el ID de carta base con un contador global de instancias (ejemplo: `LIC-001-inst-1`, `LIC-001-inst-2`). _Descartada porque_: Obliga al dominio a mantener un estado centralizado (un contador mutable global) para generar los sufijos, lo que introduce un acoplamiento indeseado, dificulta el paralelismo y la limpieza de estado en tests unitarios, y es propenso a reinicios inconsistentes de contadores.
+- **Alternativa 3**: **IDs numéricos secuenciales simples (autoincrementales enteros)**. _Descartada porque_: Requiere un coordinado estricto en la base de datos o sistema de persistencia y carece de semántica legible al depurar flujos complejos de combate en la consola.

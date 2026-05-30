@@ -1,0 +1,36 @@
+[
+  {
+    "id": "DECK-LICH-01",
+    "name": "Mazo de El Lich",
+    "heroId": "HERO-001",
+    "cards": [
+      { "cardId": "LIC-001", "quantity": 1 },
+      { "cardId": "LIC-002", "quantity": 1 },
+      { "cardId": "LIC-003", "quantity": 1 },
+      { "cardId": "LIC-004", "quantity": 1 },
+      { "cardId": "LIC-005", "quantity": 1 },
+      { "cardId": "LIC-006", "quantity": 1 },
+      { "cardId": "LIC-007", "quantity": 1 },
+      { "cardId": "LIC-008", "quantity": 1 },
+      { "cardId": "LIC-009", "quantity": 1 },
+      { "cardId": "LIC-010", "quantity": 1 }
+    ]
+  },
+  {
+    "id": "DECK-AXEL-01",
+    "name": "Mazo de Axel Blaze",
+    "heroId": "HERO-002",
+    "cards": [
+      { "cardId": "AXE-001", "quantity": 1 },
+      { "cardId": "AXE-002", "quantity": 1 },
+      { "cardId": "AXE-003", "quantity": 1 },
+      { "cardId": "AXE-004", "quantity": 1 },
+      { "cardId": "AXE-005", "quantity": 1 },
+      { "cardId": "AXE-006", "quantity": 1 },
+      { "cardId": "AXE-007", "quantity": 1 },
+      { "cardId": "AXE-008", "quantity": 1 },
+      { "cardId": "AXE-009", "quantity": 1 },
+      { "cardId": "AXE-010", "quantity": 1 }
+    ]
+  }
+]

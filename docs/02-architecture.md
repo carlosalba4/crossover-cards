@@ -1,4 +1,5 @@
 # Documento de Arquitectura Tecnica
+
 ## Crossover Cards — Juego de Cartas Estrategico por Turnos
 
 > **Nota de actualización (2026-05-21)**: en este documento se ha aplicado
@@ -9,15 +10,15 @@
 
 ---
 
-| Campo            | Valor                                      |
-|------------------|--------------------------------------------|
-| Titulo           | Arquitectura Tecnica — Crossover Cards     |
-| Version          | 1.0.0                                      |
-| Fecha            | 2026-05-20                                 |
-| Estado           | Aprobado                                   |
-| Autores          | Equipo del proyecto (2 personas)           |
-| Fase             | Diseno (Cascada, Dia 3-4)                  |
-| Revision         | Generado con asistencia de Google Antigravity (Claude Opus) |
+| Campo    | Valor                                                       |
+| -------- | ----------------------------------------------------------- |
+| Titulo   | Arquitectura Tecnica — Crossover Cards                      |
+| Version  | 1.0.0                                                       |
+| Fecha    | 2026-05-20                                                  |
+| Estado   | Aprobado                                                    |
+| Autores  | Equipo del proyecto (2 personas)                            |
+| Fase     | Diseno (Cascada, Dia 3-4)                                   |
+| Revision | Generado con asistencia de Google Antigravity (Claude Opus) |
 
 ---
 
@@ -75,14 +76,14 @@ ni planificacion de tareas diarias.
 
 ### 1.3 Referencias
 
-| Documento                               | Ubicacion                              |
-|-----------------------------------------|----------------------------------------|
-| PRD v1.1.0                              | `docs/01-prd.md`                       |
-| AGENTS.md (reglas para agentes IA)      | `AGENTS.md`                            |
-| ADR-001: Stack tecnologico              | `docs/decisions/ADR-001-stack-tecnologico.md` |
-| ADR-002: Tamano de bundle               | `docs/decisions/ADR-002-bundle-size.md` |
-| ADR-003: AGENTS.md y rules              | `docs/decisions/ADR-003-agents-md-y-rules.md` |
-| Registro de interacciones con IA        | `docs/ai-log.md`                       |
+| Documento                          | Ubicacion                                     |
+| ---------------------------------- | --------------------------------------------- |
+| PRD v1.1.0                         | `docs/01-prd.md`                              |
+| AGENTS.md (reglas para agentes IA) | `AGENTS.md`                                   |
+| ADR-001: Stack tecnologico         | `docs/decisions/ADR-001-stack-tecnologico.md` |
+| ADR-002: Tamano de bundle          | `docs/decisions/ADR-002-bundle-size.md`       |
+| ADR-003: AGENTS.md y rules         | `docs/decisions/ADR-003-agents-md-y-rules.md` |
+| Registro de interacciones con IA   | `docs/ai-log.md`                              |
 
 ---
 
@@ -142,14 +143,14 @@ graph TB
 
 ### 2.3 Principios Arquitectonicos Aplicados
 
-| Principio | Descripcion | Aplicacion en el proyecto |
-|-----------|-------------|---------------------------|
-| Clean Architecture | Las dependencias apuntan hacia el interior. Las capas externas dependen de las internas, nunca al reves. | Domain no importa nada de Application, Infrastructure ni Presentation. |
-| SOLID | Cinco principios de diseno orientado a objetos (detalle en seccion 11). | Aplicados sistematicamente en todas las capas. |
-| DDD Ligero | Uso de entidades de dominio, value objects, eventos de dominio y servicios de dominio sin la complejidad completa de DDD. | Entidades como Card, Hero, Match encapsulan logica de negocio. Eventos de dominio comunican cambios de estado. |
-| Separacion logica/presentacion | La logica del juego es completamente independiente del motor grafico. | `src/domain/` no tiene ninguna referencia a Phaser. Testeable con Vitest puro. |
-| Inversion de Dependencias | Las capas internas definen interfaces; las externas las implementan. | `IEventBus` definido en `src/domain/events/`, implementado en `src/infrastructure/events/`. `ICardRepository` definido en dominio, implementado en infraestructura. |
-| Composicion sobre herencia | Se prefiere composicion de comportamientos sobre jerarquias de herencia profundas. | Modifier[] en Character para buffs/debuffs. AIStrategy como interfaz inyectable. |
+| Principio                      | Descripcion                                                                                                               | Aplicacion en el proyecto                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clean Architecture             | Las dependencias apuntan hacia el interior. Las capas externas dependen de las internas, nunca al reves.                  | Domain no importa nada de Application, Infrastructure ni Presentation.                                                                                              |
+| SOLID                          | Cinco principios de diseno orientado a objetos (detalle en seccion 11).                                                   | Aplicados sistematicamente en todas las capas.                                                                                                                      |
+| DDD Ligero                     | Uso de entidades de dominio, value objects, eventos de dominio y servicios de dominio sin la complejidad completa de DDD. | Entidades como Card, Hero, Match encapsulan logica de negocio. Eventos de dominio comunican cambios de estado.                                                      |
+| Separacion logica/presentacion | La logica del juego es completamente independiente del motor grafico.                                                     | `src/domain/` no tiene ninguna referencia a Phaser. Testeable con Vitest puro.                                                                                      |
+| Inversion de Dependencias      | Las capas internas definen interfaces; las externas las implementan.                                                      | `IEventBus` definido en `src/domain/events/`, implementado en `src/infrastructure/events/`. `ICardRepository` definido en dominio, implementado en infraestructura. |
+| Composicion sobre herencia     | Se prefiere composicion de comportamientos sobre jerarquias de herencia profundas.                                        | Modifier[] en Character para buffs/debuffs. AIStrategy como interfaz inyectable.                                                                                    |
 
 ### 2.4 Justificacion de Decisiones Arquitectonicas Principales
 
@@ -186,79 +187,79 @@ es testeable con Vitest puro en Node.js.
 
 #### 3.1.1 Entidades principales
 
-| Entidad | Responsabilidad | Archivo previsto |
-|---------|----------------|------------------|
-| Card | Clase base abstracta para todas las cartas. Define atributos comunes: id, name, type, archetype, nostalgyCost, rarity, description, spriteKey, greetingText. | `card.ts` |
-| Character | Extiende Card. Representa una carta de Personaje con attack, health, currentHealth, abilities, hasAttackedThisTurn, isExhausted y modifiers[]. | `character.ts` |
-| Spell | Extiende Card. Representa un Hechizo con effectType, targetType, effectValue. | `spell.ts` |
-| Item | Extiende Card. Representa un Objeto con targetType, statModifier, abilityGranted, durability. | `item.ts` |
-| Player | Agrupa el estado de un jugador: hero, deck, hand, board (lado del tablero), graveyard, momentum, nostalgiaMax, nostalgiaCurrent, hasUsedCrossover, activeQuest. | `player.ts` |
-| Hero | Heroe del jugador con id, name, maxHealth, currentHealth, heroPower, archetype, hasUsedHeroPowerThisTurn, equippedItem. | `hero.ts` |
-| Deck | Coleccion ordenada de cartas. Metodos: shuffle(), draw(), removeCard(id), size(), isEmpty(). | `deck.ts` |
-| Hand | Coleccion de cartas en mano. Metodos: add(card), remove(id), isFull(), size(). Limite: 10 cartas. | `hand.ts` |
-| Board | Tablero completo con 3 zonas (izquierda, centro, derecha) + 1 slot libre. Maximo 7 Personajes por lado. | `board.ts` |
-| Zone | Una de las 3 zonas del tablero. Contiene hasta 2 Personajes por bando y un Environment activo. | `zone.ts` |
-| Environment | Entorno activo de una zona: id, nombre, efecto (buff/debuff). | `environment.ts` |
-| Match | Estado completo de una partida: player1, player2, currentTurn, turnNumber, currentPhase, winner, isFinished, turnCompletionCounter (para cambio de entornos). | `match.ts` |
-| Turn | Representa el turno actual: activePlayer, phase, turnNumber. | `turn.ts` |
-| Quest | Carta de mision: id, name, condition, progressCurrent, progressTarget, reward, isCompleted. | `quest.ts` |
-| Modifier | Value object para buffs/debuffs temporales: source, attackBonus, healthBonus, abilitiesGranted[], duration, apply(character), isExpired(). | `modifier.ts` |
+| Entidad     | Responsabilidad                                                                                                                                                 | Archivo previsto |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Card        | Clase base abstracta para todas las cartas. Define atributos comunes: id, name, type, archetype, nostalgyCost, rarity, description, spriteKey, greetingText.    | `card.ts`        |
+| Character   | Extiende Card. Representa una carta de Personaje con attack, health, currentHealth, abilities, hasAttackedThisTurn, isExhausted y modifiers[].                  | `character.ts`   |
+| Spell       | Extiende Card. Representa un Hechizo con effectType, targetType, effectValue.                                                                                   | `spell.ts`       |
+| Item        | Extiende Card. Representa un Objeto con targetType, statModifier, abilityGranted, durability.                                                                   | `item.ts`        |
+| Player      | Agrupa el estado de un jugador: hero, deck, hand, board (lado del tablero), graveyard, momentum, nostalgiaMax, nostalgiaCurrent, hasUsedCrossover, activeQuest. | `player.ts`      |
+| Hero        | Heroe del jugador con id, name, maxHealth, currentHealth, heroPower, archetype, hasUsedHeroPowerThisTurn, equippedItem.                                         | `hero.ts`        |
+| Deck        | Coleccion ordenada de cartas. Metodos: shuffle(), draw(), removeCard(id), size(), isEmpty().                                                                    | `deck.ts`        |
+| Hand        | Coleccion de cartas en mano. Metodos: add(card), remove(id), isFull(), size(). Limite: 10 cartas.                                                               | `hand.ts`        |
+| Board       | Tablero completo con 3 zonas (izquierda, centro, derecha) + 1 slot libre. Maximo 7 Personajes por lado.                                                         | `board.ts`       |
+| Zone        | Una de las 3 zonas del tablero. Contiene hasta 2 Personajes por bando y un Environment activo.                                                                  | `zone.ts`        |
+| Environment | Entorno activo de una zona: id, nombre, efecto (buff/debuff).                                                                                                   | `environment.ts` |
+| Match       | Estado completo de una partida: player1, player2, currentTurn, turnNumber, currentPhase, winner, isFinished, turnCompletionCounter (para cambio de entornos).   | `match.ts`       |
+| Turn        | Representa el turno actual: activePlayer, phase, turnNumber.                                                                                                    | `turn.ts`        |
+| Quest       | Carta de mision: id, name, condition, progressCurrent, progressTarget, reward, isCompleted.                                                                     | `quest.ts`       |
+| Modifier    | Value object para buffs/debuffs temporales: source, attackBonus, healthBonus, abilitiesGranted[], duration, apply(character), isExpired().                      | `modifier.ts`    |
 
 #### 3.1.2 Servicios de dominio
 
-| Servicio | Responsabilidad | Archivo previsto |
-|----------|----------------|------------------|
-| TurnEngine | Maquina de estados del turno. Gestiona las transiciones entre DrawPhase, MainPhase, CombatPhase y EndPhase. Implementa el patron State. | `services/turn-engine.ts` |
-| CombatResolver | Resuelve ataques entre Personajes y contra heroes. Aplica dano mutuo, gestiona Provocacion, Escudo Divino, Veneno, Ultimo Aliento. | `services/combat-resolver.ts` |
-| ZoneManager | Gestiona las 3 zonas del tablero: asignacion de Personajes a zonas, cambio de entornos cada 3 turnos, aplicacion de buffs/debuffs de entorno. | `services/zone-manager.ts` |
-| QuestManager | Gestiona las misiones: colocacion, seguimiento de progreso, activacion de recompensas, validacion de restricciones. | `services/quest-manager.ts` |
-| CrossoverManager | Gestiona la mecanica M5: validacion de uso unico, seleccion aleatoria de carta del mazo rival, transferencia a la mano. | `services/crossover-manager.ts` |
-| NostalgiaSystem | Gestiona el recurso Nostalgia: incremento de maximo por turno, recarga al inicio del turno, gasto al jugar cartas. | `services/nostalgia-system.ts` |
-| MomentumSystem | Gestiona el sistema de Momentum: activacion bajo 15 PV, acumulacion, conversion a Nostalgia adicional. | `services/momentum-system.ts` |
-| TribalSynergySystem | Calcula y aplica bonuses de sinergia tribal segun Personajes del mismo arquetipo en el tablero. | `services/tribal-synergy-system.ts` |
-| CardFactory | Patron Factory: instancia entidades Card (Character, Spell, Item) a partir de datos JSON. | `factories/card-factory.ts` |
+| Servicio            | Responsabilidad                                                                                                                               | Archivo previsto                    |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| TurnEngine          | Maquina de estados del turno. Gestiona las transiciones entre DrawPhase, MainPhase, CombatPhase y EndPhase. Implementa el patron State.       | `services/turn-engine.ts`           |
+| CombatResolver      | Resuelve ataques entre Personajes y contra heroes. Aplica dano mutuo, gestiona Provocacion, Escudo Divino, Veneno, Ultimo Aliento.            | `services/combat-resolver.ts`       |
+| ZoneManager         | Gestiona las 3 zonas del tablero: asignacion de Personajes a zonas, cambio de entornos cada 3 turnos, aplicacion de buffs/debuffs de entorno. | `services/zone-manager.ts`          |
+| QuestManager        | Gestiona las misiones: colocacion, seguimiento de progreso, activacion de recompensas, validacion de restricciones.                           | `services/quest-manager.ts`         |
+| CrossoverManager    | Gestiona la mecanica M5: validacion de uso unico, seleccion aleatoria de carta del mazo rival, transferencia a la mano.                       | `services/crossover-manager.ts`     |
+| NostalgiaSystem     | Gestiona el recurso Nostalgia: incremento de maximo por turno, recarga al inicio del turno, gasto al jugar cartas.                            | `services/nostalgia-system.ts`      |
+| MomentumSystem      | Gestiona el sistema de Momentum: activacion bajo 15 PV, acumulacion, conversion a Nostalgia adicional.                                        | `services/momentum-system.ts`       |
+| TribalSynergySystem | Calcula y aplica bonuses de sinergia tribal segun Personajes del mismo arquetipo en el tablero.                                               | `services/tribal-synergy-system.ts` |
+| CardFactory         | Patron Factory: instancia entidades Card (Character, Spell, Item) a partir de datos JSON.                                                     | `factories/card-factory.ts`         |
 
 #### 3.1.3 Eventos de dominio (`src/domain/events/`)
 
 La interfaz `IEventBus` y todos los tipos de eventos viven en esta subcarpeta. La capa
 de dominio define QUE eventos existen y su payload, sin saber QUIEN los consume.
 
-| Evento | Payload | Momento de emision |
-|--------|---------|-------------------|
-| CardPlayed | { playerId, card, zoneId? } | Al jugar una carta desde la mano |
-| CharacterSummoned | { playerId, character, zoneId } | Al colocar un Personaje en el tablero |
-| SpellCast | { playerId, spell, targetId } | Al lanzar un hechizo |
-| ItemEquipped | { playerId, item, targetId } | Al equipar un objeto |
-| AttackDeclared | { attackerId, defenderId } | Al declarar un ataque |
-| AttackResolved | { attackerId, defenderId, damageToAttacker, damageToDefender } | Al resolver el dano mutuo |
-| CharacterDestroyed | { playerId, character, cause } | Al destruir un Personaje (VID <= 0) |
-| HeroDamaged | { playerId, damage, currentHealth } | Al recibir dano el heroe |
-| HeroHealed | { playerId, amount, currentHealth } | Al curarse el heroe |
-| TurnStarted | { playerId, turnNumber, phase } | Al comenzar un turno |
-| PhaseChanged | { playerId, previousPhase, newPhase } | Al cambiar de fase dentro del turno |
-| TurnEnded | { playerId, turnNumber } | Al finalizar un turno |
-| NostalgiaChanged | { playerId, current, max } | Al cambiar la Nostalgia disponible |
-| MomentumChanged | { playerId, momentum, isActive } | Al cambiar el Momentum |
-| SynergyUpdated | { playerId, archetype, bonus, affectedCharacters[] } | Al recalcular sinergias tribales |
-| ZoneEnvironmentChanged | { zoneId, previousEnv, newEnv } | Al cambiar el entorno de una zona |
-| QuestPlaced | { playerId, quest } | Al colocar una mision |
-| QuestProgressUpdated | { playerId, questId, current, target } | Al avanzar el progreso de una mision |
-| QuestCompleted | { playerId, questId, reward } | Al completar una mision |
-| CrossoverActivated | { playerId, stolenCard, wasDestroyed } | Al usar Crossover |
-| HeroPowerUsed | { playerId, heroPower, targetId? } | Al usar la habilidad de heroe |
-| MatchStarted | { player1Id, player2Id } | Al comenzar la partida |
-| MatchEnded | { winnerId, loserId, isDraw } | Al terminar la partida |
-| DeckEmpty | { playerId, fatigueDamage } | Al intentar robar de un mazo vacio |
+| Evento                 | Payload                                                        | Momento de emision                    |
+| ---------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| CardPlayed             | { playerId, card, zoneId? }                                    | Al jugar una carta desde la mano      |
+| CharacterSummoned      | { playerId, character, zoneId }                                | Al colocar un Personaje en el tablero |
+| SpellCast              | { playerId, spell, targetId }                                  | Al lanzar un hechizo                  |
+| ItemEquipped           | { playerId, item, targetId }                                   | Al equipar un objeto                  |
+| AttackDeclared         | { attackerId, defenderId }                                     | Al declarar un ataque                 |
+| AttackResolved         | { attackerId, defenderId, damageToAttacker, damageToDefender } | Al resolver el dano mutuo             |
+| CharacterDestroyed     | { playerId, character, cause }                                 | Al destruir un Personaje (VID <= 0)   |
+| HeroDamaged            | { playerId, damage, currentHealth }                            | Al recibir dano el heroe              |
+| HeroHealed             | { playerId, amount, currentHealth }                            | Al curarse el heroe                   |
+| TurnStarted            | { playerId, turnNumber, phase }                                | Al comenzar un turno                  |
+| PhaseChanged           | { playerId, previousPhase, newPhase }                          | Al cambiar de fase dentro del turno   |
+| TurnEnded              | { playerId, turnNumber }                                       | Al finalizar un turno                 |
+| NostalgiaChanged       | { playerId, current, max }                                     | Al cambiar la Nostalgia disponible    |
+| MomentumChanged        | { playerId, momentum, isActive }                               | Al cambiar el Momentum                |
+| SynergyUpdated         | { playerId, archetype, bonus, affectedCharacters[] }           | Al recalcular sinergias tribales      |
+| ZoneEnvironmentChanged | { zoneId, previousEnv, newEnv }                                | Al cambiar el entorno de una zona     |
+| QuestPlaced            | { playerId, quest }                                            | Al colocar una mision                 |
+| QuestProgressUpdated   | { playerId, questId, current, target }                         | Al avanzar el progreso de una mision  |
+| QuestCompleted         | { playerId, questId, reward }                                  | Al completar una mision               |
+| CrossoverActivated     | { playerId, stolenCard, wasDestroyed }                         | Al usar Crossover                     |
+| HeroPowerUsed          | { playerId, heroPower, targetId? }                             | Al usar la habilidad de heroe         |
+| MatchStarted           | { player1Id, player2Id }                                       | Al comenzar la partida                |
+| MatchEnded             | { winnerId, loserId, isDraw }                                  | Al terminar la partida                |
+| DeckEmpty              | { playerId, fatigueDamage }                                    | Al intentar robar de un mazo vacio    |
 
 #### 3.1.4 IA del oponente (`src/domain/ai/`)
 
-| Clase/Interfaz | Responsabilidad |
-|----------------|----------------|
+| Clase/Interfaz        | Responsabilidad                                                                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | AIStrategy (interfaz) | Define el contrato para cualquier estrategia de IA: decidePhasePrincipal(gameState), decidePhaseCombat(gameState), decideCrossover(gameState). |
-| GreedyAI | Implementa AIStrategy con algoritmo codicioso: juega cartas de mayor a menor coste, ataca al heroe si puede. |
-| ThreatAwareAI | Implementa AIStrategy con evaluacion de amenazas: prioriza eliminar amenazas, aprovecha sinergias, usa Crossover defensivamente. |
-| ThreatEvaluator | Servicio auxiliar que calcula la puntuacion de amenaza de cada Personaje enemiga. |
-| AIActionPlanner | Planifica la secuencia de acciones optima dada una estrategia y un estado de juego. |
+| GreedyAI              | Implementa AIStrategy con algoritmo codicioso: juega cartas de mayor a menor coste, ataca al heroe si puede.                                   |
+| ThreatAwareAI         | Implementa AIStrategy con evaluacion de amenazas: prioriza eliminar amenazas, aprovecha sinergias, usa Crossover defensivamente.               |
+| ThreatEvaluator       | Servicio auxiliar que calcula la puntuacion de amenaza de cada Personaje enemiga.                                                              |
+| AIActionPlanner       | Planifica la secuencia de acciones optima dada una estrategia y un estado de juego.                                                            |
 
 ### 3.2 Capa de Aplicacion (`src/application/`)
 
@@ -271,23 +272,23 @@ No contiene logica de negocio propia; toda la logica reside en el dominio.
 Cada accion del jugador se encapsula como un objeto Command con metodo `execute()`.
 Todos los comandos implementan la interfaz `ICommand`.
 
-| Comando | Responsabilidad | Validaciones |
-|---------|----------------|--------------|
-| PlayCardCommand | Jugar una carta desde la mano. | Fase correcta, Nostalgia suficiente, tablero no lleno, carta en mano. |
-| AttackCommand | Atacar con un Personaje. | Fase de combate, Personaje no exhausta, objetivo valido, Provocacion respetada. |
-| EndTurnCommand | Finalizar el turno voluntariamente. | Fase Principal o Combate activa. |
-| UseHeroPowerCommand | Activar la habilidad del heroe. | Fase Principal, Nostalgia suficiente, no usada este turno. |
-| ActivateQuestCommand | Colocar una mision en la zona de mision. | No hay mision activa, carta de mision en mano, inicio de Fase Principal. |
-| ActivateCrossoverCommand | Usar la mecanica Crossover. | Fase Principal, no usado en la partida, mazo enemigo no vacio. |
-| UseMomentumCommand | Gastar Momentum como Nostalgia. | Jugador en estado Momentum, Momentum disponible > 0. |
+| Comando                  | Responsabilidad                          | Validaciones                                                                    |
+| ------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------- |
+| PlayCardCommand          | Jugar una carta desde la mano.           | Fase correcta, Nostalgia suficiente, tablero no lleno, carta en mano.           |
+| AttackCommand            | Atacar con un Personaje.                 | Fase de combate, Personaje no exhausta, objetivo valido, Provocacion respetada. |
+| EndTurnCommand           | Finalizar el turno voluntariamente.      | Fase Principal o Combate activa.                                                |
+| UseHeroPowerCommand      | Activar la habilidad del heroe.          | Fase Principal, Nostalgia suficiente, no usada este turno.                      |
+| ActivateQuestCommand     | Colocar una mision en la zona de mision. | No hay mision activa, carta de mision en mano, inicio de Fase Principal.        |
+| ActivateCrossoverCommand | Usar la mecanica Crossover.              | Fase Principal, no usado en la partida, mazo enemigo no vacio.                  |
+| UseMomentumCommand       | Gastar Momentum como Nostalgia.          | Jugador en estado Momentum, Momentum disponible > 0.                            |
 
 #### 3.2.2 Servicios de aplicacion
 
-| Servicio | Responsabilidad |
-|----------|----------------|
-| MatchService | Coordina el ciclo de vida completo de la partida: inicializacion (barajar mazos, repartir cartas, elegir primer jugador), bucle de turnos, deteccion de fin de partida. Recibe comandos y los ejecuta contra el dominio. |
-| DeckService | Coordina la construccion de mazos a partir de los repositorios. Valida restricciones de deckbuilding (copias por rareza, tamano 30). |
-| OpponentService | Gestiona el turno de la IA: recibe el estado de juego, invoca la AIStrategy configurada, traduce las decisiones de la IA en comandos que ejecuta secuencialmente con retardo artificial. |
+| Servicio        | Responsabilidad                                                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| MatchService    | Coordina el ciclo de vida completo de la partida: inicializacion (barajar mazos, repartir cartas, elegir primer jugador), bucle de turnos, deteccion de fin de partida. Recibe comandos y los ejecuta contra el dominio. |
+| DeckService     | Coordina la construccion de mazos a partir de los repositorios. Valida restricciones de deckbuilding (copias por rareza, tamano 30).                                                                                     |
+| OpponentService | Gestiona el turno de la IA: recibe el estado de juego, invoca la AIStrategy configurada, traduce las decisiones de la IA en comandos que ejecuta secuencialmente con retardo artificial.                                 |
 
 #### 3.2.3 Flujo de acciones del jugador
 
@@ -308,20 +309,20 @@ en el dominio. Acceso a datos, persistencia y mapeo de recursos.
 
 #### 3.3.1 Repositorios
 
-| Repositorio | Interfaz de dominio | Implementacion | Origen de datos |
-|-------------|--------------------|--------------------|-----------------|
-| CardRepository | ICardRepository | JsonCardRepository | `assets/data/cards.json` |
-| DeckRepository | IDeckRepository | JsonDeckRepository | `assets/data/decks.json` |
-| HeroRepository | IHeroRepository | JsonHeroRepository | `assets/data/heroes.json` |
+| Repositorio           | Interfaz de dominio    | Implementacion            | Origen de datos                 |
+| --------------------- | ---------------------- | ------------------------- | ------------------------------- |
+| CardRepository        | ICardRepository        | JsonCardRepository        | `assets/data/cards.json`        |
+| DeckRepository        | IDeckRepository        | JsonDeckRepository        | `assets/data/decks.json`        |
+| HeroRepository        | IHeroRepository        | JsonHeroRepository        | `assets/data/heroes.json`       |
 | EnvironmentRepository | IEnvironmentRepository | JsonEnvironmentRepository | `assets/data/environments.json` |
-| QuestRepository | IQuestRepository | JsonQuestRepository | `assets/data/quests.json` |
+| QuestRepository       | IQuestRepository       | JsonQuestRepository       | `assets/data/quests.json`       |
 
 #### 3.3.2 Adaptadores
 
-| Adaptador | Responsabilidad |
-|-----------|----------------|
+| Adaptador           | Responsabilidad                                                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | LocalStorageAdapter | Lee y escribe estadisticas de partida en `localStorage` del navegador. Funcionalidad opcional (CH-02). Implementa interfaz `IStorageAdapter` del dominio. |
-| SpriteSheetAdapter | Mapea los `spriteKey` de las cartas a las coordenadas/frames del spritesheet de Phaser. Puente entre datos de dominio y assets graficos. |
+| SpriteSheetAdapter  | Mapea los `spriteKey` de las cartas a las coordenadas/frames del spritesheet de Phaser. Puente entre datos de dominio y assets graficos.                  |
 
 #### 3.3.3 Implementacion del Event Bus
 
@@ -343,38 +344,38 @@ Se suscribe a los eventos del dominio a traves del Event Bus para reflejar cambi
 
 #### 3.4.1 Escenas
 
-| Escena | Responsabilidad | Transiciones |
-|--------|----------------|--------------|
-| BootScene | Carga de assets: spritesheets, fuentes, sonidos, datos JSON. Muestra barra de progreso. | -> MenuScene |
-| MenuScene | Menu principal con boton "Nueva Partida" y selector de dificultad. | -> HeroSelectScene |
-| HeroSelectScene | Seleccion de heroe con preview visual y descripcion de habilidad y mazo. | -> GameScene / <- MenuScene |
-| GameScene | Tablero de juego completo. Escena principal de la partida. | -> EndScene |
-| EndScene | Pantalla de resultado: victoria, derrota o empate con estadisticas. | -> MenuScene |
+| Escena          | Responsabilidad                                                                         | Transiciones                |
+| --------------- | --------------------------------------------------------------------------------------- | --------------------------- |
+| BootScene       | Carga de assets: spritesheets, fuentes, sonidos, datos JSON. Muestra barra de progreso. | -> MenuScene                |
+| MenuScene       | Menu principal con boton "Nueva Partida" y selector de dificultad.                      | -> HeroSelectScene          |
+| HeroSelectScene | Seleccion de heroe con preview visual y descripcion de habilidad y mazo.                | -> GameScene / <- MenuScene |
+| GameScene       | Tablero de juego completo. Escena principal de la partida.                              | -> EndScene                 |
+| EndScene        | Pantalla de resultado: victoria, derrota o empate con estadisticas.                     | -> MenuScene                |
 
 #### 3.4.2 Objetos visuales (`src/presentation/objects/`)
 
-| Objeto | Responsabilidad |
-|--------|----------------|
-| CardSprite | Representacion visual de una carta. Muestra arte, coste, ATQ, VID, rareza, nombre. Gestiona animaciones de hover, seleccion, juego y destruccion. |
-| BoardView | Representacion del tablero completo con las 3 zonas visuales superpuestas + slot libre. Gestiona la disposicion de Personajes. |
-| HandView | Representacion de la mano del jugador. Anima la entrada/salida de cartas. Gestiona el abanico de cartas. |
-| HeroView | Representacion del heroe: retrato, barra de vida, boton de habilidad, objeto equipado. |
-| ZoneView | Representacion visual de una zona del tablero. Muestra el entorno activo con color/textura de fondo. Anima transiciones de entorno. |
-| NostalgiaClockUI | Reloj de bolsillo victoriano que representa la Nostalgia disponible. Anima la recarga al inicio del turno. |
-| MomentumBar | Barra de Momentum junto al heroe. Muestra puntos acumulados y estado activo/inactivo. |
+| Objeto           | Responsabilidad                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CardSprite       | Representacion visual de una carta. Muestra arte, coste, ATQ, VID, rareza, nombre. Gestiona animaciones de hover, seleccion, juego y destruccion. |
+| BoardView        | Representacion del tablero completo con las 3 zonas visuales superpuestas + slot libre. Gestiona la disposicion de Personajes.                    |
+| HandView         | Representacion de la mano del jugador. Anima la entrada/salida de cartas. Gestiona el abanico de cartas.                                          |
+| HeroView         | Representacion del heroe: retrato, barra de vida, boton de habilidad, objeto equipado.                                                            |
+| ZoneView         | Representacion visual de una zona del tablero. Muestra el entorno activo con color/textura de fondo. Anima transiciones de entorno.               |
+| NostalgiaClockUI | Reloj de bolsillo victoriano que representa la Nostalgia disponible. Anima la recarga al inicio del turno.                                        |
+| MomentumBar      | Barra de Momentum junto al heroe. Muestra puntos acumulados y estado activo/inactivo.                                                             |
 
 #### 3.4.3 UI auxiliar (`src/presentation/ui/`)
 
-| Componente | Responsabilidad |
-|------------|----------------|
-| HUD | Panel superior con informacion de turno activo, numero de turno, cartas en mazo, boton de fin de turno y boton de Crossover. |
-| Tooltip | Ventana emergente al pasar el cursor sobre una carta o Personaje. Muestra estadisticas completas. |
-| Button | Componente de boton reutilizable con estados (normal, hover, pressed, disabled). |
-| Toast | Mensaje temporal que aparece y desaparece con animacion. Para notificaciones de juego. |
-| Modal | Dialogo modal para confirmaciones (jugar carta, activar Crossover). |
-| QuestTracker | Panel que muestra la mision activa con barra de progreso. |
-| ActionLog | Historial lateral de acciones del turno (funcionalidad SH-05). |
-| EasterEggTV | Television retro interactiva para el easter egg. Gestiona contador de clics y secuencia de activacion. |
+| Componente   | Responsabilidad                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| HUD          | Panel superior con informacion de turno activo, numero de turno, cartas en mazo, boton de fin de turno y boton de Crossover. |
+| Tooltip      | Ventana emergente al pasar el cursor sobre una carta o Personaje. Muestra estadisticas completas.                            |
+| Button       | Componente de boton reutilizable con estados (normal, hover, pressed, disabled).                                             |
+| Toast        | Mensaje temporal que aparece y desaparece con animacion. Para notificaciones de juego.                                       |
+| Modal        | Dialogo modal para confirmaciones (jugar carta, activar Crossover).                                                          |
+| QuestTracker | Panel que muestra la mision activa con barra de progreso.                                                                    |
+| ActionLog    | Historial lateral de acciones del turno (funcionalidad SH-05).                                                               |
+| EasterEggTV  | Television retro interactiva para el easter egg. Gestiona contador de clics y secuencia de activacion.                       |
 
 #### 3.4.4 Suscripcion a eventos del dominio
 
@@ -427,6 +428,7 @@ o borde sutil. Esta decision simplifica la implementacion en Phaser y mantiene
 la mecanica clara sin requerir carriles separados fisicamente.
 
 Distribucion de slots:
+
 - Zona Izquierda: 2 slots por bando.
 - Zona Centro: 2 slots por bando.
 - Zona Derecha: 2 slots por bando.
@@ -899,6 +901,7 @@ Los datos estaticos (cartas, heroes, misiones) se almacenan en archivos JSON en 
 `assets/data/`. Estos archivos se cargan en memoria y se utilizan para instanciar las entidades.
 
 **Carta (CardData)**:
+
 ```json
 {
   "id": "LIC-001",
@@ -917,6 +920,7 @@ Los datos estaticos (cartas, heroes, misiones) se almacenan en archivos JSON en 
 ```
 
 **Mazo (DeckData)**:
+
 ```json
 {
   "id": "DECK-LICH-01",
@@ -929,6 +933,7 @@ Los datos estaticos (cartas, heroes, misiones) se almacenan en archivos JSON en 
 ```
 
 **Heroe (HeroData)**:
+
 ```json
 {
   "id": "HERO-001",
@@ -946,6 +951,7 @@ Los datos estaticos (cartas, heroes, misiones) se almacenan en archivos JSON en 
 ```
 
 **Zona / Entorno (EnvironmentData)**:
+
 ```json
 {
   "id": "ENV-002",
@@ -959,6 +965,7 @@ Los datos estaticos (cartas, heroes, misiones) se almacenan en archivos JSON en 
 ```
 
 **Mision (QuestData)**:
+
 ```json
 {
   "id": "QST-001",
@@ -1037,7 +1044,7 @@ Segun lo definido en **ADR-006**, se adopta una estrategia hibrida para los iden
 Como se ilustra en el diagrama de la seccion 4.1, la maquina de estados del turno
 gestiona las fases. Las transiciones ocurren debido a acciones especificas o eventos:
 
-- **Draw -> Main**: Ocurre automaticamente tras resolver el robo de la carta inicial (o aplicar la penalizacion por *Fatigue* si el mazo esta vacio). El sistema emite `PhaseChanged`.
+- **Draw -> Main**: Ocurre automaticamente tras resolver el robo de la carta inicial (o aplicar la penalizacion por _Fatigue_ si el mazo esta vacio). El sistema emite `PhaseChanged`.
 - **Main -> Combat**: El jugador presiona el boton "Fase de Combate". El `TurnEngine` valida que no haya acciones bloqueantes en resolucion y efectua el cambio.
 - **Combat -> End**: Ocurre de dos formas:
   1. El jugador presiona "Fin de Turno".
@@ -1091,6 +1098,7 @@ la dificultad (incluso en mitad de la partida) simplemente inyectando una nueva 
 Actua de forma codiciosa maximizando el valor inmediato sin prever consecuencias.
 
 **Paso a paso en Fase Principal**:
+
 1. Obtiene las cartas de la mano y las ordena descendentemente por coste de Nostalgia.
 2. Itera la lista e intenta jugar la primera carta cuyo coste sea `<= nostalgiaCurrent`.
 3. Repite hasta que no quede ninguna carta jugable.
@@ -1098,6 +1106,7 @@ Actua de forma codiciosa maximizando el valor inmediato sin prever consecuencias
 5. Emite transicion a Fase de Combate. (No usa Crossover ni Momentum de forma inteligente).
 
 **Paso a paso en Fase de Combate**:
+
 1. Obtiene las Personajes propias listas para atacar.
 2. Por cada atacante:
    - Si el oponente tiene Personajes con Provocacion (Taunt), elige la de menor Vida y ataca.
@@ -1111,17 +1120,20 @@ Evalua el estado del tablero, identifica amenazas e intenta buscar intercambios 
 
 **Evaluacion de Amenazas (ThreatEvaluator)**:
 Al inicio del turno, calcula un score de peligro para cada Personaje enemiga:
-- Base = ATQ + (Vida * 0.5).
+
+- Base = ATQ + (Vida \* 0.5).
 - Modificadores: Si tiene Veneno (+3), Escudo Divino (+2), Provocacion (+1).
 - Si el score es `>= 5`, se considera una **Amenaza Critica**.
 
 **Paso a paso en Fase Principal**:
+
 1. **Defensa Temprana**: Si la vida del heroe de la IA es `<= 40%`, busca en la mano hechizos de curacion, control, o usa el **Crossover** para intentar robar un salvavidas si tiene `=< 3` cartas en mano.
 2. **Activacion de Sinergias**: Busca en su mano grupos de `>= 2` cartas del mismo arquetipo. Si puede pagarlas juntas este turno, prioriza su uso para activar `TribalSynergySystem`.
-3. **Resolucion Estandar**: Juega las cartas que maximicen estadisticas en el tablero, priorizando Personajes con *Battlecry* que puedan matar Amenazas Criticas (ej. hacer 2 de dano al entrar a una amenaza con 2 de vida).
+3. **Resolucion Estandar**: Juega las cartas que maximicen estadisticas en el tablero, priorizando Personajes con _Battlecry_ que puedan matar Amenazas Criticas (ej. hacer 2 de dano al entrar a una amenaza con 2 de vida).
 4. **Momentum**: Si la IA esta en estado de Momentum y tiene `>= 3` cargas, lo convierte a Nostalgia para jugar una carta clave.
 
 **Paso a paso en Fase de Combate**:
+
 1. Prioriza atacar y eliminar las **Amenazas Criticas** enemigas.
 2. Busca "Value Trades": Atacar a una enemiga con una propia si la enemiga muere pero la propia sobrevive. (Ej. Mi 3/3 ataca a su 3/2 -> yo gano el trade porque mi personaje sobrevive 3/1).
 3. Si hay Provocacion, usa Personajes de bajo ATQ/Vida ("basura") para "romper" Escudos Divinos o sacrificar vida antes de atacar con la Personaje fuerte.
@@ -1185,27 +1197,37 @@ El proyecto adopta una piramide de testing orientada a dar la maxima confianza a
 El diseño de Crossover Cards esta fundamentado en los principios SOLID para garantizar mantenibilidad.
 
 ### 11.1 Single Responsibility Principle (SRP)
-*Una clase debe tener una, y solo una, razon para cambiar.*
+
+_Una clase debe tener una, y solo una, razon para cambiar._
+
 - **Ejemplo**: `CombatResolver` (solo calcula y aplica el dano de un combate) vs `TurnEngine` (solo gestiona en que fase estamos).
 - **Clase que lo encarna**: `TribalSynergySystem`. Su unica razon de cambiar es si cambian las matematicas de las sinergias.
 
 ### 11.2 Open/Closed Principle (OCP)
-*Las entidades deben estar abiertas para extension, pero cerradas para modificacion.*
+
+_Las entidades deben estar abiertas para extension, pero cerradas para modificacion._
+
 - **Ejemplo**: Para agregar un nuevo tipo de Fase de Turno o un nuevo nivel de IA, no modificamos `TurnEngine` ni `OpponentService`. Creamos nuevas clases que implementen `ITurnPhase` o `AIStrategy`.
 - **Clase que lo encarna**: `AIStrategy` y sus implementaciones (`GreedyAI`, `ThreatAwareAI`).
 
 ### 11.3 Liskov Substitution Principle (LSP)
-*Los objetos de un programa deberian ser reemplazables por instancias de sus subtipos sin alterar el correcto funcionamiento.*
+
+_Los objetos de un programa deberian ser reemplazables por instancias de sus subtipos sin alterar el correcto funcionamiento._
+
 - **Ejemplo**: Las clases `Character`, `Spell` e `Item` heredan de `Card`. Cualquier funcion en el dominio que reciba una `Card` (ej. meterla en la mano `Hand.add(card)`) funciona perfectamente sin importar si la carta es de un subtipo o de otro.
 - **Clase que lo encarna**: La jerarquia `Card`.
 
 ### 11.4 Interface Segregation Principle (ISP)
-*Muchas interfaces cliente-especificas son mejores que una interfaz de proposito general.*
+
+_Muchas interfaces cliente-especificas son mejores que una interfaz de proposito general._
+
 - **Ejemplo**: En lugar de tener un `IGameRepository` gigante que lea cartas, mazos y heroes, separamos las interfaces en `ICardRepository`, `IDeckRepository`, etc., para que los servicios solo dependan de los datos que realmente consumen.
 - **Clase que lo encarna**: Las interfaces del namespace `repositories/`.
 
 ### 11.5 Dependency Inversion Principle (DIP)
-*Depender de abstracciones, no de concreciones. Las capas altas no deben depender de las bajas.*
+
+_Depender de abstracciones, no de concreciones. Las capas altas no deben depender de las bajas._
+
 - **Ejemplo**: El `TurnEngine` no importa la base de datos ni `GameEventBus` desde `infrastructure`. Importa `IEventBus` (la interfaz abstracción) que esta definida en el propio dominio.
 - **Clase que lo encarna**: La relacion entre `src/domain/events/IEventBus` y `src/infrastructure/events/GameEventBus`.
 
@@ -1255,7 +1277,8 @@ graph TD
     A -.->|Orquesta| D
     A -.->|Usa| I
 ```
-*Nota: Aunque la teoria estricta de puertos y adaptadores diria que Aplicacion no debe conocer Infraestructura directamente, en el scope de este MVP y en el punto de entrada de la aplicacion (`main.ts` / inicializadores de `MatchService`), se inyectan las instancias de Infraestructura (los repositorios JSON concretos) en los constructores de Aplicacion. El dominio permanece 100% puro.*
+
+_Nota: Aunque la teoria estricta de puertos y adaptadores diria que Aplicacion no debe conocer Infraestructura directamente, en el scope de este MVP y en el punto de entrada de la aplicacion (`main.ts` / inicializadores de `MatchService`), se inyectan las instancias de Infraestructura (los repositorios JSON concretos) en los constructores de Aplicacion. El dominio permanece 100% puro._
 
 ---
 
@@ -1269,22 +1292,21 @@ graph TD
 
 ## 15. Riesgos arquitectonicos y mitigacion
 
-| ID | Riesgo | Mitigacion Arquitectonica |
-|---|---|---|
-| RA-01 | **Acoplamiento logica-Phaser**. Terminar calculando dano dentro del metodo update() de Phaser. | Mantener estricta separacion en carpetas. Codigo en `src/presentation` no puede modificar variables de estado del Dominio directamente; debe disparar un Command. |
-| RA-02 | **Carrera de animaciones vs logica**. La logica se ejecuta instantaneamente, pero las animaciones tardan. | El Event Bus actua como buffer. La logica de turnos bloquea comandos (`EsperandoAccion` -> false) si la UI notifica que esta reproduciendo animaciones. |
-| RA-03 | **Complejidad de Buffs cruzados**. Multiples modificadores se pisan o no se retiran al expirar. | Uso estricto del enfoque `Modifier[]`. Un metodo centralizado `Character.getEffectiveAttack()` recalcula el valor sumando todos los modificadores en vivo, en lugar de alterar destructivamente la estadistica base. |
-| RA-04 | **Event Loop y recursividad en el Event Bus**. Un evento dispara otro que dispara el primero infinitamente. | Implementar flag `isEmitting` en el `GameEventBus`. Si ocurre reentrada, se logea error, se bloquea o se encola el evento secundario en `setTimeout()`. |
-| RA-05 | **Bundle size de Phaser 4**. Superar limites aceptables para navegadores lentos o web hosting gratuito. | Se genero ADR-002: configuracion estricta de rollup y chunks de Vite. |
+| ID    | Riesgo                                                                                                      | Mitigacion Arquitectonica                                                                                                                                                                                            |
+| ----- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RA-01 | **Acoplamiento logica-Phaser**. Terminar calculando dano dentro del metodo update() de Phaser.              | Mantener estricta separacion en carpetas. Codigo en `src/presentation` no puede modificar variables de estado del Dominio directamente; debe disparar un Command.                                                    |
+| RA-02 | **Carrera de animaciones vs logica**. La logica se ejecuta instantaneamente, pero las animaciones tardan.   | El Event Bus actua como buffer. La logica de turnos bloquea comandos (`EsperandoAccion` -> false) si la UI notifica que esta reproduciendo animaciones.                                                              |
+| RA-03 | **Complejidad de Buffs cruzados**. Multiples modificadores se pisan o no se retiran al expirar.             | Uso estricto del enfoque `Modifier[]`. Un metodo centralizado `Character.getEffectiveAttack()` recalcula el valor sumando todos los modificadores en vivo, en lugar de alterar destructivamente la estadistica base. |
+| RA-04 | **Event Loop y recursividad en el Event Bus**. Un evento dispara otro que dispara el primero infinitamente. | Implementar flag `isEmitting` en el `GameEventBus`. Si ocurre reentrada, se logea error, se bloquea o se encola el evento secundario en `setTimeout()`.                                                              |
+| RA-05 | **Bundle size de Phaser 4**. Superar limites aceptables para navegadores lentos o web hosting gratuito.     | Se genero ADR-002: configuracion estricta de rollup y chunks de Vite.                                                                                                                                                |
 
 ---
 
 ## 16. ADRs derivados
 
-Como consecuencia de este diseño arquitectonico, se proponen los siguientes *Architecture Decision Records* (ADRs) a ser generados en la carpeta `docs/decisions/` durante la fase de Implementacion.
+Como consecuencia de este diseño arquitectonico, se proponen los siguientes _Architecture Decision Records_ (ADRs) a ser generados en la carpeta `docs/decisions/` durante la fase de Implementacion.
 
 1. **ADR-004-patron-state-turnos.md**: Documentar la justificacion detallada para utilizar el patron State sobre alternativas procedurales para las fases del turno.
 2. **ADR-005-event-bus-comunicacion.md**: Justificar la implementacion de un Event Bus custom en la capa de infraestructura en lugar de depender directamente de los eventos nativos de Phaser.
 3. **ADR-006-estrategia-identificadores.md**: Validacion de la estrategia hibrida (Strings legibles para data estatica, UUIDs para instancias dinamicas).
 4. **ADR-007-patron-strategy-ia.md**: Documentacion de la estructura inyectable para niveles de dificultad y la decision de documentar Decorators para futura aplicacion.
-
