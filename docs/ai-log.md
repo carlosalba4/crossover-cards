@@ -2278,80 +2278,152 @@ arquitectónica de que `presentation` no importe de `domain` salvo tipos de dato
 
 ---
 
-### Interacción #071 — 2026-05-30 (Auditoría QA global — Fase 4)
+### Interacción #071 — 2026-05-30 (Fase 4: QA Review global del proyecto)
 
-- **Fase**: QA / Pre-Despliegue
+- **Fase**: Pruebas (Fase 4)
 - **Agente**: QA-Reviewer-Agent
-- **Herramienta**: Antigravity (workflow `/qa-reviewer-agent`)
-- **Modelo**: Claude Sonnet 4.6 (Thinking)
-- **Tokens (entrada ≈ / salida ≈)**: ~28000 / ~7000
+- **Herramienta**: Antigravity (workflow invocado con `/qa-reviewer-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~[XX] / ~[XX]
 
-**Objetivo**: Revisión completa del proyecto como producto terminado al cierre de la Fase 4.
-Alcance global: coherencia PRD/arquitectura/código, aplicación efectiva de los 7 ADRs,
-calidad SOLID y Clean Code en las capas de dominio, aplicación e infraestructura,
-cobertura y relevancia de los 486 tests, separación dominio/presentación en Phaser,
-y verificación de la deuda técnica conocida (sistemas innovadores desconectados del MatchService).
+**Objetivo**: Realizar la revisión global de calidad del proyecto como producto 
+terminado al cierre de la Fase 3 de Implementación, en modo crítico (solo hallazgos 
+Críticos y Mayores, no observaciones menores). Verificar coherencia entre PRD, 
+arquitectura y código implementado, aplicación efectiva de los 7 ADRs, calidad 
+SOLID/Clean Code, cobertura y relevancia de los 486 tests, y honestidad documental 
+de la deuda técnica conocida derivada del "Camino A" elegido en el cierre del 
+bloque IMPL-F.
 
-**Archivos inspeccionados**:
-
-- `docs/01-prd.md`, `docs/02-architecture.md`, `docs/decisions/ADR-001` a `ADR-007`
-- `src/application/services/match-service.ts`, `opponent-service.ts`, `deck-service.ts`
-- `src/application/commands/` (todos los comandos: PlayCard, Attack, EndTurn, UseHeroPower, ActivateCrossover, ActivateQuest)
-- `src/domain/services/` (TurnEngine, CombatResolver, NostalgiaSystem, MomentumSystem, CrossoverManager, QuestManager, TribalSynergySystem, ZoneManager)
-- `src/domain/ai/` (ai-strategy.ts, greedy-ai.ts, threat-aware-ai.ts, game-state-snapshot.ts)
-- `src/composition/game-dependencies.ts`
-- `src/infrastructure/events/game-event-bus.ts`
-- `src/presentation/scenes/game-scene.ts` (1043 líneas)
-- `tests/` (exploración estructural de las 48 suites)
+**Invocación**:
+> /qa-reviewer-agent + prompt corto con alcance global, modo crítico, contexto 
+> de Camino A (cerrar MVP funcional sin cablear las 5 mecánicas innovadoras), 
+> entregable `docs/qa/fase-4-qa-report.md` y restricción explícita de no aplicar 
+> refactors (solo informe).
 
 **Resultado**:
+- Plan aprobado en una sola iteración.
+- `docs/qa/fase-4-qa-report.md` generado con resumen ejecutivo, veredicto y 
+  hallazgos clasificados.
+- Veredicto: **APTO CON CORRECCIONES** (MVP funcional y desplegable).
+- 2 hallazgos Críticos: CRÍTICO-F4.1 (poder de héroe de la IA silenciado en 
+  OpponentService), CRÍTICO-F4.2 (HeroPowerUsed emitido sin handler que aplique 
+  el efecto).
+- 3 hallazgos Mayores: MAYOR-F4.1 (playerId "p1" hardcodeado en 15+ ubicaciones 
+  de GameScene), MAYOR-F4.2 (MomentumSystem instanciado pero desconectado del 
+  flujo de turnos), MAYOR-F4.3 (dispose() incompleto en subsistemas suscriptores 
+  del EventBus).
+- Verificación favorable de aplicación de los 7 ADRs.
+- 486 tests verdes y cobertura considerada satisfactoria para el alcance MVP.
 
-- `docs/qa/fase-4-qa-report.md` generado.
-- **Veredicto: APTO CON CORRECCIONES** (486 tests en verde; arquitectura en capas respetada).
-- **2 Hallazgos Críticos**:
-  - **CRÍTICO-F4.1** — La IA nunca ejecuta su poder de héroe. `OpponentService.executeTurn()`
-    entra al `case "USE_HERO_POWER"` y dispara únicamente un `console.warn`. `UseHeroPowerCommand`
-    ya existe y está implementado; el parche es cablearlo en ese `case` (~5 líneas).
-  - **CRÍTICO-F4.2** — `UseHeroPowerCommand` emite `HeroPowerUsed` al vacío. Ningún handler
-    en la aplicación suscribe ese evento para aplicar el efecto real. El jugador gasta Nostalgia
-    y consume el uso del turno, pero la curación/daño/efecto del poder nunca ocurre.
-    Esta deuda no estaba registrada en el ai-log ni en los ADRs.
-- **3 Hallazgos Mayores**:
-  - **MAYOR-F4.1** — `"p1"` hardcodeado como literal en 18+ ubicaciones de `GameScene`.
-    Funciona por coincidencia de orden de argumentos en `initMatch`; frágil si ese orden cambia.
-  - **MAYOR-F4.2** — `MomentumSystem` no está instanciado en `MatchService`. La UI tiene
-    un widget activo para Momentum pero el sistema nunca emite valores. Incoherencia observable.
-  - **MAYOR-F4.3** — `dispose()` de `MatchService` no desregistra las suscripciones internas
-    de los subsistemas al EventBus. Riesgo de leak en flujo "Jugar de nuevo" sin recargar.
-- **Deuda técnica conocida** (Camino A — mecánicas innovadoras desconectadas del MatchService):
-  - `TribalSynergySystem`, `QuestManager`, `ZoneManager` y `MomentumSystem` existen, tienen tests,
-    pero no están instanciados ni conectados al flujo principal de la partida.
-  - `CrossoverManager` está instanciado pero solo parcialmente integrado (solo `ActivateCrossoverCommand`).
-  - **Incoherencia documental**: el PRD presenta las mecánicas M1-M5 como diseñadas sin indicar
-    que son deuda del MVP. Esta es la primera entrada en `ai-log.md` que documenta explícitamente
-    la decisión de cerrar el MVP sin conectar estos sistemas.
-  - Justificación: entregar el MVP funcional en el plazo de 14 días (ADR-001).
-  - Los sistemas están implementados y testeados, listos para conectarse en una iteración futura.
+---
+
+## Decisiones del equipo sobre los hallazgos del QA
+
+Esta sección documenta las decisiones tomadas tras leer el informe, antes de 
+pasar a Fase 5 (Despliegue). Se sigue la estrategia "Camino A" definida al 
+cierre del bloque IMPL-F: cerrar el MVP funcional sin cablear las 5 mecánicas 
+innovadoras del PRD (Sinergia Tribal M1, Momentum M2, Zonas Dinámicas M3, 
+Quests M4, Crossover M5), documentando la deuda técnica de forma explícita y 
+honesta en lugar de ocultarla o presentarla como olvido.
+
+### Sobre los hallazgos Críticos
+
+**CRÍTICO-F4.1 (poder de héroe de la IA silenciado)**: NO se aplica el fix 
+propuesto. Arreglarlo provocaría que la IA gastase Nostalgia llamando a 
+`UseHeroPowerCommand`, que emite `HeroPowerUsed`, que ningún handler procesa 
+(CRÍTICO-F4.2). Es decir, eliminaríamos la asimetría observable solo para 
+introducir el mismo defecto funcional en la IA. Más coherente mantener ambos 
+lados del juego con el mismo estado: el poder de héroe está pendiente de cablear 
+para los dos.
+
+**CRÍTICO-F4.2 (poder de héroe sin efecto real)**: NO se implementa `HeroPowerResolver` 
+en este ciclo. El equipo decide conscientemente que el botón del poder de héroe 
+del jugador humano permanece visible y funcional desde el punto de vista de UI 
+(la pulsación es válida y consume Nostalgia), pero ningún efecto real se aplica 
+sobre el campo de batalla. Esta limitación queda documentada como deuda técnica 
+explícita del MVP.
+
+Si tras la finalización de la Fase 6 (Memoria) sobra tiempo dentro del plazo 
+de entrega, se valora retomar este hallazgo implementando un `HeroPowerResolver` 
+mínimo (efectos `damage` y `heal`) en un sub-bloque opcional. En tal caso se 
+documentaría con una interacción adicional en este log. Si no sobra tiempo, 
+queda como mejora futura conocida.
+
+### Sobre los hallazgos Mayores
+
+**MAYOR-F4.1 (playerId "p1" hardcodeado)**: NO se refactoriza en este ciclo. 
+El propio informe confirma que la inconsistencia no causa bug observable en el 
+flujo actual del MVP, donde el héroe seleccionado por el jugador siempre se 
+asigna al primer mazo y por tanto el jugador humano siempre obtiene `playerId === "p1"`. 
+La fragilidad arquitectónica queda registrada como deuda técnica menor para 
+una hipotética Fase 7 de robustecimiento.
+
+**MAYOR-F4.2 (MomentumSystem desconectado)**: forma parte del paquete consciente 
+de las 5 mecánicas innovadoras dejadas como trabajo futuro en el cierre de IMPL-F. 
+El sistema `MomentumSystem` está implementado con tests propios y emisión de 
+`MomentumChanged` correctamente preparada, pero NO se instancia en `MatchService` 
+ni se invoca su `onTurnStart`. El handler de UI en `GameScene` está cableado 
+pero como el evento nunca se emite, el widget de Momentum nunca aparece 
+visualmente. No produce inconsistencia observable para el usuario final.
+
+**MAYOR-F4.3 (dispose incompleto)**: NO se aplica el refactor. En el flujo actual 
+del MVP (una partida por sesión de navegador, "Jugar de nuevo" implementado mediante 
+recarga implícita de escena) los handlers de subsistemas no se acumulan en la 
+práctica. Queda documentado como deuda técnica menor sin impacto observable.
+
+### Mapa completo de la deuda técnica del MVP
+
+A efectos de la memoria final (Fase 6) y de la trazabilidad del proyecto, se 
+consolida aquí el inventario completo de deuda técnica asumida por el "Camino A":
+
+| Elemento | Estado del código | Estado del cableado | Severidad |
+|---|---|---|---|
+| Poder de héroe (jugador) | Comando implementado y testeado | Botón activo, evento emitido sin handler | Crítica (deuda) |
+| Poder de héroe (IA) | Comando implementado y testeado | OpponentService devuelve console.warn | Crítica (deuda) |
+| MomentumSystem | Sistema implementado y testeado | No instanciado en MatchService | Mayor (deuda) |
+| TribalSynergySystem | Sistema implementado y testeado | No instanciado en MatchService | Mayor (deuda) |
+| QuestManager | Sistema + ActivateQuestCommand implementados y testeados | No instanciado en MatchService | Mayor (deuda) |
+| ZoneManager | Sistema implementado y testeado, zonas mostradas visualmente | Lógica de buffs/debuffs sin aplicar | Mayor (deuda) |
+| CrossoverManager | Sistema implementado y comando cableado parcialmente | Robo visual a mano pendiente | Mayor (deuda) |
+| Identificadores hardcodeados "p1" | — | Asumido por inicialización fija de la partida | Menor (deuda) |
+| dispose() de subsistemas EventBus | — | Limpieza incompleta sin impacto observable | Menor (deuda) |
+
+Esta deuda técnica es **consciente y documentada**, no un olvido. La elección 
+del Camino A se tomó priorizando un MVP funcional jugable de extremo a extremo 
+sobre una implementación parcial de las mecánicas innovadoras que comprometiera 
+la estabilidad del producto entregado.
+
+### Verificación de coherencia PRD ↔ implementación
+
+El informe del QA-Reviewer señala una incoherencia entre lo que el PRD describe 
+y lo que el código implementa: las mecánicas M1-M5 figuran en `docs/01-prd.md` 
+como funcionalidades sin marcar su estado real. Esta entrada queda como la 
+referencia canónica del estado real de cada mecánica. En la memoria final 
+(Fase 6) se incluirá una sección dedicada al alcance efectivo del MVP frente 
+al alcance del PRD, citando esta interacción.
+
+---
 
 **Decisiones clave**:
+- Sonnet 4.6 Thinking elegido por capacidad de razonamiento estructural sobre 
+  el conjunto completo del proyecto, sin agotar la cuota de Opus.
+- Modo crítico (solo Críticos y Mayores) priorizado por restricciones de tiempo 
+  del proyecto académico.
+- Veredicto APTO CON CORRECCIONES aceptado como APTO PARA DESPLIEGUE con 
+  limitaciones conocidas documentadas en esta entrada del log.
+- Decisión consciente de no aplicar ningún refactor derivado del informe en 
+  esta fase, manteniendo la pureza del flujo de cascada (Fase 4 produce informe, 
+  no código).
 
-- Los hallazgos CRÍTICO-F4.1 y CRÍTICO-F4.2 se marcan como pendientes de corrección antes del
-  despliegue final (Fase 5). El parche de F4.1 es trivial; F4.2 requiere un `HeroPowerResolver`.
-- Se detectaron 12 observaciones menores de estilo no incluidas en el informe (uso de `as` justificado,
-  magic strings residuales, fallback `??` hardcoded).
-- El informe **no modifica ningún archivo de código**; es solo auditoría y propuesta.
-
-**Iteraciones**:
-
-1. Lectura del workflow `qa-reviewer-agent.md` y estructura del proyecto.
-2. Inspección paralela de ADRs, match-service, opponent-service, game-scene.
-3. Inspección de comandos, servicios de dominio (systems), AI y composition root.
-4. Búsquedas `grep` sobre: `"p1"` literal, `MomentumSystem`, `TribalSynergySystem`, `QuestManager`,
-   `ZoneManager`, `USE_HERO_POWER`, `HeroPowerUsed`, `pendiente`.
-5. Ejecución de `vitest run` para verificar estado real de la suite (486 passed, exit 0).
-6. Generación del informe `docs/qa/fase-4-qa-report.md`.
-7. Registro de esta entrada en `ai-log.md`.
+**Iteraciones**: 1 plan + 1 generación, aprobada sin modificaciones.
 
 **Capturas asociadas**:
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-invocacion_01.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-plan_02.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-generado_03.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-report-veredicto_04.png`
+- `docs/screenshots/05-testing/2026-05-30_05-testing_qa-report-hallazgos_05.png`
 
-- (pendiente de captura manual)
+**Notas**: Esta interacción cierra la Fase 4 (Pruebas) del proyecto. El informe 
+del QA-Reviewer queda como entregable principal en `docs/qa/fase-4-qa-report.md`. 
+Próximo paso: Fase 5 (Despliegue) con Deploy-Agent.
