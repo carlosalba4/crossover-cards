@@ -2899,3 +2899,59 @@ intactos.
 5. Verificación: `typecheck` ✅, `lint` ✅ (0 errores), `test` ✅ (502/502), cobertura `domain/states/` 100 % ✅.
 
 **Notas**: No se modificó la lógica de victoria/derrota ni la IA. No se implementó mulligan ni robos extra (fuera de alcance).
+
+---
+
+### Interacción #082 — 2026-05-31 (Fase 7: Bugfix de presentación — Toast de errores de combate desambiguado)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~30000 / ~4000
+
+**Objetivo**: Todos los fallos de ataque mostraban el mismo toast genérico «Ese objetivo ya no está en el tablero.», porque todos los casos lanzan `InvalidTargetError` (mismo `error.name`). Distinguir los tres escenarios reales por el `error.message` del dominio. Cambio **solo en presentación**.
+
+**Diagnóstico (mensajes literales del dominio, todos en `attack-command.ts`)**:
+
+1. `El atacante con instanceId "<uuid>" no está en el tablero del jugador activo.`
+2. `El Personaje "<nombre>" ya está destruido.` (atacante)
+3. `El Personaje "<nombre>" está exhausto o ya atacó este turno.` ← exhausto
+4. `Hay Personajes con Provocación (Taunt) en el tablero rival. Debes atacarlos primero.` ← Taunt
+5. `El objetivo "<nombre>" ya está destruido.` (defensor)
+6. `El defensor con id "<uuid>" no está en el tablero del oponente.` ← objetivo ausente
+
+**Cambio (`src/presentation/utils/toast-messages.ts`)**:
+
+- Se retira `InvalidTargetError` del mapa plano `FRIENDLY_BY_NAME` y se añade `friendlyInvalidTarget(message)`, que desambigua por `message.toLowerCase().includes(...)` (case-insensitive, robusto a variaciones):
+  - `"exhaust"` → «Esa carta no puede atacar este turno.»
+  - `"taunt"` / `"provoc"` → «Debes atacar primero a las cartas con Provocar.»
+  - `"no está en el tablero"` / `"not in"` / `"destruid"` → «Ese objetivo ya no está en el tablero.»
+  - *default* → `sanitizeMessage(message)` (red de seguridad anti-UUID para casos futuros).
+- `friendlyErrorMessage` enruta a `friendlyInvalidTarget` cuando `error.name === "InvalidTargetError"`; el resto de errores no cambia.
+
+**Decisión de diseño (aprobada)**: se incluye el stem `"destruid"` (cubre destruido/destruida, mensajes 2 y 5) en el grupo del toast de tablero. Mensajes 2/5/6 son variantes de "objetivo inválido" y deben dar el mismo toast amigable; sin ello caerían al fallback saneado (correcto pero menos limpio).
+
+**Tests (`tests/presentation/utils/toast-messages.test.ts`, +5 casos)**:
+- Defensor ausente (msg 6) + UUID → toast de tablero, sin UUID.
+- Atacante exhausto (msg 3) → «Esa carta no puede atacar este turno.»
+- Taunt/Provocar (msg 4) → «Debes atacar primero a las cartas con Provocar.»
+- Objetivo destruido (msg 5) → toast de tablero.
+- Matching case-insensitive ("EXHAUSTO"/"TAUNT").
+- `InvalidTargetError` desconocido con UUID → fallback `sanitizeMessage` (sin UUID).
+
+**Criterios de aceptación verificables**:
+- ✅ Atacante exhausto → «Esa carta no puede atacar este turno.»
+- ✅ Taunt rival + atacar al héroe / a otra carta → «Debes atacar primero a las cartas con Provocar.»
+- ✅ Carta ya destruida → «Ese objetivo ya no está en el tablero.»
+- ✅ Ningún toast muestra UUIDs (fallback saneado).
+
+**Iteraciones**:
+
+1. Exploración: `toast-messages.ts`, los 6 `InvalidTargetError` de `attack-command.ts`, test existente.
+2. Plan → aprobación (incluida la extensión `"destruid"`, con reporte previo de los mensajes literales).
+3. Implementación del helper + enrutado + 5 tests.
+4. Fix de un warning de Prettier (línea larga).
+5. Verificación: `typecheck` ✅, `lint` ✅ (0 errores/0 warnings), `test` ✅ (507/507).
+
+**Notas**: Solo se tocó `src/presentation/utils/toast-messages.ts` y su test. Dominio y application intactos.
