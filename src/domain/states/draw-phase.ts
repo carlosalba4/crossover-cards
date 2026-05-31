@@ -37,6 +37,10 @@ export class DrawPhase extends BaseTurnPhase {
 
     const eventBus = this.engine.getEventBus();
     const player = match.getActivePlayer();
+    
+    // Bug 1: Habilitar uso del poder de héroe en este turno
+    player.hero.resetTurn();
+    
     const drawnCard = player.deck.draw();
 
     if (drawnCard === null) {

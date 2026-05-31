@@ -201,4 +201,23 @@ describe("DrawPhase — robo automático al iniciar turno", () => {
     expect(hand.size()).toBe(1); // la carta ya está en mano...
     expect(engine.getCurrentPhaseName()).toBe("main"); // ...antes de llegar a Main
   });
+
+  it("resets hero power usage flag for the player", () => {
+    // Arrange
+    const deck = new Deck([makeCharacter("C1")]);
+    const hand = new Hand();
+    const hero = makeHero();
+    // Simulate that the hero used its power
+    hero.hasUsedHeroPowerThisTurn = true;
+    
+    const match = makeMatch(deck, hand, hero);
+    const engine = new TurnEngine(new MockEventBus(), "p1", "p2", match);
+
+    // Act
+    new DrawPhase(engine).enter();
+
+    // Assert
+    expect(hero.hasUsedHeroPowerThisTurn).toBe(false);
+  });
 });
+

@@ -194,6 +194,7 @@ export class GameScene extends Phaser.Scene {
     // no se guarda referencia porque la escena no interactúa con él actualmente.
     new LeftHUDPanel(this, 0, 100);
     this.hudRight = new RightHUDPanel(this, 1800, 100);
+    this.hudRight.setDepth(100);
     this.turnIndicator = new TurnIndicator(this, 960, 40);
 
     this.zoneBanner = new ZoneBanner(this, 960, 300);
@@ -766,7 +767,7 @@ export class GameScene extends Phaser.Scene {
         y: 650,
         width: 140,
         height: 64,
-        label: "CONFIRMAR",
+        label: "",
         backgroundColor: 0x7b4fdb,
         textColor: "#ffffff",
         onClick: () => {

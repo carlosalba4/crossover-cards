@@ -142,20 +142,27 @@ export class BoardView extends Phaser.GameObjects.Container {
       { size: CardSize.Board },
     );
 
+    let finalZoneId = zoneId;
+    if (!isPlayer && this.isZoneFull(finalZoneId, isPlayer)) {
+      if (!this.isZoneFull("left", isPlayer)) finalZoneId = "left";
+      else if (!this.isZoneFull("center", isPlayer)) finalZoneId = "center";
+      else if (!this.isZoneFull("right", isPlayer)) finalZoneId = "right";
+    }
+
     const side = isPlayer ? "player" : "opponent";
-    const slotIndex = this.slots[side][zoneId].length;
-    this.slots[side][zoneId].push({ id: character.instanceId, sprite });
+    const slotIndex = this.slots[side][finalZoneId].length;
+    this.slots[side][finalZoneId].push({ id: character.instanceId, sprite });
     this.spriteMap.set(character.instanceId, sprite);
 
     const cy = isPlayer ? this.boardHeight * 0.75 : this.boardHeight * 0.25;
     let cx: number;
 
-    if (zoneId === "free") {
+    if (finalZoneId === "free") {
       cx = this.startX + 40;
     } else {
       let zx = this.startX + 80; // offset por freeSlot
-      if (zoneId === "center") zx += 160;
-      if (zoneId === "right") zx += 320;
+      if (finalZoneId === "center") zx += 160;
+      if (finalZoneId === "right") zx += 320;
 
       // Cada slot ocupa una posición horizontal propia dentro de la zona
       // (slot 0 → +40, slot 1 → +120, …) para que las cartas no se solapen.

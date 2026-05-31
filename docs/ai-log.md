@@ -2963,7 +2963,7 @@ intactos.
 - **Fase**: Fase 7 (Extras / cierre de hallazgos críticos de QA)
 - **Agente**: Phaser-Dev-Agent
 - **Herramienta**: Antigravity (CLI)
-- **Modelo**: Claude Opus 4.8 Thinking
+- **Modelo**: Claude Sonnet 4.6 Thinking
 - **Tokens (entrada ≈ / salida ≈)**: ~120000 / ~16000
 
 **Objetivo**: Cerrar los dos hallazgos críticos del QA conectando infraestructura ya existente pero no cableada:
@@ -3012,3 +3012,21 @@ intactos.
 5. Fix de lint (`console.debug`→`info`, accesos `any`, Prettier) y refuerzo de cobertura de ramas del resolver.
 
 **Notas / desviaciones**: el resolver se instancia en `MatchService` (no `game-dependencies.ts`) por dónde vive el `match`; fatiga/daño reutilizan eventos existentes y solo se añadieron `CharacterDamaged`/`CharacterBuffed`. No se tocó Jake/chooseForm, ni el botón de Crossover/Poder del humano, ni la lógica de victoria/derrota.
+
+### Interacción #084 — 2026-05-31 (Fixes de Jugabilidad)
+
+- **Fase**: Implementación / QA
+- **Agente**: Phaser-Dev-Agent / Antigravity
+- **Herramienta**: Antigravity
+- **Modelo**: Gemini 3.1 Pro High
+
+**Objetivo**: Resolver tres bugs de jugabilidad detectados en pruebas:
+1. El poder de héroe no se habilitaba al inicio de cada turno.
+2. El botón de Crossover en el HUD estaba tapado por el borde de pantalla y no respondía.
+3. Las cartas de la IA se solapaban visualmente si se jugaban más de 2 en la misma zona.
+
+**Resultado**:
+- `DrawPhase.enter()` modificado para llamar a `player.hero.resetTurn()`.
+- `RightHUDPanel` modificado para reducir el offset X del botón Crossover de 80 a 50, y su `depth` aumentado a 100 en `GameScene`.
+- `BoardView.addCharacterSprite` actualizado para redistribuir a la IA a una zona libre si la zona solicitada ("center") está llena visualmente, evitando el solapamiento.
+- Test unitario añadido en `draw-phase.test.ts` para verificar el reset del hero power.

@@ -70,7 +70,7 @@ export class RightHUDPanel extends Phaser.GameObjects.Container implements IHUDP
 
     // Crossover Button
     this.crossoverBtn = scene.add
-      .image(80, 230, "icon-crossover")
+      .image(50, 230, "icon-crossover")
       .setDisplaySize(80, 80)
       .setInteractive({ useHandCursor: true });
 

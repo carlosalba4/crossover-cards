@@ -287,7 +287,7 @@ export class MenuScene extends Phaser.Scene {
   private showCredits(): void {
     Modal.show(this, {
       title: "Créditos",
-      body: "Crossover Cards v1.0.0\n\nDesarrollo: Equipo (2 personas)\nAsignatura: IA y Big Data\n\nSprites: respectivos propietarios\n(CN, Nickelodeon, Toei, Level-5)\nUso exclusivamente académico.",
+      body: "Crossover Cards v1.0.0\n\nDesarrollo: Equipo Arturo y Carlos\nAsignatura: Programación de Inteligencia Artificial(IA)\n\nSprites: respectivos propietarios\n(CN, Nickelodeon, Toei, Level-5)\nUso exclusivamente académico.",
     });
   }
 
