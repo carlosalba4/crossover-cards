@@ -122,11 +122,14 @@ export class MatchService {
     const isP1Active = Math.random() < 0.5;
     this.currentMatch.activePlayerId = isP1Active ? player1Id : player2Id;
 
-    // Inicializar subsistemas
+    // Inicializar subsistemas. El Match se inyecta en el TurnEngine para que la
+    // fase de robo automática (DrawPhase) pueda robar/aplicar fatiga al jugador
+    // activo al inicio de cada turno.
     this.turnEngine = new TurnEngine(
       this.eventBus,
       this.currentMatch.activePlayerId,
       isP1Active ? player2Id : player1Id,
+      this.currentMatch,
     );
     this.combatResolver = new CombatResolver(this.eventBus);
     this.nostalgiaSystem = new NostalgiaSystem(this.eventBus);

@@ -2842,3 +2842,60 @@ intactos.
 6. Verificación: `typecheck` ✅, `lint` ✅ (0 errores), `test` ✅ (497/497 pasando).
 
 **Notas**: Solo se modificó `assets/data/cards.json` (datos). No se tocó la lógica de `combat-resolver.ts` ni `attack-command.ts`, ni la UI, ni se activaron otras habilidades (DivineShield, Stealth). No fue necesario actualizar ningún test.
+
+---
+
+### Interacción #081 — 2026-05-31 (Fase 7: Feature — Robo de carta al inicio del turno (DrawPhase) + fatiga)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~60000 / ~9000
+
+**Objetivo**: Implementar el robo automático de 1 carta al inicio del turno del jugador activo. `DrawPhase.enter()` estaba vacía (la mano nunca crecía). Toca dominio (estado de fase + evento) y presentación (animación de entrada en mano + fatiga).
+
+**Decisiones de diseño**:
+
+- **Acceso al `Match` desde `DrawPhase`**: el `TurnEngine` no conocía el `Match` (solo IDs). Se añadió un 4.º parámetro **opcional** `match: Match | null = null` al constructor + getter `getMatch()`. Opcional para no romper los ~20 tests que instancian `new TurnEngine(bus, "P1", "P2")`; en esos casos `enter()` es no-op. Solo `MatchService` inyecta el match real. El `TurnStarted` se emite **antes** de `transitionTo(DrawPhase)`, así que `match.activePlayerId` ya está sincronizado al robar.
+- **Evento de fatiga**: se **reutiliza el `DeckEmpty` ya existente** (`{playerId, fatigueDamage}`, documentado como "intenta robar de un mazo vacío (fatiga)" y con handler de presentación previo) en lugar de inventar un `FatigueDamage` redundante (AGENTS.md: "sin inventarse nada"). Además se emite `HeroDamaged` (mismo contrato que el combate) para refrescar la barra de vida del héroe.
+- **`CardDrawn`**: evento nuevo (no existía) → añadido al enum, `CardDrawnPayload {playerId, card: Card}` y `GameEventPayloadMap`.
+- **Orden de arranque (bug evitado)**: el primer `initMatch()` dispara el primer `DrawPhase.enter()` → `CardDrawn` **antes** del render masivo de manos del `.then()`, lo que duplicaría la carta robada del turno inicial. Resuelto con `HandView.clear()` llamado antes del render inicial (el estado de dominio queda como fuente de verdad).
+
+**Cambios — dominio**:
+
+- `game-event.ts`: `CardDrawn` (enum + payload + map) + `import type { Card }`.
+- `turn-engine.ts`: param opcional `match` + `getMatch()`; comentario de `startTurn()` actualizado.
+- `draw-phase.ts`: `enter()` implementado. Const `FATIGUE_DAMAGE = 1`. Robo → `hand.add` + `CardDrawn`; mano llena → descarte silencioso (Hand Burn) sin emitir; mazo vacío → `hero.takeDamage(1)` + `HeroDamaged` + `DeckEmpty`. Sin lógica de victoria/derrota.
+- `match-service.ts`: inyecta `this.currentMatch` en el `TurnEngine`.
+
+**Cambios — presentación**:
+
+- `hand-view.ts`: método `clear()` (destruye sprites, mata tweens).
+- `game-scene.ts`: handler `CardDrawn` (jugador → `addCard` animado + draggable + contadores de mano/mazo; rival → `addCard` boca abajo); `clear()` de ambas manos antes del render inicial; helper `cardToHandData(card)` con firma idéntica al render previo (refactor DRY de las 2 ramas del init + el nuevo handler).
+
+**Comportamiento sobre mano llena (MVP, acordado con el usuario)**: si la mano está llena al robar, la carta se descarta en silencio (sin toast) y el mazo decrementa igual. Mejora futura posible: evento/toast `CardBurned`.
+
+**Tests**:
+
+- `tests/domain/states/draw-phase.test.ts`: +5 tests (no-op sin match; robo con mazo no vacío → mano +1, mazo −1, `CardDrawn`; mazo vacío → fatiga −1 PV + `HeroDamaged` + `DeckEmpty`, sin `CardDrawn`; mano llena → descarte, mazo −1, sin `CardDrawn`; `startMatch` roba antes de quedar en Main). Helpers locales para construir `Match`/`Deck`/`Hand`/`Hero`/`Character`.
+- `tests/domain/events/game-event.test.ts`: actualizado conteo 24→25 y añadida entrada `CardDrawn` al `sampleMap` exhaustivo.
+- `tests/application/services/match-service.test.ts`: la aserción de manos iniciales pasa a `getActivePlayer().hand.size() === 5` (4 repartidas + 1 robada en turno 1) y `getInactivePlayer() === 4`, robusta ante la elección aleatoria de jugador activo.
+
+**Criterios de aceptación verificables**:
+- ✅ Al iniciar el turno, el jugador activo roba 1 carta (mano crece).
+- ✅ La carta aparece en la `HandView` con animación de entrada (jugador) / boca abajo (rival).
+- ✅ La IA roba al inicio de su turno (pasa por `DrawPhase` automáticamente; sin tocar `OpponentService`).
+- ✅ Mazo agotado → 1 PV de fatiga por turno + toast "¡Fatiga activa!" (handler `DeckEmpty` existente) + barra de vida refrescada (`HeroDamaged`).
+- ✅ Mano llena → no peta, carta descartada, mazo decrementa igual.
+- ✅ Cobertura `domain/states/` mantenida al **100 %** (statements/branches/functions/lines).
+
+**Iteraciones**:
+
+1. Exploración: `draw-phase.ts`, `turn-engine.ts`, `match-service.ts`, `game-event.ts`, entidades `Match`/`Deck`/`Hand`/`Hero`/`Card`, `hand-view.ts`, suscriptores de `game-scene.ts` y orden de arranque.
+2. Plan → aprobación del usuario (con confirmación de MVP silencioso en mano llena y firma idéntica del helper).
+3. Implementación dominio → aplicación → presentación → tests.
+4. Ajuste de 2 tests de catálogo/comportamiento (conteo de eventos y manos iniciales).
+5. Verificación: `typecheck` ✅, `lint` ✅ (0 errores), `test` ✅ (502/502), cobertura `domain/states/` 100 % ✅.
+
+**Notas**: No se modificó la lógica de victoria/derrota ni la IA. No se implementó mulligan ni robos extra (fuera de alcance).

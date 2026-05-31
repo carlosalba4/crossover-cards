@@ -93,6 +93,19 @@ export class HandView extends Phaser.GameObjects.Container {
   }
 
   /**
+   * Elimina todas las cartas de la mano de forma inmediata (sin animación).
+   * Útil para re-renderizar la mano desde el estado de dominio como fuente de
+   * verdad (ej. en el arranque de la partida), evitando duplicados.
+   */
+  public clear(): void {
+    this.cardEntries.forEach((entry) => {
+      this.scene.tweens.killTweensOf(entry.sprite);
+      entry.sprite.destroy();
+    });
+    this.cardEntries = [];
+  }
+
+  /**
    * Elimina una carta de la mano por su id.
    */
   public removeCard(cardId: string, animate: boolean = true): void {

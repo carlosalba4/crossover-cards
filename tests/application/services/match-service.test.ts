@@ -83,8 +83,11 @@ describe("MatchService", () => {
     expect(match.player2.playerId).toBe("p2");
     expect(match.player1.hero.name).toBe("Hero 1");
     expect(match.player2.hero.name).toBe("Hero 1");
-    expect(match.player1.hand.size()).toBe(4);
-    expect(match.player2.hand.size()).toBe(4);
+    // Tras el reparto inicial (4 cartas cada uno), el jugador activo roba 1 carta
+    // automáticamente al iniciar su primer turno (DrawPhase), quedando en 5; el
+    // jugador inactivo conserva las 4 repartidas.
+    expect(match.getActivePlayer().hand.size()).toBe(5);
+    expect(match.getInactivePlayer().hand.size()).toBe(4);
 
     expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.MatchStarted, expect.anything());
     expect(eventBus.emit).toHaveBeenCalledWith(GameEvent.TurnStarted, expect.anything());

@@ -1,6 +1,7 @@
 import type { IEventBus } from "@domain/events/event-bus";
 import { GameEvent, type TurnPhase } from "@domain/events/game-event";
 import type { ITurnPhase, TurnAction } from "@domain/states/turn-phase";
+import type { Match } from "@domain/entities/match";
 import { DrawPhase } from "@domain/states/draw-phase";
 import { MainPhase } from "@domain/states/main-phase";
 
@@ -18,6 +19,7 @@ export class TurnEngine {
     private readonly eventBus: IEventBus,
     player1Id: string,
     player2Id: string,
+    private readonly match: Match | null = null,
   ) {
     this.activePlayerId = player1Id;
     this.inactivePlayerId = player2Id;
@@ -28,6 +30,17 @@ export class TurnEngine {
    */
   public getEventBus(): IEventBus {
     return this.eventBus;
+  }
+
+  /**
+   * Obtiene el aggregate Match inyectado para que las fases automáticas (ej.
+   * la fase de robo) puedan leer y mutar el estado del jugador activo.
+   *
+   * Devuelve `null` cuando el motor se instancia sin Match (ej. tests
+   * unitarios centrados solo en la máquina de estados de fases).
+   */
+  public getMatch(): Match | null {
+    return this.match;
   }
 
   /**
@@ -78,9 +91,11 @@ export class TurnEngine {
       turnNumber: this.turnNumber,
       phase: "draw",
     });
-    // La fase de robo es automática: el robo/fatiga se gestiona en el
-    // MatchService al iniciar turno. Tras entrar en Draw, avanzamos
-    // inmediatamente a Main para que el jugador pueda actuar.
+    // La fase de robo es automática: al entrar en Draw, `DrawPhase.enter()`
+    // roba la carta del jugador activo (o aplica fatiga si el mazo está vacío)
+    // de forma síncrona. Solo después avanzamos a Main, de modo que el jugador
+    // empieza su fase principal con la carta ya en mano y sin poder accionar
+    // nada durante el robo.
     this.transitionTo(new DrawPhase(this));
     this.transitionTo(new MainPhase(this));
   }

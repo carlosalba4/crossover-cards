@@ -14,9 +14,10 @@ import { Tooltip } from "@presentation/ui/tooltip";
 import { Toast } from "@presentation/ui/toast";
 import { Modal } from "@presentation/ui/modal";
 import { Button } from "@presentation/ui/button";
-import { CardSprite } from "@presentation/objects/card-sprite";
+import { CardSprite, type CardData } from "@presentation/objects/card-sprite";
 import { friendlyErrorMessage } from "@presentation/utils/toast-messages";
 
+import type { Card } from "@domain/entities/card";
 import type { MatchService } from "@application/services/match-service";
 import type { OpponentService } from "@application/services/opponent-service";
 import type { IDeckRepository } from "@domain/repositories/i-deck-repository";
@@ -275,49 +276,48 @@ export class GameScene extends Phaser.Scene {
         // el clic sobre el héroe rival no haría nada (Bug B).
         this.wireHeroInteractions();
 
+        // El render inicial es la fuente de verdad: limpiamos cualquier sprite
+        // que el handler `CardDrawn` haya podido añadir durante el primer turno
+        // (el robo automático se dispara dentro de `initMatch`, antes de este
+        // bloque), evitando duplicar la carta robada del turno inicial.
+        this.handPlayer.clear();
+        this.handRival.clear();
+
         p1.hand.getCards().forEach((c) => {
-          const isCharacter = c instanceof Character;
-          const sprite = this.handPlayer.addCard(
-            {
-              id: c.instanceId,
-              spriteKey: c.spriteKey,
-              name: c.name,
-              type: c.type,
-              archetype: c.archetype,
-              rarity: c.rarity,
-              nostalgyCost: c.nostalgyCost,
-              attack: isCharacter ? c.attack : undefined,
-              health: isCharacter ? c.currentHealth : undefined,
-              description: c.description,
-            },
-            false,
-          );
+          const sprite = this.handPlayer.addCard(this.cardToHandData(c), false);
           this.makeHandCardDraggable(sprite, c.instanceId);
         });
         this.hudRight.updateHand(this.handPlayer.size());
+        this.hudRight.updateDeck(p1.deck.size());
 
         p2.hand.getCards().forEach((c) => {
-          const isCharacter = c instanceof Character;
-          this.handRival.addCard(
-            {
-              id: c.instanceId,
-              spriteKey: c.spriteKey,
-              name: c.name,
-              type: c.type,
-              archetype: c.archetype,
-              rarity: c.rarity,
-              nostalgyCost: c.nostalgyCost,
-              attack: isCharacter ? c.attack : undefined,
-              health: isCharacter ? c.currentHealth : undefined,
-              description: c.description,
-            },
-            false,
-          );
+          this.handRival.addCard(this.cardToHandData(c), false);
         });
       })
       .catch((err) => {
         console.error("Error inicializando partida:", err);
       });
+  }
+
+  /**
+   * Mapea una carta de dominio al DTO `CardData & { id }` que consume la
+   * `HandView`. Centraliza el mapeo usado tanto en el render inicial de manos
+   * como en el robo (`CardDrawn`), garantizando una forma idéntica en ambos.
+   */
+  private cardToHandData(card: Card): CardData & { id: string } {
+    const isCharacter = card instanceof Character;
+    return {
+      id: card.instanceId,
+      spriteKey: card.spriteKey,
+      name: card.name,
+      type: card.type,
+      archetype: card.archetype,
+      rarity: card.rarity,
+      nostalgyCost: card.nostalgyCost,
+      attack: isCharacter ? card.attack : undefined,
+      health: isCharacter ? card.currentHealth : undefined,
+      description: card.description,
+    };
   }
 
   /**
@@ -620,7 +620,27 @@ export class GameScene extends Phaser.Scene {
       }),
     );
 
-    // 17. DeckEmpty
+    // 17. CardDrawn — añade la carta robada a la mano correspondiente.
+    this.unsubscribers.push(
+      this.eventBus.on(GameEvent.CardDrawn, (payload) => {
+        if (!payload.card) return;
+        const isPlayer = payload.playerId === "p1";
+        const cardData = this.cardToHandData(payload.card);
+
+        if (isPlayer) {
+          const sprite = this.handPlayer.addCard(cardData, true);
+          this.makeHandCardDraggable(sprite, payload.card.instanceId);
+          this.hudRight.updateHand(this.handPlayer.size());
+          const deckSize = this.matchService.getCurrentMatch()?.player1.deck.size() ?? 0;
+          this.hudRight.updateDeck(deckSize);
+        } else {
+          // La carta rival entra boca abajo (HandView la renderiza con dorso).
+          this.handRival.addCard(cardData, true);
+        }
+      }),
+    );
+
+    // 18. DeckEmpty
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.DeckEmpty, (payload) => {
         const isPlayer = payload.playerId === "p1";
@@ -631,7 +651,7 @@ export class GameScene extends Phaser.Scene {
       }),
     );
 
-    // 18. MatchEnded
+    // 19. MatchEnded
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.MatchEnded, (payload) => {
         // Estadísticas reales acumuladas durante la partida desde los eventos
@@ -653,7 +673,7 @@ export class GameScene extends Phaser.Scene {
       }),
     );
 
-    // 19. SpellCast
+    // 20. SpellCast
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.SpellCast, (payload) => {
         if (!payload.spell) return;

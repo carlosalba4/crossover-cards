@@ -19,6 +19,7 @@
  */
 
 import type { PlayerId, CardId, Archetype } from "@domain/types/card-types";
+import type { Card } from "@domain/entities/card";
 import type { Character } from "@domain/entities/character";
 import type { Spell } from "@domain/entities/spell";
 import type { Item } from "@domain/entities/item";
@@ -116,6 +117,9 @@ export enum GameEvent {
   // -- Crossover y mazo (M5 Crossover) ---------------------------------------
   /** Se emite al activar la mecánica Crossover (robo de carta del mazo rival). */
   CrossoverActivated = "CrossoverActivated",
+
+  /** Se emite cuando un jugador roba una carta del mazo y entra en su mano. */
+  CardDrawn = "CardDrawn",
 
   /** Se emite cuando un jugador intenta robar de un mazo vacío (fatiga). */
   DeckEmpty = "DeckEmpty",
@@ -410,6 +414,14 @@ export interface CrossoverActivatedPayload {
   readonly wasDestroyed: boolean;
 }
 
+/** Payload de {@link GameEvent.CardDrawn}. */
+export interface CardDrawnPayload {
+  /** ID del jugador que roba la carta. */
+  readonly playerId: PlayerId;
+  /** Entidad de la carta robada del mazo y añadida a la mano. */
+  readonly card: Card;
+}
+
 /** Payload de {@link GameEvent.DeckEmpty}. */
 export interface DeckEmptyPayload {
   /** ID del jugador cuyo mazo está vacío. */
@@ -463,5 +475,6 @@ export interface GameEventPayloadMap {
   [GameEvent.QuestProgressUpdated]: QuestProgressUpdatedPayload;
   [GameEvent.QuestCompleted]: QuestCompletedPayload;
   [GameEvent.CrossoverActivated]: CrossoverActivatedPayload;
+  [GameEvent.CardDrawn]: CardDrawnPayload;
   [GameEvent.DeckEmpty]: DeckEmptyPayload;
 }

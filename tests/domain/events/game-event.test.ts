@@ -113,7 +113,7 @@ function buildItem(): Item {
 // ---------------------------------------------------------------------------
 
 describe("GameEvent enum", () => {
-  it("debe existir como objeto con 24 claves string", () => {
+  it("debe existir como objeto con 25 claves string", () => {
     // Arrange
     const events = Object.values(GameEvent);
 
@@ -121,7 +121,7 @@ describe("GameEvent enum", () => {
     const count = events.length;
 
     // Assert
-    expect(count).toBe(24);
+    expect(count).toBe(25);
   });
 
   it("debe contener todos los eventos de la arquitectura §3.1.3", () => {
@@ -150,6 +150,7 @@ describe("GameEvent enum", () => {
       GameEvent.QuestProgressUpdated,
       GameEvent.QuestCompleted,
       GameEvent.CrossoverActivated,
+      GameEvent.CardDrawn,
       GameEvent.DeckEmpty,
     ];
 
@@ -293,6 +294,10 @@ describe("GameEventPayloadMap", () => {
         playerId: "p1",
         stolenCard: buildSpell(),
         wasDestroyed: false,
+      },
+      [GameEvent.CardDrawn]: {
+        playerId: "p1",
+        card: buildCharacter(),
       },
       [GameEvent.DeckEmpty]: {
         playerId: "p2",
