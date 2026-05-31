@@ -6,9 +6,8 @@ import { CardType } from "@domain/types/card-types";
 // Constantes
 // ---------------------------------------------------------------------------
 
-const WIDTH = 280;
-const HEIGHT_CHARACTER = 200;
-const HEIGHT_OTHER = 160;
+const MIN_WIDTH = 280;
+const MAX_WIDTH = 360;
 
 const COLOR_BG = 0x252240;
 const COLOR_TEXT_PRI = "#F0EAD6";
@@ -58,28 +57,32 @@ export class Tooltip extends Phaser.GameObjects.Container {
       fontFamily: "Bangers",
       fontSize: "28px",
       color: COLOR_TEXT_PRI,
+      wordWrap: { width: MAX_WIDTH - 108 - 16, useAdvancedWrap: true },
     });
     this.typeText = scene.add.text(108, 48, "", {
       fontFamily: "Nunito",
       fontSize: "12px",
       color: COLOR_TEXT_SEC,
       fontStyle: "bold",
+      wordWrap: { width: MAX_WIDTH - 108 - 16, useAdvancedWrap: true },
     });
     this.rarityText = scene.add.text(108, 64, "", {
       fontFamily: "Nunito",
       fontSize: "12px",
       color: COLOR_TEXT_SEC,
+      wordWrap: { width: MAX_WIDTH - 108 - 16, useAdvancedWrap: true },
     });
     this.costText = scene.add.text(108, 80, "", {
       fontFamily: "Nunito",
       fontSize: "12px",
       color: COLOR_TEXT_GOLD,
+      wordWrap: { width: MAX_WIDTH - 108 - 16, useAdvancedWrap: true },
     });
     this.descText = scene.add.text(16, 110, "", {
       fontFamily: "Nunito",
       fontSize: "12px",
       color: COLOR_TEXT_PRI,
-      wordWrap: { width: 248, useAdvancedWrap: true },
+      wordWrap: { width: MAX_WIDTH - 32, useAdvancedWrap: true },
     });
 
     this.statsGraphics = scene.add.graphics();
@@ -124,10 +127,9 @@ export class Tooltip extends Phaser.GameObjects.Container {
 
     this.timer = this.scene.time.delayedCall(300, () => {
       const isCharacter = card.type === CardType.Character;
-      const tooltipHeight = isCharacter ? HEIGHT_CHARACTER : HEIGHT_OTHER;
 
-      this.buildContent(card, isCharacter, tooltipHeight);
-      this.positionTooltip(x, y, cardHeight, tooltipHeight);
+      const { width, height } = this.buildContent(card, isCharacter);
+      this.positionTooltip(x, y, cardHeight, width, height);
 
       this.setVisible(true);
       this.fadeTween = this.scene.tweens.add({
@@ -158,22 +160,42 @@ export class Tooltip extends Phaser.GameObjects.Container {
   // Métodos Privados
   // -------------------------------------------------------------------------
 
-  private buildContent(card: CardData, isCharacter: boolean, height: number): void {
-    const rarityColor = RARITY_COLORS[card.rarity] || 0x8c9099;
-
-    this.bgGraphics.clear();
-    this.bgGraphics.fillStyle(COLOR_BG, 1);
-    this.bgGraphics.fillRoundedRect(0, 0, WIDTH, height, 8);
-    this.bgGraphics.lineStyle(2, rarityColor, 1);
-    this.bgGraphics.strokeRoundedRect(0, 0, WIDTH, height, 8);
-
-    this.buildPortrait(card);
-
+  private buildContent(card: CardData, isCharacter: boolean): { width: number; height: number } {
     this.nameText.setText(card.name);
-    this.typeText.setText(`${card.type.toUpperCase()} - ${card.archetype.toUpperCase()}`);
+    let currentY = 16;
+    this.nameText.setY(currentY);
+    currentY += this.nameText.height + 4;
+
+    const formattedArchetype = card.archetype.replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase();
+    this.typeText.setText(`${card.type.toUpperCase()} - ${formattedArchetype}`);
+    this.typeText.setY(currentY);
+    currentY += this.typeText.height + 4;
+
     this.rarityText.setText(`Rareza: ${card.rarity}`);
+    this.rarityText.setY(currentY);
+    currentY += this.rarityText.height + 4;
+
     this.costText.setText(`Coste Nostalgia: ${card.nostalgyCost}`);
+    this.costText.setY(currentY);
+    currentY += this.costText.height + 16;
+
+    // El texto descriptivo debe ir al menos debajo de la imagen (aprox Y=110)
+    const descY = Math.max(110, currentY);
+    this.descText.setY(descY);
     this.descText.setText(card.description);
+
+    // Medida real
+    const maxTextWidth = Math.max(
+      108 + this.nameText.width,
+      108 + this.typeText.width,
+      108 + this.rarityText.width,
+      108 + this.costText.width,
+      16 + this.descText.width,
+    );
+    const finalWidth = Phaser.Math.Clamp(maxTextWidth + 16, MIN_WIDTH, MAX_WIDTH);
+
+    const descBottom = descY + (card.description ? this.descText.height : 0);
+    let finalHeight = descBottom + 16;
 
     if (isCharacter) {
       this.statsGraphics.setVisible(true);
@@ -183,22 +205,41 @@ export class Tooltip extends Phaser.GameObjects.Container {
       this.atkText.setText(String(card.attack ?? 0));
       this.vidText.setText(String(card.health ?? 0));
 
+      const statsY = descBottom + 12;
+
       this.statsGraphics.clear();
 
       // Icono ATQ (Triángulo)
       this.statsGraphics.fillStyle(COLOR_ATK, 1);
-      this.statsGraphics.fillTriangle(16, 182, 24, 168, 32, 182);
+      this.statsGraphics.fillTriangle(16, statsY + 14, 24, statsY, 32, statsY + 14);
 
       // Icono VID (Corazón simplificado)
       this.statsGraphics.fillStyle(COLOR_VID, 1);
-      this.statsGraphics.fillCircle(80, 172, 4);
-      this.statsGraphics.fillCircle(88, 172, 4);
-      this.statsGraphics.fillTriangle(76, 174, 92, 174, 84, 184);
+      this.statsGraphics.fillCircle(80, statsY + 4, 4);
+      this.statsGraphics.fillCircle(88, statsY + 4, 4);
+      this.statsGraphics.fillTriangle(76, statsY + 6, 92, statsY + 6, 84, statsY + 16);
+
+      this.atkText.setPosition(40, statsY - 2);
+      this.vidText.setPosition(100, statsY - 2);
+
+      finalHeight = statsY + 24 + 16;
     } else {
       this.statsGraphics.setVisible(false);
       this.atkText.setVisible(false);
       this.vidText.setVisible(false);
     }
+
+    const rarityColor = RARITY_COLORS[card.rarity] || 0x8c9099;
+
+    this.bgGraphics.clear();
+    this.bgGraphics.fillStyle(COLOR_BG, 1);
+    this.bgGraphics.fillRoundedRect(0, 0, finalWidth, finalHeight, 8);
+    this.bgGraphics.lineStyle(2, rarityColor, 1);
+    this.bgGraphics.strokeRoundedRect(0, 0, finalWidth, finalHeight, 8);
+
+    this.buildPortrait(card);
+
+    return { width: finalWidth, height: finalHeight };
   }
 
   private buildPortrait(card: CardData): void {
@@ -241,22 +282,40 @@ export class Tooltip extends Phaser.GameObjects.Container {
    * @param x Centro horizontal de la carta (mundo).
    * @param y Centro vertical de la carta (mundo).
    * @param cardHeight Altura de la carta, para separar el tooltip de su borde.
-   * @param tooltipHeight Altura del tooltip a posicionar.
+   * @param tooltipWidth Anchura dinámica del tooltip.
+   * @param tooltipHeight Altura dinámica del tooltip.
    */
-  private positionTooltip(x: number, y: number, cardHeight: number, tooltipHeight: number): void {
+  private positionTooltip(
+    x: number,
+    y: number,
+    cardHeight: number,
+    tooltipWidth: number,
+    tooltipHeight: number,
+  ): void {
     const margin = 8;
     const screenW = this.scene.scale.width;
     const screenH = this.scene.scale.height;
     const halfCard = cardHeight / 2;
 
-    let finalX = x - WIDTH / 2;
+    let finalX = x - tooltipWidth / 2;
 
     // Encima si la carta está en la mitad inferior de la pantalla; debajo si no.
     const showAbove = y > screenH / 2;
     let finalY = showAbove ? y - halfCard - tooltipHeight - margin : y + halfCard + margin;
 
-    // Clamp a los límites visibles de la pantalla en ambos ejes.
-    finalX = Phaser.Math.Clamp(finalX, margin, screenW - WIDTH - margin);
+    // Clamp horizontal a los límites visibles de la pantalla.
+    finalX = Phaser.Math.Clamp(finalX, margin, screenW - tooltipWidth - margin);
+
+    // Si choca por arriba al intentar ponerlo encima, forzar abajo
+    if (showAbove && finalY < margin) {
+      finalY = y + halfCard + margin;
+    }
+    // Si choca por abajo al intentar ponerlo debajo, forzar arriba
+    else if (!showAbove && finalY + tooltipHeight > screenH - margin) {
+      finalY = y - halfCard - tooltipHeight - margin;
+    }
+
+    // Clamp vertical final de seguridad.
     finalY = Phaser.Math.Clamp(finalY, margin, screenH - tooltipHeight - margin);
 
     this.setPosition(finalX, finalY);

@@ -8,10 +8,10 @@ const TOAST_COLORS: Record<ToastType, number> = {
   damage: 0xff3b3b,
 };
 
-const TOAST_WIDTH = 320;
-const TOAST_HEIGHT = 48;
+const MIN_WIDTH = 320;
+const MAX_WIDTH = 600;
 const TOAST_GAP = 8;
-const START_Y = -60;
+const START_Y = -100;
 
 export class Toast extends Phaser.GameObjects.Container {
   private static activeToasts: Toast[] = [];
@@ -19,22 +19,32 @@ export class Toast extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.Graphics;
   private messageText: Phaser.GameObjects.Text;
   private targetY: number = 0;
+  public toastHeight: number = 0;
 
   private constructor(scene: Phaser.Scene, x: number, y: number, message: string, type: ToastType) {
     super(scene, x, y);
 
-    this.bg = scene.add.graphics();
-    this.bg.fillStyle(TOAST_COLORS[type], 1);
-    this.bg.fillRoundedRect(-TOAST_WIDTH / 2, 0, TOAST_WIDTH, TOAST_HEIGHT, 8);
-
     this.messageText = scene.add
-      .text(0, TOAST_HEIGHT / 2, message, {
+      .text(0, 0, message, {
         fontFamily: "Nunito",
         fontSize: "16px",
         fontStyle: "bold",
         color: "#F0EAD6",
+        align: "center",
+        wordWrap: { width: MAX_WIDTH - 32, useAdvancedWrap: true },
       })
       .setOrigin(0.5);
+
+    const finalWidth = Phaser.Math.Clamp(this.messageText.width + 32, MIN_WIDTH, MAX_WIDTH);
+    const finalHeight = this.messageText.height + 32;
+    this.toastHeight = finalHeight;
+
+    this.bg = scene.add.graphics();
+    this.bg.fillStyle(TOAST_COLORS[type], 1);
+    this.bg.fillRoundedRect(-finalWidth / 2, 0, finalWidth, finalHeight, 8);
+
+    // Reposicionamos el texto en el centro vertical del nuevo fondo
+    this.messageText.setY(finalHeight / 2);
 
     this.add([this.bg, this.messageText]);
   }
@@ -118,7 +128,7 @@ export class Toast extends Phaser.GameObjects.Container {
         });
       }
 
-      currentY += TOAST_HEIGHT + TOAST_GAP;
+      currentY += toast.toastHeight + TOAST_GAP;
     }
   }
 }

@@ -2618,3 +2618,108 @@ hace no-op— y no causa el bug, por lo que se deja como está y se documenta aq
 **Notas**: Cambios contenidos en `src/presentation/` (`board-view.ts`, `game-scene.ts`,
 nuevo `utils/toast-messages.ts`) y su test. Dominio, aplicación e infraestructura
 intactos.
+
+---
+
+### Interacción #075 — 2026-05-31 (Fase 7: Bugfixes de presentación — Tooltips, Toasts y Error 404)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Claude Code
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: ~120000 / ~15000
+
+**Objetivo**: Resolver tres problemas de presentación reportados al jugar:
+- **A**: Tooltip se cortaba por la derecha o no cabía el texto si la descripción/nombre era muy larga.
+- **B**: Toasts recortaban textos largos al tener ancho fijo.
+- **C**: Un error HTTP 404 fantasma en la red durante la carga inicial en DevTools.
+
+**Resultado**:
+
+- **Bug A (Tooltip dinámico)** — `tooltip.ts`:
+  - Se han eliminado las constantes `WIDTH`, `HEIGHT_CHARACTER` y `HEIGHT_OTHER`.
+  - Se introdujo un rango dinámico `MIN_WIDTH = 280` y `MAX_WIDTH = 360`.
+  - En `buildContent()`, el Tooltip mide todos los textos que contiene. El ancho final es el máximo clampleado entre el mínimo y máximo permitidos, y el `wordWrap` del texto descriptivo usa ese ancho dinámico.
+  - La altura se calcula sumando incrementalmente los bloques, añadiendo el bloque de stats solo si la carta es `CardType.Character`.
+  - En `positionTooltip()`, el Tooltip revisa sus colisiones contra el borde horizontal y vertical. Si intentando mostrarse por un lado choca, ahora prueba a flipear (saltar) al lado opuesto del cursor/carta para no recortarse.
+
+- **Bug B (Toast dinámico)** — `toast.ts`:
+  - Al igual que en Tooltip, se aplican rangos `MIN_WIDTH = 320`, `MAX_WIDTH = 600`.
+  - El fondo y el contenedor ahora crecen dinámicamente (`Math.Clamp(messageText.width + 32)`) y el texto tiene `align: "center"` y `wordWrap` relativo.
+  - El motor de reposicionamiento de Toasts (`repositionToasts()`) ya no usa la altura fija antigua (48), sino que lee `toast.toastHeight` sumando la altura dinámica de los Toasts que hay en pantalla.
+  - El origen del contenedor del Toast y la coordenada `x = width/2` enviada mantienen los Toasts visualmente perfectos en el centro del eje X.
+
+- **Problema C (404 de red)**:
+  - Se hizo un escaneo de todas las llamadas `this.load.*` en `BootScene.ts` contra el disco duro con `list_dir`. Los 22 personajes, 3 data JSON, 5 marcos, 1 reverso, 12 iconos, 24 botones, 3 de HUD, 4 de tablero, 4 de efectos, 5 de fondos, y 8 de audio **existen** correctamente y concuerdan de forma idéntica en nombres.
+  - Ningún asset falta en `assets/`.
+  - Se verificó que el error se debe al `favicon.ico` del navegador intentando ser cargado por el Dev Server de Vite, al no existir un favicon real en una carpeta `public/`. Se confirma que es inocuo y no es un fallo en código.
+
+**Iteraciones**:
+
+1. Escaneo del entorno (listado de `assets/` y lectura del index.html para desmentir el error de Phaser).
+2. Lectura y modificación de la estrategia measure-and-grow de `tooltip.ts`.
+3. Lectura y adaptación del `wordWrap` y la lógica de apilado acumulativo de alturas en `toast.ts`.
+4. Verificación: `typecheck` ✅, `lint` ✅ (0 errores, 0 warnings), `test` ✅ (497/497 pasando en 25s).
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
+
+**Notas**: Ninguna alteración a nivel de dominio o infraestructura. La evaluación de los errores se enfocó de manera contenida en `src/presentation/ui/`.
+
+---
+
+### Interacción #076 — 2026-05-31 (Fase 7: Bugfixes de presentación — Nombres largos en Tooltip)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Claude Code
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: ~15000 / ~4000
+
+**Objetivo**: Resolver un problema extra detectado en Tooltips donde las cartas con nombres o arquetipos muy largos (e.g., "Espada de Sangre de Demonio", "Linterna Minimizadora") sobrepasaban el ancho del Tooltip, pues la corrección anterior solo envolvía la descripción.
+
+**Resultado**:
+
+- **Bug A (continuación)** — `tooltip.ts`:
+  - Se agregó `wordWrap: { width: MAX_WIDTH - 108 - 16, useAdvancedWrap: true }` a `nameText`, `typeText`, `rarityText` y `costText` en su inicialización dentro del constructor.
+  - La lógica de `buildContent()` se adaptó para que, en vez de usar coordenadas `Y` fijas (16, 48, 64, 80), las posiciones de cada texto dependan dinámicamente de la altura resultante del texto anterior (`currentY += this.nameText.height + 4`, etc).
+  - La descripción ahora fluye perfectamente debajo de los textos o al menos debajo de la imagen (`Math.max(110, currentY)`), evitando solapamientos sin importar cuántas líneas ocupe el nombre.
+
+**Iteraciones**:
+
+1. Análisis del problema (falta de wordWrap en `nameText` y dependencias de posición Y absoluta).
+2. Refactorización para agregar el wordWrap restante y usar posicionamiento vertical relativo.
+3. Verificación: `typecheck` ✅, `lint` ✅ (0 errores), `test` ✅ (497/497 pasando).
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
+
+**Notas**: Ninguna alteración a nivel de dominio o aplicación. Implementación confirmada.
+
+---
+
+### Interacción #077 — 2026-05-31 (Fase 7: Bugfixes de presentación — Formato de arquetipo en Tooltip)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Claude Code
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: ~4000 / ~1000
+
+**Objetivo**: Modificar la forma en que se muestran los arquetipos en la UI. Antes se mostraba el identificador del Enum en crudo (ej: "CARTOONCLASICO" o "AVENTURAMAGICA"), lo que era poco estético en la UI.
+
+**Resultado**:
+
+- **Refinamiento visual** — `tooltip.ts`:
+  - Se añadió una transformación regex `card.archetype.replace(/([a-z])([A-Z])/g, "$1 $2")` a la hora de renderizar el arquetipo.
+  - Esto separa automáticamente las variables en CamelCase en palabras individuales (ej: "CartoonClasico" -> "Cartoon Clasico") antes de que se les aplique el `toUpperCase()`.
+  - El resultado ahora es "CARTOON CLASICO", "AVENTURA MAGICA", "ANIME COMBATE", mucho más amigable de leer.
+
+**Iteraciones**:
+
+1. Análisis del mapeo del enum y aplicación de la regex de reemplazo.
+2. Verificación: `typecheck` ✅.
+
+**Notas**: Modificación puramente visual en la forma en que el Tooltip extrae el texto de `CardData`. El dominio y sus Enums permanecen intactos como CamelCase.
