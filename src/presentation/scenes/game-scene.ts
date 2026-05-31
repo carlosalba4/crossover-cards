@@ -137,8 +137,11 @@ export class GameScene extends Phaser.Scene {
     // music-game si la escena se destruye (ej.: el jugador reinicia).
     this.swapToGameMusic();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      const track = this.sound.get("music-game");
-      if (track?.isPlaying) track.stop();
+      const track1 = this.sound.get("music-game");
+      if (track1?.isPlaying) track1.stop();
+      
+      const track2 = this.sound.get("music-game2");
+      if (track2?.isPlaying) track2.stop();
     });
   }
 
@@ -1080,9 +1083,10 @@ export class GameScene extends Phaser.Scene {
     const menuTrack = this.sound.get("music-menu");
     if (menuTrack?.isPlaying) menuTrack.stop();
 
-    const gameTrack = this.sound.get("music-game");
+    const trackKey = Phaser.Math.Between(1, 2) === 1 ? "music-game" : "music-game2";
+    const gameTrack = this.sound.get(trackKey);
     if (!gameTrack?.isPlaying) {
-      this.sound.play("music-game", { loop: true, volume: 0.3 });
+      this.sound.play(trackKey, { loop: true, volume: 0.3 });
     }
   }
 }

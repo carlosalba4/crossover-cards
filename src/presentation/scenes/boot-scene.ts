@@ -338,6 +338,7 @@ export class BootScene extends Phaser.Scene {
   private loadAudio(): void {
     this.load.audio("music-menu", "assets/audio/music/music-menu.mp3");
     this.load.audio("music-game", "assets/audio/music/music-game.mp3");
+    this.load.audio("music-game2", "assets/audio/music/music-game2.mp3");
 
     const sfx = [
       "sfx-attack",

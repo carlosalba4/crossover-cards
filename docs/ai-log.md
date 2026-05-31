@@ -2723,3 +2723,33 @@ intactos.
 2. Verificación: `typecheck` ✅.
 
 **Notas**: Modificación puramente visual en la forma en que el Tooltip extrae el texto de `CardData`. El dominio y sus Enums permanecen intactos como CamelCase.
+
+---
+
+### Interacción #078 — 2026-05-31 (Fase 7: Bugfixes de presentación — Música aleatoria en GameScene)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Claude Code
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Gemini 3.1 Pro (High)
+- **Tokens (entrada ≈ / salida ≈)**: ~5000 / ~1500
+
+**Objetivo**: Añadir variedad musical a las partidas. Se solicitó que `GameScene` pueda reproducir tanto `music-game.mp3` como `music-game2.mp3` de forma aleatoria al entrar al combate.
+
+**Resultado**:
+
+- **Carga de Audio** (`boot-scene.ts`):
+  - Añadido `this.load.audio("music-game2", ...)` para disponer del nuevo asset en caché.
+- **Reproducción Aleatoria** (`game-scene.ts`):
+  - En `swapToGameMusic()`, el juego ahora escoge aleatoriamente la key del track (`Phaser.Math.Between(1, 2) === 1 ? "music-game" : "music-game2"`).
+  - El manejador del evento `SHUTDOWN` fue actualizado para parar tanto `music-game` como `music-game2` en caso de que alguna de ellas estuviese sonando, asegurando limpieza si se reinicia la partida.
+- **Transiciones** (`end-scene.ts`):
+  - Actualizado para parar proactivamente ambas pistas de audio de combate al transicionar a la pantalla de victoria/derrota.
+
+**Iteraciones**:
+
+1. Carga del asset y confirmación de que `music-game2.mp3` existía físicamente en la carpeta `assets/audio/music/`.
+2. Actualización de carga, lógica de reproducción aleatoria y limpieza de tracks en destrucción de escena (`SHUTDOWN` y `end-scene.ts`).
+3. Verificación: `typecheck` ✅.
+
+**Notas**: Funcionalidad estética completada.
