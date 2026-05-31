@@ -2549,9 +2549,9 @@ Dominio, aplicación e infraestructura intactos. Todos los checks de calidad en 
 ### Interacción #074 — 2026-05-31 (Fase 7: Bugfixes de presentación — sprite fantasma y fuga de UUIDs en toasts)
 
 - **Fase**: Fase 7 (Extras / pulido de calidad)
-- **Agente**: Claude Code
-- **Herramienta**: Claude Code (CLI)
-- **Modelo**: Claude Opus 4.8
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Opus 4.6 Thinking
 - **Tokens (entrada ≈ / salida ≈)**: ~70000 / ~9000
 
 **Objetivo**: Corregir dos bugs detectados al jugar, ambos en la capa de
@@ -2624,7 +2624,7 @@ intactos.
 ### Interacción #075 — 2026-05-31 (Fase 7: Bugfixes de presentación — Tooltips, Toasts y Error 404)
 
 - **Fase**: Fase 7 (Extras / pulido de calidad)
-- **Agente**: Claude Code
+- **Agente**: Phaser-Dev-Agent
 - **Herramienta**: Antigravity (CLI)
 - **Modelo**: Gemini 3.1 Pro (High)
 - **Tokens (entrada ≈ / salida ≈)**: ~120000 / ~15000
@@ -2672,7 +2672,7 @@ intactos.
 ### Interacción #076 — 2026-05-31 (Fase 7: Bugfixes de presentación — Nombres largos en Tooltip)
 
 - **Fase**: Fase 7 (Extras / pulido de calidad)
-- **Agente**: Claude Code
+- **Agente**: Phaser-Dev-Agent
 - **Herramienta**: Antigravity (CLI)
 - **Modelo**: Gemini 3.1 Pro (High)
 - **Tokens (entrada ≈ / salida ≈)**: ~15000 / ~4000
@@ -2703,7 +2703,7 @@ intactos.
 ### Interacción #077 — 2026-05-31 (Fase 7: Bugfixes de presentación — Formato de arquetipo en Tooltip)
 
 - **Fase**: Fase 7 (Extras / pulido de calidad)
-- **Agente**: Claude Code
+- **Agente**: Phaser-Dev-Agent
 - **Herramienta**: Antigravity (CLI)
 - **Modelo**: Gemini 3.1 Pro (High)
 - **Tokens (entrada ≈ / salida ≈)**: ~4000 / ~1000
@@ -2729,7 +2729,7 @@ intactos.
 ### Interacción #078 — 2026-05-31 (Fase 7: Bugfixes de presentación — Música aleatoria en GameScene)
 
 - **Fase**: Fase 7 (Extras / pulido de calidad)
-- **Agente**: Claude Code
+- **Agente**: Phaser-Dev-Agent
 - **Herramienta**: Antigravity (CLI)
 - **Modelo**: Gemini 3.1 Pro (High)
 - **Tokens (entrada ≈ / salida ≈)**: ~5000 / ~1500
@@ -2753,3 +2753,92 @@ intactos.
 3. Verificación: `typecheck` ✅.
 
 **Notas**: Funcionalidad estética completada.
+
+---
+
+### Interacción #079 — 2026-05-31 (Fase 7: Feature — Tooltip en cartas del tablero)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Sonnet 4.6 (Thinking)
+- **Tokens (entrada ≈ / salida ≈)**: ~12000 / ~3000
+
+**Objetivo**: Extender la funcionalidad de Tooltip a las cartas del tablero (personajes propios y rivales). Antes solo funcionaba sobre cartas en la mano del jugador.
+
+**Resultado**:
+
+- **`game-scene.ts` — `makeBoardCharacterClickable`**:
+  - Se añadieron los handlers `POINTER_OVER` y `POINTER_OUT` replicando exactamente el patrón usado en `makeHandCardDraggable`, usando `getWorldTransformMatrix()` para convertir las coordenadas locales del Container (BoardView) a coordenadas de mundo que el Tooltip necesita.
+  - Se añadió `this.tooltip.hide()` como **primera instrucción** del handler `pointerdown`, antes de cualquier `return` temprano (incluyendo el `if (!this.isPlayerTurn) return`). Así el tooltip se oculta incluso si el jugador hace clic fuera de su turno.
+  - El parámetro `isPlayer` no afecta al hover: el tooltip se muestra para cartas propias y rivales sin distinción.
+
+- **`game-scene.ts` — handler `CharacterDestroyed`**:
+  - Se añadió `this.tooltip.hide()` antes de llamar a `removeCharacterSprite`, asegurando que el tooltip no queda colgado si el cursor estaba sobre la carta en el momento en que es destruida.
+
+**Criterios de aceptación verificables**:
+- ✅ Tooltip en cartas propias del tablero.
+- ✅ Tooltip en cartas rivales del tablero.
+- ✅ Tooltip.hide() en pointerdown (fuera de turno incluido).
+- ✅ Tooltip.hide() al destruir carta.
+- ✅ Sin regresiones en tooltips de mano.
+
+**Iteraciones**:
+
+1. Exploración del código existente (ubicación de `makeBoardCharacterClickable`, patrón de hover en `makeHandCardDraggable`, handler de `CharacterDestroyed`).
+2. Aplicación de los dos cambios en una sola edición multi-bloque.
+3. Fix de trailing whitespace detectado por Prettier.
+4. Verificación: `typecheck` ✅, `lint` ✅ (0 errores, 0 warnings), `test` ✅ (497/497 pasando).
+
+**Notas**: Solo se tocó `src/presentation/scenes/game-scene.ts`. Dominio, aplicación e infraestructura intactos.
+
+---
+
+### Interacción #080 — 2026-05-31 (Fase 7: Datos — Activación de Provocar (Taunt) y Veneno (Poisonous) en el catálogo)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Opus 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~25000 / ~4000
+
+**Objetivo**: Activar en partida dos mecánicas que ya estaban implementadas en el dominio (`combat-resolver.ts` para Poisonous, `attack-command.ts` para Taunt) pero que ninguna carta del catálogo declaraba. Cambio exclusivamente de **datos** (`assets/data/cards.json`), sin tocar lógica de combate ni de comandos.
+
+**Cartas modificadas y justificación**:
+
+- **AXE-004 Diamantino** (3 ATQ / 5 VID) — se añade `"taunt"` a `abilities` (queda `["crystalShield", "taunt"]`).
+  - *Temática*: "Mi cuerpo es como el diamante" → tanque defensivo arquetípico; el Escudo Cristalino sinergiza con un muro de provocación.
+  - *Balance*: ataque medio (3) y vida alta (5); rol claramente defensivo, no agresivo. Sin conflicto con `crystalShield`.
+  - Descripción prefijada con `"Provocar. "`.
+
+- **LIC-001 Pops el Gentil** (1 ATQ / 4 VID) — se añade `"taunt"` (queda `["deathrattle", "taunt"]`).
+  - *Temática*: "el Gentil" protector; su Último Aliento bufa a aliados, reforzando el rol de escudo del equipo.
+  - *Balance*: la mayor proporción vida/ataque del set entre personajes con habilidad limpia (4:1), ataque ínfimo → muro puro sin presión ofensiva. Sin conflicto con `deathrattle`.
+  - Descripción prefijada con `"Provocar. "`.
+
+- **AXE-005 Chum Chum** (1 ATQ / 2 VID) — se añade `"poisonous"` (queda `["poisonous"]`).
+  - *Temática*: pequeña criatura caótica cuyo "toque letal" encaja sin romper lore; era una carta vainilla sin habilidades.
+  - *Balance*: ataque 1 (el más bajo del juego) → Veneno balanceado y no abusivo (Veneno con ataque alto sería abusivo); muere a cualquier golpe de 2 de daño. Cero conflictos (no tenía habilidades previas).
+  - Descripción cambiada de `"Sin habilidad. Unico 1-drop del juego."` a `"Veneno. Unico 1-drop del juego."` (se elimina "Sin habilidad" para no dejar texto residual contradictorio).
+
+**Carta descartada conscientemente**:
+
+- **AXE-006 Agallas el Perro Cobarde** (`inverseTaunt`): candidato tanque por stats, pero `inverseTaunt` ("no puede ser objetivo mientras haya otro aliado") **entra en conflicto directo** con Taunt ("debe ser atacado primero"). Excluido.
+
+**Verificación del tooltip (wordWrap)**: el `descText` de `tooltip.ts` envuelve a `MAX_WIDTH - 32` con `useAdvancedWrap` y la altura del recuadro se recalcula dinámicamente (`descBottom = descY + descText.height`). Los prefijos "Provocar. " / "Veneno. " (~10 caracteres) no introducen riesgo de clipping: el fondo se redibuja con la altura medida tras el wrap. Confirmado a nivel de código (fix previo de la Interacción #076).
+
+**Criterios de aceptación verificables**:
+- ✅ El tooltip de las cartas modificadas muestra "Provocar" / "Veneno" en la descripción.
+- ✅ La lógica de Taunt (bloqueo de objetivo) y Poisonous (muerte instantánea de Personajes) se dispara con estas cartas; el código ya existía y no se modificó.
+- ✅ Sin conflictos de habilidades en las cartas elegidas.
+
+**Iteraciones**:
+
+1. Exploración: `card-types.ts` (enum `Ability`), `combat-resolver.ts` y `attack-command.ts` (lógica existente), `cards.json` (catálogo completo), búsqueda de tests de catálogo/snapshot.
+2. Verificación de que ningún test carga el `cards.json` real (todos usan mocks inline) → no hay tests de catálogo que actualizar.
+3. Plan → aprobación del usuario.
+4. Tres ediciones en `cards.json` (abilities + descripciones).
+5. Revisión del wordWrap del tooltip a petición del usuario.
+6. Verificación: `typecheck` ✅, `lint` ✅ (0 errores), `test` ✅ (497/497 pasando).
+
+**Notas**: Solo se modificó `assets/data/cards.json` (datos). No se tocó la lógica de `combat-resolver.ts` ni `attack-command.ts`, ni la UI, ni se activaron otras habilidades (DivineShield, Stealth). No fue necesario actualizar ningún test.

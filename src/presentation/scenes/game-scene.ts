@@ -139,7 +139,7 @@ export class GameScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       const track1 = this.sound.get("music-game");
       if (track1?.isPlaying) track1.stop();
-      
+
       const track2 = this.sound.get("music-game2");
       if (track2?.isPlaying) track2.stop();
     });
@@ -391,6 +391,8 @@ export class GameScene extends Phaser.Scene {
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.CharacterDestroyed, (payload) => {
         if (!payload.character) return;
+        // Ocultar el tooltip por si el cursor estaba sobre la carta al morir.
+        this.tooltip.hide();
         this.board.removeCharacterSprite(payload.character.instanceId, true);
       }),
     );
@@ -914,7 +916,21 @@ export class GameScene extends Phaser.Scene {
   ): void {
     sprite.setInteractive({ useHandCursor: true });
 
+    // Hover: mostrar tooltip para cualquier carta del tablero (propia o rival).
+    // Usamos getWorldTransformMatrix() porque los sprites del tablero son hijos
+    // de un Container (BoardView) y sus coordenadas x/y son locales.
+    sprite.on(Phaser.Input.Events.POINTER_OVER, () => {
+      const m = sprite.getWorldTransformMatrix();
+      this.tooltip.showForCard(sprite.getCardData(), m.tx, m.ty, sprite.height);
+    });
+    sprite.on(Phaser.Input.Events.POINTER_OUT, () => {
+      this.tooltip.hide();
+    });
+
     sprite.on("pointerdown", () => {
+      // Ocultar el tooltip SIEMPRE al hacer clic, incluso fuera de turno.
+      this.tooltip.hide();
+
       if (!this.isPlayerTurn) return;
 
       if (this.targetSelectionMode === "heroPower") {

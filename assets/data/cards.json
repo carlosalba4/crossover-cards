@@ -6,13 +6,14 @@
     "archetype": "CartoonClasico",
     "nostalgyCost": 2,
     "rarity": "Rara",
-    "description": "Ultimo Aliento: al ser destruido, otorga +2 ATQ y +2 VID a una Personaje aliada aleatoria en el tablero.",
+    "description": "Provocar. Ultimo Aliento: al ser destruido, otorga +2 ATQ y +2 VID a una Personaje aliada aleatoria en el tablero.",
     "spriteKey": "pops_card",
     "greetingText": "La bondad nunca muere, querido amigo.",
     "attack": 1,
     "health": 4,
     "abilities": [
-      "deathrattle"
+      "deathrattle",
+      "taunt"
     ],
     "abilityMeta": {
       "deathrattleEffect": {
@@ -324,13 +325,14 @@
     "archetype": "AnimeCombate",
     "nostalgyCost": 4,
     "rarity": "Rara",
-    "description": "Escudo Cristalino: la primera vez que recibe danyo, ese danyo se reduce a la mitad (redondeado hacia abajo). Solo se activa una vez.",
+    "description": "Provocar. Escudo Cristalino: la primera vez que recibe danyo, ese danyo se reduce a la mitad (redondeado hacia abajo). Solo se activa una vez.",
     "spriteKey": "diamantino_card",
     "greetingText": "Mi cuerpo es como el diamante!",
     "attack": 3,
     "health": 5,
     "abilities": [
-      "crystalShield"
+      "crystalShield",
+      "taunt"
     ],
     "abilityMeta": {
       "crystalShieldEffect": {
@@ -346,12 +348,14 @@
     "archetype": "CartoonClasico",
     "nostalgyCost": 1,
     "rarity": "Comun",
-    "description": "Sin habilidad. Unico 1-drop del juego.",
+    "description": "Veneno. Unico 1-drop del juego.",
     "spriteKey": "chumchum_card",
     "greetingText": "Soy Chum Chum! Y esto es INCREIBLE!",
     "attack": 1,
     "health": 2,
-    "abilities": []
+    "abilities": [
+      "poisonous"
+    ]
   },
   {
     "id": "AXE-006",
