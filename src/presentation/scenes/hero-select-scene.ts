@@ -104,7 +104,7 @@ export class HeroSelectScene extends Phaser.Scene {
       x: 90,
       y: 40,
       width: 180,
-      height: 48,
+      height: 68,
       label: "",
       texturePrefix: "volver",
       backgroundColor: 0x252240,
@@ -120,7 +120,7 @@ export class HeroSelectScene extends Phaser.Scene {
       x: cx,
       y: height - 80,
       width: 320,
-      height: 64,
+      height: 84,
       label: "",
       backgroundColor: 0x3ecfcf, // accent-teal
       textColor: "#0D0B1E",

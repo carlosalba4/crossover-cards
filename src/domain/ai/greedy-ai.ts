@@ -53,6 +53,13 @@ import { ThreatEvaluator } from "@domain/ai/threat-evaluator";
  */
 const DEFAULT_ZONE = "center" as const;
 
+/** Ratio de vida del héroe propio a partir del cual GreedyAI considera el Crossover. */
+const CROSSOVER_HEALTH_RATIO = 0.5;
+
+/** Identificadores de `effectType` de los poderes de héroe del catálogo. */
+const EFFECT_DAMAGE = "Damage";
+const EFFECT_BUFF_ATTACK = "BuffAttack";
+
 // ---------------------------------------------------------------------------
 // Clase GreedyAI
 // ---------------------------------------------------------------------------
@@ -188,29 +195,50 @@ export class GreedyAI implements IAIStrategy {
   // -------------------------------------------------------------------------
 
   /**
-   * GreedyAI nunca activa el Crossover.
+   * GreedyAI activa el Crossover de forma reactiva: cuando todavía está
+   * disponible y su héroe está a la mitad de vida o menos (busca recursos extra
+   * para estabilizar). Heurística simple, coherente con el nivel Fácil.
    *
-   * La IA codiciosa no tiene lógica para evaluar si el momento es correcto
-   * para usar la mecánica Crossover (§8.2 no la contempla).
-   *
-   * @returns Siempre `false`.
+   * @returns `true` si debe activar el Crossover.
    */
-
-  shouldUseCrossover(_snapshot: GameStateSnapshot): boolean {
-    return false;
+  shouldUseCrossover(snapshot: GameStateSnapshot): boolean {
+    if (!snapshot.crossoverAvailable) {
+      return false;
+    }
+    const healthRatio =
+      snapshot.aiHeroMaxHealth > 0 ? snapshot.aiHeroHealth / snapshot.aiHeroMaxHealth : 1;
+    return healthRatio <= CROSSOVER_HEALTH_RATIO;
   }
 
   /**
-   * GreedyAI delega la decisión de habilidad de héroe al `OpponentService`.
+   * Decide el objetivo del poder de héroe de forma codiciosa (maximiza el valor
+   * inmediato del turno):
+   *   - Si no hay Nostalgia para el coste → `null` (no se intenta).
+   *   - "Damage"     → al héroe rival (presión de cara directa).
+   *   - "BuffAttack" → al aliado con mayor ATQ base (maximiza el golpe del turno).
    *
-   * El snapshot no incluye los detalles del heroPower (coste, tipo de objetivo),
-   * por lo que esta capa de dominio no puede decidir de forma informada.
-   * `OpponentService` comprobará la disponibilidad real antes de ejecutarlo.
-   *
-   * @returns Siempre `null`.
+   * @returns `targetId` del objetivo, o `null` si no se debe usar.
    */
+  shouldUseHeroPower(snapshot: GameStateSnapshot): string | null {
+    const power = snapshot.aiHeroPower;
 
-  shouldUseHeroPower(_snapshot: GameStateSnapshot): string | null {
+    if (snapshot.nostalgiaCurrent < power.nostalgyCost) {
+      return null;
+    }
+
+    if (power.effectType === EFFECT_DAMAGE) {
+      return snapshot.opponentHeroStaticId;
+    }
+
+    if (power.effectType === EFFECT_BUFF_ATTACK) {
+      const allies = snapshot.aiBoard.flat();
+      if (allies.length === 0) {
+        return null;
+      }
+      const strongest = [...allies].sort((a, b) => b.attack - a.attack)[0];
+      return strongest.instanceId;
+    }
+
     return null;
   }
 }

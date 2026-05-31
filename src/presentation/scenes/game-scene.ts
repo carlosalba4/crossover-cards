@@ -33,6 +33,8 @@ import { createGameDependencies, type GameDependencies } from "@/composition/gam
 
 /** Y mínima a partir de la cual una carta soltada cuenta como jugada en tablero. */
 const DROP_ZONE_MIN_Y = 540;
+/** Y máxima a partir de la cual una carta soltada cuenta como jugada en tablero (para excluir la mano). */
+const DROP_ZONE_MAX_Y = 880;
 /** Origen X de las zonas de drop (offset del free slot). */
 const DROP_ZONE_BASE_X = 680;
 /** Offset X del inicio de la zona izquierda respecto a la base. */
@@ -397,6 +399,29 @@ export class GameScene extends Phaser.Scene {
       }),
     );
 
+    // 3b. CharacterDamaged — daño no-combate (ej. poder de héroe) a un Personaje.
+    this.unsubscribers.push(
+      this.eventBus.on(GameEvent.CharacterDamaged, (payload) => {
+        if (!payload.character) return;
+        this.board.updateCharacterHealth(
+          payload.character.instanceId,
+          payload.character.currentHealth,
+          payload.character.health,
+        );
+      }),
+    );
+
+    // 3c. CharacterBuffed — cambio de ATQ efectivo (buff del poder de héroe o su expiración).
+    this.unsubscribers.push(
+      this.eventBus.on(GameEvent.CharacterBuffed, (payload) => {
+        if (!payload.character) return;
+        this.board.updateCharacterAttack(
+          payload.character.instanceId,
+          payload.character.getEffectiveAttack(),
+        );
+      }),
+    );
+
     // 4. AttackDeclared
     this.unsubscribers.push(
       this.eventBus.on(GameEvent.AttackDeclared, (payload) => {
@@ -459,6 +484,20 @@ export class GameScene extends Phaser.Scene {
           : this.matchService.getCurrentMatch()?.player2.hero.maxHealth || 30;
 
         hero.updateHealth(payload.currentHealth, maxHealth);
+      }),
+    );
+
+    // 7b. HeroPowerUsed — feedback del uso del poder de héroe (propio o rival).
+    // El efecto real (daño/buff) lo aplica HeroPowerResolver y se refleja vía
+    // HeroDamaged / CharacterDamaged / CharacterBuffed.
+    this.unsubscribers.push(
+      this.eventBus.on(GameEvent.HeroPowerUsed, (payload) => {
+        const match = this.matchService.getCurrentMatch();
+        const heroName =
+          payload.playerId === "p1"
+            ? (match?.player1.hero.name ?? "Tu héroe")
+            : (match?.player2.hero.name ?? "El rival");
+        Toast.show(this, `${heroName} usa ${payload.heroPower.name}`, "ok");
       }),
     );
 
@@ -726,7 +765,7 @@ export class GameScene extends Phaser.Scene {
         x: 960,
         y: 650,
         width: 140,
-        height: 48,
+        height: 64,
         label: "CONFIRMAR",
         backgroundColor: 0x7b4fdb,
         textColor: "#ffffff",
@@ -892,6 +931,18 @@ export class GameScene extends Phaser.Scene {
       this.clearSlotHighlights();
       sprite.setDepth(0);
 
+      // Si apenas se ha movido, se considera un clic y no un drag real
+      const distance = Phaser.Math.Distance.Between(
+        pointer.downX,
+        pointer.downY,
+        pointer.upX,
+        pointer.upY,
+      );
+      if (distance < 10) {
+        this.handPlayer.rearrange();
+        return;
+      }
+
       const zoneId = this.getDropZone(pointer.x, pointer.y);
       if (zoneId) {
         // Cada slot acepta UNA sola carta: si la zona destino ya está llena de
@@ -1025,7 +1076,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getDropZone(pointerX: number, pointerY: number): "left" | "center" | "right" | null {
-    if (pointerY < DROP_ZONE_MIN_Y) return null;
+    if (pointerY < DROP_ZONE_MIN_Y || pointerY > DROP_ZONE_MAX_Y) return null;
     const baseX = DROP_ZONE_BASE_X;
     if (pointerX >= baseX + DROP_ZONE_LEFT_OFFSET && pointerX < baseX + DROP_ZONE_CENTER_OFFSET) {
       return "left";

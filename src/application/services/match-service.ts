@@ -7,6 +7,7 @@ import { TurnEngine } from "@domain/services/turn-engine";
 import { CombatResolver } from "@domain/services/combat-resolver";
 import { NostalgiaSystem } from "@domain/services/nostalgia-system";
 import { CrossoverManager } from "@domain/services/crossover-manager";
+import { HeroPowerResolver } from "@domain/services/hero-power-resolver";
 import type { IDeckRepository } from "@domain/repositories/i-deck-repository";
 import type { IHeroRepository } from "@domain/repositories/i-hero-repository";
 import { ApplicationError } from "@application/errors/application-error";
@@ -25,6 +26,7 @@ export class MatchService {
   private combatResolver: CombatResolver | null = null;
   private nostalgiaSystem: NostalgiaSystem | null = null;
   private crossoverManager: CrossoverManager | null = null;
+  private heroPowerResolver: HeroPowerResolver | null = null;
   private internalUnsubscribers: Array<() => void> = [];
   /** Evita emitir MatchEnded más de una vez por partida. */
   private matchEnded = false;
@@ -136,7 +138,14 @@ export class MatchService {
     this.crossoverManager = new CrossoverManager(this.eventBus);
 
     // Limpiar suscripciones de partidas anteriores antes de registrar las nuevas
+    // (incluye el dispose() del HeroPowerResolver de la partida anterior).
     this.dispose();
+
+    // El HeroPowerResolver aplica el efecto real del poder de héroe escuchando
+    // HeroPowerUsed. Se crea DESPUÉS de dispose() para que sus suscripciones no
+    // se limpien de inmediato; su dispose() se registra para la próxima limpieza.
+    this.heroPowerResolver = new HeroPowerResolver(this.currentMatch, this.eventBus);
+    this.internalUnsubscribers.push(() => this.heroPowerResolver?.dispose());
 
     // Mantener la entidad Match sincronizada con los eventos del dominio
     this.internalUnsubscribers.push(
@@ -291,6 +300,15 @@ export class MatchService {
       current: this.nostalgiaSystem.getCurrentNostalgia(playerId),
       max: this.nostalgiaSystem.getMaxNostalgia(playerId),
     };
+  }
+
+  /**
+   * Indica si el jugador todavía puede activar su Crossover (uso único por
+   * partida). Usado por la IA (OpponentService) para construir su snapshot.
+   */
+  public isCrossoverAvailable(playerId: string): boolean {
+    if (!this.crossoverManager) return false;
+    return !this.crossoverManager.hasUsedCrossover(playerId);
   }
 
   public dispose(): void {

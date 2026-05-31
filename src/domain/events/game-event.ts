@@ -80,6 +80,12 @@ export enum GameEvent {
   /** Se emite cuando un Personaje es destruido (VID ≤ 0 tras daño). */
   CharacterDestroyed = "CharacterDestroyed",
 
+  /** Se emite cuando un Personaje recibe daño no letal de una fuente no-combate (ej. poder de héroe). */
+  CharacterDamaged = "CharacterDamaged",
+
+  /** Se emite cuando cambia el ATQ efectivo de un Personaje por un Modifier (ej. buff del poder de héroe o su expiración). */
+  CharacterBuffed = "CharacterBuffed",
+
   // -- Héroes ----------------------------------------------------------------
   /** Se emite cuando el héroe de un jugador recibe daño. */
   HeroDamaged = "HeroDamaged",
@@ -276,6 +282,25 @@ export interface CharacterDestroyedPayload {
   readonly cause: CharacterDestroyedCause;
 }
 
+/** Payload de {@link GameEvent.CharacterDamaged}. */
+export interface CharacterDamagedPayload {
+  /** ID del jugador propietario del Personaje dañado. */
+  readonly playerId: PlayerId;
+  /** Entidad Character dañada (ya con su `currentHealth` actualizado). */
+  readonly character: Character;
+}
+
+/** Payload de {@link GameEvent.CharacterBuffed}. */
+export interface CharacterBuffedPayload {
+  /** ID del jugador propietario del Personaje afectado. */
+  readonly playerId: PlayerId;
+  /**
+   * Entidad Character afectada. Su `getEffectiveAttack()` ya refleja el ATQ
+   * efectivo actual (con el buff aplicado, o revertido tras su expiración).
+   */
+  readonly character: Character;
+}
+
 // -- Héroes ------------------------------------------------------------------
 
 /** Payload de {@link GameEvent.HeroDamaged}. */
@@ -464,6 +489,8 @@ export interface GameEventPayloadMap {
   [GameEvent.AttackDeclared]: AttackDeclaredPayload;
   [GameEvent.AttackResolved]: AttackResolvedPayload;
   [GameEvent.CharacterDestroyed]: CharacterDestroyedPayload;
+  [GameEvent.CharacterDamaged]: CharacterDamagedPayload;
+  [GameEvent.CharacterBuffed]: CharacterBuffedPayload;
   [GameEvent.HeroDamaged]: HeroDamagedPayload;
   [GameEvent.HeroHealed]: HeroHealedPayload;
   [GameEvent.HeroPowerUsed]: HeroPowerUsedPayload;

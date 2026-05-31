@@ -390,6 +390,26 @@ export class CardSprite extends Phaser.GameObjects.Container {
     });
   }
 
+  /**
+   * Actualiza el valor de ATQ mostrado en la carta y anima un pulso.
+   * Solo tiene efecto en cartas de tipo Character (las únicas con ATQ visible).
+   * Se colorea en verde cuando el ATQ efectivo supera al base (buff activo).
+   *
+   * @param current - ATQ efectivo actual a mostrar.
+   */
+  updateAttack(current: number): void {
+    if (this._card.type !== CardType.Character) return;
+    const base = this._card.attack ?? 0;
+    this.atkText.setText(String(current));
+    this.atkText.setColor(current > base ? "#6BFF8E" : "#FF6B6B");
+    this.scene.tweens.add({
+      targets: this.atkText,
+      scale: 1.5,
+      duration: 150,
+      yoyo: true,
+    });
+  }
+
   // -------------------------------------------------------------------------
   // Construcción de capas internas
   // -------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 import type { Card } from "@domain/entities/card";
 import type { Character } from "@domain/entities/character";
 import type { Match, PlayerState } from "@domain/entities/match";
+import type { IHeroPower } from "@domain/entities/hero";
 import type { TurnPhase } from "@domain/events/game-event";
 import type { PlayerId } from "@domain/types/card-types";
 
@@ -67,6 +68,22 @@ export interface GameStateSnapshot {
 
   /** Puntos de vida máximos del héroe del oponente. */
   readonly opponentHeroMaxHealth: number;
+
+  /**
+   * `staticId` del héroe del oponente (ej. "HERO-001"). Es el `targetId` con el
+   * que se identifica al héroe rival como objetivo del poder de héroe (contrato
+   * unificado con la presentación y el HeroPowerResolver).
+   */
+  readonly opponentHeroStaticId: string;
+
+  // -- Poder de héroe de la IA -----------------------------------------------
+
+  /**
+   * Definición declarativa del poder del héroe de la IA (effectType, value,
+   * coste, etc.). Permite a la estrategia decidir si usarlo y contra qué
+   * objetivo sin acceder al `Match`.
+   */
+  readonly aiHeroPower: IHeroPower;
 
   // -- Mano de la IA ---------------------------------------------------------
 
@@ -160,6 +177,7 @@ export function createSnapshot(
   aiPlayerId: PlayerId,
   nostalgiaCurrent: number = 0,
   nostalgiaMax: number = 0,
+  crossoverAvailable: boolean = false,
 ): GameStateSnapshot {
   // Identifica qué PlayerState corresponde a la IA y cuál al oponente.
   const isAiPlayer1 = match.player1.playerId === aiPlayerId;
@@ -192,19 +210,22 @@ export function createSnapshot(
     aiHeroMaxHealth: aiState.hero.maxHealth,
     opponentHeroHealth: opponentState.hero.currentHealth,
     opponentHeroMaxHealth: opponentState.hero.maxHealth,
+    opponentHeroStaticId: opponentState.hero.staticId,
+
+    aiHeroPower: aiState.hero.heroPower,
 
     aiHand,
     aiBoard,
     opponentBoard,
 
-    // Recursos pendientes de implementación en PlayerState.
-    // Se inicializan a valores neutros hasta que NostalgiaSystem y
-    // MomentumSystem estén integrados y expongan estos datos.
     nostalgiaCurrent,
     nostalgiaMax,
+
+    // Momentum pendiente de integración en PlayerState: valores neutros.
     momentumActive: false,
     momentumCharges: 0,
-    crossoverAvailable: false,
+
+    crossoverAvailable,
 
     currentPhase: match.currentPhase,
   };

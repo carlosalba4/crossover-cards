@@ -113,7 +113,7 @@ function buildItem(): Item {
 // ---------------------------------------------------------------------------
 
 describe("GameEvent enum", () => {
-  it("debe existir como objeto con 25 claves string", () => {
+  it("debe existir como objeto con 27 claves string", () => {
     // Arrange
     const events = Object.values(GameEvent);
 
@@ -121,7 +121,7 @@ describe("GameEvent enum", () => {
     const count = events.length;
 
     // Assert
-    expect(count).toBe(25);
+    expect(count).toBe(27);
   });
 
   it("debe contener todos los eventos de la arquitectura §3.1.3", () => {
@@ -139,6 +139,8 @@ describe("GameEvent enum", () => {
       GameEvent.AttackDeclared,
       GameEvent.AttackResolved,
       GameEvent.CharacterDestroyed,
+      GameEvent.CharacterDamaged,
+      GameEvent.CharacterBuffed,
       GameEvent.HeroDamaged,
       GameEvent.HeroHealed,
       GameEvent.HeroPowerUsed,
@@ -232,6 +234,14 @@ describe("GameEventPayloadMap", () => {
         playerId: "p2",
         character: buildCharacter(),
         cause: "combat",
+      },
+      [GameEvent.CharacterDamaged]: {
+        playerId: "p2",
+        character: buildCharacter(),
+      },
+      [GameEvent.CharacterBuffed]: {
+        playerId: "p1",
+        character: buildCharacter(),
       },
       [GameEvent.HeroDamaged]: {
         playerId: "p2",

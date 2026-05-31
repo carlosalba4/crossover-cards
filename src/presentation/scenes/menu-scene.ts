@@ -195,8 +195,8 @@ export class MenuScene extends Phaser.Scene {
    */
   private createButtons(cx: number, cy: number): void {
     const BTN_W = 320;
-    const BTN_H = 86;
-    const BTN_GAP = 16;
+    const BTN_H = 110;
+    const BTN_GAP = 18;
     const startY = cy + 20;
 
     // Botón 1 — Nueva Partida (accent-teal)

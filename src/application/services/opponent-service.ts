@@ -126,9 +126,10 @@ export class OpponentService {
         }
 
         case "USE_HERO_POWER":
-          console.warn(
-            "[OpponentService] USE_HERO_POWER: pendiente de implementar UseHeroPowerCommand.",
-          );
+          // El plan de fase principal puede señalar USE_HERO_POWER (p.ej. la
+          // rama de Momentum de ThreatAwareAI). La decisión informada del
+          // objetivo se resuelve más abajo vía shouldUseHeroPower sobre un
+          // snapshot ya actualizado; aquí no hacemos nada para no duplicarla.
           break;
 
         case "END_MAIN_PHASE":
@@ -141,10 +142,48 @@ export class OpponentService {
     }
 
     // -----------------------------------------------------------------------
-    // Paso 3 — Crossover (opcional)
+    // Paso 3 — Poder de héroe y Crossover
+    //
+    // Se reconstruye el snapshot tras la fase principal para reflejar la
+    // Nostalgia ya gastada, las cartas jugadas y la disponibilidad real del
+    // Crossover. Ambas decisiones usan este estado actualizado.
     // -----------------------------------------------------------------------
-    if (this.strategy.shouldUseCrossover(snapshot)) {
-      console.warn("[OpponentService] Crossover IA: pendiente de comando.");
+    const postMainNostalgia = matchService.getNostalgia(aiPlayerId);
+    const postMainSnapshot = createSnapshot(
+      match,
+      aiPlayerId,
+      postMainNostalgia.current,
+      postMainNostalgia.max,
+      matchService.isCrossoverAvailable(aiPlayerId),
+    );
+
+    // Poder de héroe: el efecto (daño/buff) lo aplica HeroPowerResolver al
+    // emitirse HeroPowerUsed. El buff se aplica ANTES del combate, por lo que
+    // el atacante reforzado golpea con su ATQ aumentado.
+    const heroPowerTargetId = this.strategy.shouldUseHeroPower(postMainSnapshot);
+    if (heroPowerTargetId !== null) {
+      await delayFn(800);
+      const result = matchService.handlePlayerAction({
+        type: "USE_HERO_POWER",
+        playerId: aiPlayerId,
+        targetId: heroPowerTargetId,
+      });
+      if (!result.success) {
+        console.warn("[OpponentService] USE_HERO_POWER fallido:", result.error?.message);
+      }
+    }
+
+    // Crossover (uso único por partida, garantizado por CrossoverManager).
+    if (this.strategy.shouldUseCrossover(postMainSnapshot)) {
+      await delayFn(800);
+      const result = matchService.handlePlayerAction({
+        type: "ACTIVATE_CROSSOVER",
+        playerId: aiPlayerId,
+      });
+      if (!result.success) {
+        // No es un error grave: p.ej. ya usado o mazo rival vacío.
+        console.info("[OpponentService] ACTIVATE_CROSSOVER no aplicado:", result.error?.message);
+      }
     }
 
     // -----------------------------------------------------------------------

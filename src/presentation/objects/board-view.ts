@@ -236,6 +236,14 @@ export class BoardView extends Phaser.GameObjects.Container {
     sprite.updateHealth(current, max);
   }
 
+  public updateCharacterAttack(characterId: string, current: number): void {
+    const sprite = this.spriteMap.get(characterId);
+    if (!sprite) return;
+
+    // CardSprite expone updateAttack() públicamente, respetando el encapsulamiento.
+    sprite.updateAttack(current);
+  }
+
   public playAttackAnimation(attackerId: string, defenderId: string): void {
     const attacker = this.spriteMap.get(attackerId);
     const defender = this.spriteMap.get(defenderId);

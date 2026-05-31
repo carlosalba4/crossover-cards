@@ -40,6 +40,7 @@ function makeCharacter(
   overrides: {
     instanceId?: string;
     abilities?: ReadonlyArray<Ability>;
+    attack?: number;
     currentHealth?: number;
     hasAttackedThisTurn?: boolean;
     getEffectiveAttack?: () => number;
@@ -48,6 +49,7 @@ function makeCharacter(
   return {
     instanceId: "char-default",
     abilities: [] as ReadonlyArray<Ability>,
+    attack: 2,
     currentHealth: 3,
     hasAttackedThisTurn: false,
     getEffectiveAttack: () => 2,
@@ -66,6 +68,14 @@ const NEUTRAL_SNAPSHOT: GameStateSnapshot = {
   aiHeroMaxHealth: 30,
   opponentHeroHealth: 30,
   opponentHeroMaxHealth: 30,
+  opponentHeroStaticId: "HERO-OPP",
+  aiHeroPower: {
+    name: "Poder de prueba",
+    nostalgyCost: 2,
+    effectType: "Damage",
+    targetType: "Any",
+    value: 2,
+  },
   aiHand: [],
   aiBoard: [[], [], []],
   opponentBoard: [[], [], []],
@@ -397,28 +407,40 @@ describe("GreedyAI", () => {
   // =========================================================================
 
   describe("shouldUseCrossover", () => {
-    it("retorna false con snapshot neutro", () => {
+    it("retorna false con snapshot neutro (Crossover no disponible)", () => {
       // Arrange
       const ai = new GreedyAI();
       const snapshot = buildSnapshot();
 
-      // Act
-      const result = ai.shouldUseCrossover(snapshot);
-
-      // Assert
-      expect(result).toBe(false);
+      // Act & Assert
+      expect(ai.shouldUseCrossover(snapshot)).toBe(false);
     });
 
-    it("retorna false incluso cuando crossoverAvailable=true", () => {
+    it("retorna false si está disponible pero la vida es > 50 %", () => {
+      // Arrange: vida plena (30/30 = 100 %).
+      const ai = new GreedyAI();
+      const snapshot = buildSnapshot({ crossoverAvailable: true, aiHeroHealth: 30 });
+
+      // Act & Assert
+      expect(ai.shouldUseCrossover(snapshot)).toBe(false);
+    });
+
+    it("retorna true si está disponible y la vida es <= 50 %", () => {
+      // Arrange: 15/30 = 50 %.
+      const ai = new GreedyAI();
+      const snapshot = buildSnapshot({ crossoverAvailable: true, aiHeroHealth: 15 });
+
+      // Act & Assert
+      expect(ai.shouldUseCrossover(snapshot)).toBe(true);
+    });
+
+    it("retorna false si la vida es baja pero el Crossover ya no está disponible", () => {
       // Arrange
       const ai = new GreedyAI();
-      const snapshot = buildSnapshot({ crossoverAvailable: true });
+      const snapshot = buildSnapshot({ crossoverAvailable: false, aiHeroHealth: 5 });
 
-      // Act
-      const result = ai.shouldUseCrossover(snapshot);
-
-      // Assert: GreedyAI nunca activa Crossover
-      expect(result).toBe(false);
+      // Act & Assert
+      expect(ai.shouldUseCrossover(snapshot)).toBe(false);
     });
   });
 
@@ -427,16 +449,62 @@ describe("GreedyAI", () => {
   // =========================================================================
 
   describe("shouldUseHeroPower", () => {
-    it("retorna null siempre (delega decisión al OpponentService)", () => {
+    it("retorna null si no hay Nostalgia para el coste", () => {
+      // Arrange: coste 2, Nostalgia 1.
+      const ai = new GreedyAI();
+      const snapshot = buildSnapshot({ nostalgiaCurrent: 1 });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBeNull();
+    });
+
+    it("poder de daño → apunta al staticId del héroe rival", () => {
       // Arrange
       const ai = new GreedyAI();
-      const snapshot = buildSnapshot({ nostalgiaCurrent: 10 });
+      const snapshot = buildSnapshot({ nostalgiaCurrent: 2 });
 
-      // Act
-      const result = ai.shouldUseHeroPower(snapshot);
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBe("HERO-OPP");
+    });
 
-      // Assert
-      expect(result).toBeNull();
+    it("poder de buff → apunta al aliado con mayor ATQ base", () => {
+      // Arrange
+      const ai = new GreedyAI();
+      const weak = makeCharacter({ instanceId: "weak", attack: 2 });
+      const strong = makeCharacter({ instanceId: "strong", attack: 5 });
+      const snapshot = buildSnapshot({
+        nostalgiaCurrent: 2,
+        aiHeroPower: {
+          name: "Tornado de Fuego",
+          nostalgyCost: 2,
+          effectType: "BuffAttack",
+          targetType: "AllyCharacter",
+          value: 2,
+        },
+        aiBoard: [[weak, strong], [], []],
+      });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBe("strong");
+    });
+
+    it("poder de buff sin aliados en tablero → null", () => {
+      // Arrange
+      const ai = new GreedyAI();
+      const snapshot = buildSnapshot({
+        nostalgiaCurrent: 2,
+        aiHeroPower: {
+          name: "Tornado de Fuego",
+          nostalgyCost: 2,
+          effectType: "BuffAttack",
+          targetType: "AllyCharacter",
+          value: 2,
+        },
+        aiBoard: [[], [], []],
+      });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBeNull();
     });
   });
 });

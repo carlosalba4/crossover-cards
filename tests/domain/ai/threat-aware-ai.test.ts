@@ -47,6 +47,7 @@ function makeCharacter(
   overrides: {
     instanceId?: string;
     abilities?: ReadonlyArray<Ability>;
+    attack?: number;
     currentHealth?: number;
     hasAttackedThisTurn?: boolean;
     getEffectiveAttack?: () => number;
@@ -55,6 +56,7 @@ function makeCharacter(
   return {
     instanceId: "char-default",
     abilities: [] as ReadonlyArray<Ability>,
+    attack: 2,
     currentHealth: 3,
     hasAttackedThisTurn: false,
     getEffectiveAttack: () => 2,
@@ -70,6 +72,14 @@ const NEUTRAL_SNAPSHOT: GameStateSnapshot = {
   aiHeroMaxHealth: 30,
   opponentHeroHealth: 30,
   opponentHeroMaxHealth: 30,
+  opponentHeroStaticId: "HERO-OPP",
+  aiHeroPower: {
+    name: "Poder de prueba",
+    nostalgyCost: 2,
+    effectType: "Damage",
+    targetType: "Any",
+    value: 2,
+  },
   aiHand: [],
   aiBoard: [[], [], []],
   opponentBoard: [[], [], []],
@@ -170,16 +180,83 @@ describe("ThreatAwareAI", () => {
   // =========================================================================
 
   describe("shouldUseHeroPower", () => {
-    it("siempre retorna null (snapshot no incluye datos del heroPower)", () => {
+    it("retorna null si no hay Nostalgia para el coste", () => {
+      // Arrange: coste 2, Nostalgia 1.
+      const ai = new ThreatAwareAI(() => 0);
+      const snapshot = buildSnapshot({ nostalgiaCurrent: 1 });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBeNull();
+    });
+
+    it("poder de daño → remata al enemigo con menor vida actual", () => {
       // Arrange
       const ai = new ThreatAwareAI(() => 0);
-      const snapshot = buildSnapshot({ nostalgiaCurrent: 10 });
+      const healthy = makeCharacter({ instanceId: "healthy", currentHealth: 6 });
+      const wounded = makeCharacter({ instanceId: "wounded", currentHealth: 1 });
+      const snapshot = buildSnapshot({
+        nostalgiaCurrent: 2,
+        opponentBoard: [[healthy, wounded], [], []],
+      });
 
-      // Act
-      const result = ai.shouldUseHeroPower(snapshot);
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBe("wounded");
+    });
 
-      // Assert
-      expect(result).toBeNull();
+    it("poder de daño sin enemigos en tablero → apunta al héroe rival", () => {
+      // Arrange
+      const ai = new ThreatAwareAI(() => 0);
+      const snapshot = buildSnapshot({ nostalgiaCurrent: 2, opponentBoard: [[], [], []] });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBe("HERO-OPP");
+    });
+
+    it("poder de buff → elige el aliado al que el buff le habilita una muerte", () => {
+      // Arrange: aliado "killer" con ATQ 3 no mata al enemigo de 4 vida, pero
+      // con +2 sí; el aliado "big" tiene más ATQ base pero ya mataría sin buff.
+      const ai = new ThreatAwareAI(() => 0);
+      const killer = makeCharacter({
+        instanceId: "killer",
+        attack: 3,
+        getEffectiveAttack: () => 3,
+      });
+      const big = makeCharacter({ instanceId: "big", attack: 5, getEffectiveAttack: () => 5 });
+      const enemy = makeCharacter({ instanceId: "enemy", currentHealth: 4 });
+      const snapshot = buildSnapshot({
+        nostalgiaCurrent: 2,
+        aiHeroPower: {
+          name: "Tornado de Fuego",
+          nostalgyCost: 2,
+          effectType: "BuffAttack",
+          targetType: "AllyCharacter",
+          value: 2,
+        },
+        aiBoard: [[killer, big], [], []],
+        opponentBoard: [[enemy], [], []],
+      });
+
+      // Act & Assert: "killer" pasa de no-letal (3<4) a letal (3+2>=4).
+      expect(ai.shouldUseHeroPower(snapshot)).toBe("killer");
+    });
+
+    it("poder de buff sin aliados → null", () => {
+      // Arrange
+      const ai = new ThreatAwareAI(() => 0);
+      const snapshot = buildSnapshot({
+        nostalgiaCurrent: 2,
+        aiHeroPower: {
+          name: "Tornado de Fuego",
+          nostalgyCost: 2,
+          effectType: "BuffAttack",
+          targetType: "AllyCharacter",
+          value: 2,
+        },
+        aiBoard: [[], [], []],
+      });
+
+      // Act & Assert
+      expect(ai.shouldUseHeroPower(snapshot)).toBeNull();
     });
   });
 

@@ -63,6 +63,10 @@ const TRIBAL_MIN_GROUP_SIZE = 2;
 /** Zona por defecto para colocar Personajes (se puede evolucionar). */
 const DEFAULT_ZONE_ID = "center" as const;
 
+/** Identificadores de `effectType` de los poderes de héroe del catálogo. */
+const EFFECT_DAMAGE = "Damage";
+const EFFECT_BUFF_ATTACK = "BuffAttack";
+
 // ---------------------------------------------------------------------------
 // Clase ThreatAwareAI
 // ---------------------------------------------------------------------------
@@ -309,16 +313,53 @@ export class ThreatAwareAI implements IAIStrategy {
   // -------------------------------------------------------------------------
 
   /**
-   * Siempre retorna `null`.
+   * Decide el objetivo del poder de héroe priorizando el valor táctico:
+   *   - Si no hay Nostalgia para el coste → `null`.
+   *   - "Damage": remata al Personaje enemigo con MENOR vida actual; si no hay
+   *     Personajes rivales, golpea al héroe rival.
+   *   - "BuffAttack": busca un aliado al que el buff le permita MATAR un enemigo
+   *     que antes no podía (maximiza el intercambio); si ninguno, el aliado con
+   *     mayor ATQ base. `null` si no hay aliados.
    *
-   * El snapshot no incluye datos del heroPower (coste, tipo de objetivo,
-   * si ya fue usada este turno). OpponentService evaluará la habilidad
-   * con los datos reales del Match antes de emitir UseHeroPowerCommand.
-   *
-   * @param _snapshot - Vista inmutable del estado (no utilizada aquí).
-   * @returns Siempre `null`.
+   * @param snapshot - Vista inmutable del estado actual de la partida.
+   * @returns `targetId` del objetivo, o `null` si no se debe usar.
    */
-  shouldUseHeroPower(_snapshot: GameStateSnapshot): string | null {
+  shouldUseHeroPower(snapshot: GameStateSnapshot): string | null {
+    const power = snapshot.aiHeroPower;
+
+    if (snapshot.nostalgiaCurrent < power.nostalgyCost) {
+      return null;
+    }
+
+    const enemies = snapshot.opponentBoard.flat();
+
+    if (power.effectType === EFFECT_DAMAGE) {
+      if (enemies.length === 0) {
+        return snapshot.opponentHeroStaticId;
+      }
+      const weakest = [...enemies].sort((a, b) => a.currentHealth - b.currentHealth)[0];
+      return weakest.instanceId;
+    }
+
+    if (power.effectType === EFFECT_BUFF_ATTACK) {
+      const allies = snapshot.aiBoard.flat();
+      if (allies.length === 0) {
+        return null;
+      }
+
+      // Aliados a los que el buff les habilita una muerte que antes no lograban.
+      const enablers = allies.filter((ally) => {
+        const atk = ally.getEffectiveAttack();
+        return enemies.some(
+          (enemy) => atk < enemy.currentHealth && atk + power.value >= enemy.currentHealth,
+        );
+      });
+
+      const pool = enablers.length > 0 ? enablers : allies;
+      const best = [...pool].sort((a, b) => b.attack - a.attack)[0];
+      return best.instanceId;
+    }
+
     return null;
   }
 

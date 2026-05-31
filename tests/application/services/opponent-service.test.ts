@@ -1,11 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
 /* eslint-disable @typescript-eslint/unbound-method */
 import { OpponentService } from "@application/services/opponent-service";
+import { GreedyAI } from "@domain/ai/greedy-ai";
 import type { IAIStrategy, AIMainAction, AICombatAction } from "@domain/ai/ai-strategy";
 import type { MatchService } from "@application/services/match-service";
 import type { Match, PlayerState } from "@domain/entities/match";
 import { Hand } from "@domain/entities/hand";
-import { Hero } from "@domain/entities/hero";
+import { Hero, type IHeroPower } from "@domain/entities/hero";
+import type { Character } from "@domain/entities/character";
 import type { Deck } from "@domain/entities/deck";
 import { Archetype } from "@domain/types/card-types";
 
@@ -72,11 +74,64 @@ describe("OpponentService", () => {
     };
   }
 
-  function createMockMatchService(success: boolean = true): MatchService {
+  function createMockMatchService(
+    success: boolean = true,
+    nostalgiaCurrent: number = 10,
+  ): MatchService {
     return {
       handlePlayerAction: vi.fn().mockReturnValue({ success, eventsEmitted: [] }),
-      getNostalgia: vi.fn().mockReturnValue({ current: 10, max: 10 }),
+      getNostalgia: vi.fn().mockReturnValue({ current: nostalgiaCurrent, max: 10 }),
+      isCrossoverAvailable: vi.fn().mockReturnValue(false),
     } as unknown as MatchService;
+  }
+
+  /**
+   * Construye un Match con un poder de héroe concreto para la IA y, opcionalmente,
+   * aliados en el centro del tablero. Pensado para validar el reenvío de
+   * USE_HERO_POWER por OpponentService usando estrategias reales.
+   */
+  function buildHeroPowerMatch(opts: {
+    heroPower: IHeroPower;
+    aiBoardCenter?: Character[];
+    opponentStaticId?: string;
+  }): Match {
+    const aiHero = new Hero({
+      staticId: "HERO-AI",
+      name: "AI Hero",
+      archetype: Archetype.Neutral,
+      maxHealth: 30,
+      heroPower: opts.heroPower,
+    });
+    const opponentHero = new Hero({
+      staticId: opts.opponentStaticId ?? "HERO-OPP",
+      name: "Opponent Hero",
+      archetype: Archetype.Neutral,
+      maxHealth: 30,
+      heroPower: { name: "P", nostalgyCost: 1, effectType: "Damage", targetType: "Any", value: 1 },
+    });
+
+    const p1State: PlayerState = {
+      playerId: "ai-player",
+      hand: new Hand(),
+      board: { left: [], center: opts.aiBoardCenter ?? [], right: [] },
+      hero: aiHero,
+      deck: {} as unknown as Deck,
+    };
+    const p2State: PlayerState = {
+      playerId: "opponent",
+      hand: new Hand(),
+      board: { left: [], center: [], right: [] },
+      hero: opponentHero,
+      deck: {} as unknown as Deck,
+    };
+
+    return {
+      player1: p1State,
+      player2: p2State,
+      currentPhase: "main",
+      activePlayerId: "ai-player",
+      findCharacterOnBoard: () => null,
+    } as unknown as Match;
   }
 
   const dummyDelay = async () => Promise.resolve();
@@ -228,5 +283,117 @@ describe("OpponentService", () => {
     expect(consoleSpy).toHaveBeenCalledTimes(3); // PLAY_CARD, ATTACK y END_TURN fallidos
 
     consoleSpy.mockRestore();
+  });
+
+  // ===========================================================================
+  // Poder de héroe (CRÍTICO-F4.1)
+  // ===========================================================================
+
+  it("f) GreedyAI con poder de daño y Nostalgia suficiente → USE_HERO_POWER al héroe rival", async () => {
+    // Arrange
+    const opponentService = new OpponentService(new GreedyAI());
+    const match = buildHeroPowerMatch({
+      heroPower: {
+        name: "Hechizo Ancestral",
+        nostalgyCost: 2,
+        effectType: "Damage",
+        targetType: "Any",
+        value: 2,
+      },
+      opponentStaticId: "HERO-002",
+    });
+    const matchService = createMockMatchService(true, 10);
+
+    // Act
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
+
+    // Assert: apunta al staticId del héroe rival.
+    expect(matchService.handlePlayerAction).toHaveBeenCalledWith({
+      type: "USE_HERO_POWER",
+      playerId: "ai-player",
+      targetId: "HERO-002",
+    });
+  });
+
+  it("g) GreedyAI con poder de buff y un aliado en tablero → USE_HERO_POWER al aliado", async () => {
+    // Arrange
+    const ally = { instanceId: "ally-strong", attack: 5 } as unknown as Character;
+    const opponentService = new OpponentService(new GreedyAI());
+    const match = buildHeroPowerMatch({
+      heroPower: {
+        name: "Tornado de Fuego",
+        nostalgyCost: 2,
+        effectType: "BuffAttack",
+        targetType: "AllyCharacter",
+        value: 2,
+      },
+      aiBoardCenter: [ally],
+    });
+    const matchService = createMockMatchService(true, 10);
+
+    // Act
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
+
+    // Assert: apunta al instanceId del aliado.
+    expect(matchService.handlePlayerAction).toHaveBeenCalledWith({
+      type: "USE_HERO_POWER",
+      playerId: "ai-player",
+      targetId: "ally-strong",
+    });
+  });
+
+  it("h) Sin Nostalgia para el coste → no se intenta USE_HERO_POWER", async () => {
+    // Arrange: coste 2, Nostalgia disponible 1.
+    const opponentService = new OpponentService(new GreedyAI());
+    const match = buildHeroPowerMatch({
+      heroPower: {
+        name: "Hechizo Ancestral",
+        nostalgyCost: 2,
+        effectType: "Damage",
+        targetType: "Any",
+        value: 2,
+      },
+    });
+    const matchService = createMockMatchService(true, 1);
+
+    // Act
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
+
+    // Assert: ninguna llamada de tipo USE_HERO_POWER.
+    const calls = (matchService.handlePlayerAction as ReturnType<typeof vi.fn>).mock.calls;
+    const heroPowerCalls = calls.filter(
+      (c) => (c[0] as { type?: string })?.type === "USE_HERO_POWER",
+    );
+    expect(heroPowerCalls).toHaveLength(0);
+  });
+
+  // ===========================================================================
+  // Crossover (CRÍTICO-F4.1)
+  // ===========================================================================
+
+  it("i) shouldUseCrossover=true → emite ACTIVATE_CROSSOVER una vez", async () => {
+    // Arrange
+    const strategy = createMockStrategy(
+      [{ type: "END_MAIN_PHASE" }],
+      [{ type: "END_COMBAT" }],
+      true,
+    );
+    const opponentService = new OpponentService(strategy);
+    const match = buildDummyMatch();
+    const matchService = createMockMatchService();
+
+    // Act
+    await opponentService.executeTurn(match, "ai-player", matchService, dummyDelay);
+
+    // Assert
+    const calls = (matchService.handlePlayerAction as ReturnType<typeof vi.fn>).mock.calls;
+    const crossoverCalls = calls.filter(
+      (c) => (c[0] as { type?: string })?.type === "ACTIVATE_CROSSOVER",
+    );
+    expect(crossoverCalls).toHaveLength(1);
+    expect(matchService.handlePlayerAction).toHaveBeenCalledWith({
+      type: "ACTIVATE_CROSSOVER",
+      playerId: "ai-player",
+    });
   });
 });

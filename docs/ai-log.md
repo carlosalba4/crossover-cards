@@ -2955,3 +2955,60 @@ intactos.
 5. Verificación: `typecheck` ✅, `lint` ✅ (0 errores/0 warnings), `test` ✅ (507/507).
 
 **Notas**: Solo se tocó `src/presentation/utils/toast-messages.ts` y su test. Dominio y application intactos.
+
+---
+
+### Interacción #083 — 2026-05-31 (Fase 7: CRÍTICO-F4.1 y CRÍTICO-F4.2 — Poder de héroe (efecto real + IA) y Crossover IA)
+
+- **Fase**: Fase 7 (Extras / cierre de hallazgos críticos de QA)
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (CLI)
+- **Modelo**: Claude Opus 4.8 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~120000 / ~16000
+
+**Objetivo**: Cerrar los dos hallazgos críticos del QA conectando infraestructura ya existente pero no cableada:
+- **CRÍTICO-F4.2**: el poder de héroe gastaba Nostalgia y emitía `HeroPowerUsed`, pero **ningún servicio aplicaba el efecto** (El Lich no hacía daño; Axel Blaze no daba +ATQ).
+- **CRÍTICO-F4.1**: la IA (`OpponentService`) detectaba `USE_HERO_POWER`/Crossover pero solo hacía `console.warn` (comandos nunca ejecutados).
+
+**Estructuras reportadas en el plan (aprobadas)**: `heroPower` (`IHeroPower`: name, nostalgyCost, effectType, targetType, value) — El Lich = `Damage`/`Any`/value 2; Axel = `BuffAttack`/`AllyCharacter`/value 2/EndOfTurn. `Modifier` (source, attackBonus, healthBonus, abilitiesGranted, duration, appliedAtTurn); `Character.getEffectiveAttack()` suma modifiers y **lo usan combate e IA** (la presentación mostraba ATQ base → se añadió refresco). Contrato de `targetId`: Personaje = `instanceId`, Héroe = `staticId` (game-scene:827).
+
+**Parte A — Efecto real (F4.2)**:
+- Eventos nuevos `CharacterDamaged` y `CharacterBuffed` (`{playerId, character}`), coherentes con `HeroDamaged`/`CharacterDestroyed`, para refresco de presentación desacoplado.
+- **`src/domain/services/hero-power-resolver.ts`** (nuevo): se suscribe a `HeroPowerUsed`. `"Damage"` → `takeDamage(value)` a Personaje (emite `CharacterDamaged`) o Héroe por `staticId` (emite `HeroDamaged`); la muerte/fin de partida la gestiona el flujo existente (`cleanupDeadCharacters`/`checkMatchEnd`). `"BuffAttack"` → Modifier `+value` ATQ a un aliado (emite `CharacterBuffed`), retirado en `TurnEnded` por `source` (emite `CharacterBuffed` con el ATQ revertido). Robusto ante objetivos inexistentes/incoherentes (no lanza). `dispose()` cancela suscripciones.
+- Instanciado en **`MatchService.initMatch`** (donde viven CombatResolver/NostalgiaSystem/CrossoverManager; no en `game-dependencies.ts` porque allí no existe el `match`), con su `dispose()` registrado para la limpieza entre partidas.
+
+**Parte B — IA usa su poder (F4.1)**:
+- `GameStateSnapshot` extendido con `aiHeroPower: IHeroPower` y `opponentHeroStaticId`.
+- `shouldUseHeroPower` implementado por estrategia (antes `null`): **GreedyAI** → Damage al héroe rival; BuffAttack al aliado de mayor ATQ base. **ThreatAwareAI** → Damage remata al enemigo de menor vida (si no hay, al héroe); BuffAttack al aliado que el buff habilita para matar (si no, el de mayor ATQ base). Ambas: `null` si no hay Nostalgia para el coste.
+- `OpponentService`: tras la fase principal reconstruye snapshot (Nostalgia/Crossover live) y, si `shouldUseHeroPower` ≠ null, emite `USE_HERO_POWER` (el buff se aplica antes del combate; las refs de Character del snapshot son vivas y el combate ve el ATQ aumentado).
+
+**Parte C — Crossover IA**:
+- `MatchService.isCrossoverAvailable(playerId)`; `createSnapshot` recibe `crossoverAvailable`.
+- `OpponentService` emite `ACTIVATE_CROSSOVER` cuando `shouldUseCrossover` es true (once-per-game garantizado por `CrossoverManager`; fallo → `console.info`).
+- **Adición aprobada por el usuario**: `GreedyAI.shouldUseCrossover` → true si disponible y vida ≤ 50 % (para que el Crossover IA sea observable jugando con la dificultad por defecto, no solo con ThreatAwareAI a ≤30 %).
+
+**Presentación**:
+- `game-scene.ts`: handler `HeroPowerUsed` (toast «<héroe> usa <poder>»); `CharacterDamaged` → `board.updateCharacterHealth`; `CharacterBuffed` → `board.updateCharacterAttack`.
+- `CardSprite.updateAttack(current)` (análogo a `updateHealth`, verde si > base) + `BoardView.updateCharacterAttack`.
+
+**Tests** (+23, total 530):
+- `hero-power-resolver.test.ts` (nuevo, 11 casos): damage a Personaje/Héroe, letal, buff + expiración en TurnEnded, objetivo inexistente, buff a enemigo ignorado, effectType no soportado, ramas p1/p2. Usa `GameEventBus` real.
+- `opponent-service.test.ts` (+4): GreedyAI Damage→staticId rival, BuffAttack→aliado, sin Nostalgia→no usa, `shouldUseCrossover`→ACTIVATE_CROSSOVER una vez. Mock `isCrossoverAvailable` añadido.
+- `greedy-ai.test.ts` / `threat-aware-ai.test.ts`: heurísticas de poder + Crossover; `NEUTRAL_SNAPSHOT` con los 2 campos nuevos.
+- `game-event.test.ts`: conteo 25→27 + 2 entradas (CharacterDamaged/CharacterBuffed).
+
+**Criterios de aceptación verificables**:
+- ✅ El Lich: PODER al héroe rival → −2 PV; a un Personaje → −2 PV (muerte sin sprite fantasma vía `cleanupDeadCharacters`).
+- ✅ Axel Blaze: PODER a un aliado → +2 ATQ visible; revertido al acabar el turno.
+- ✅ La IA usa su poder (daño/buff) contra el jugador sin crashear; toast + refresco visibles.
+- ✅ La IA usa Crossover una vez por partida (GreedyAI a ≤50 % vida / ThreatAwareAI a ≤30 %).
+- ✅ `typecheck` ✅, `lint` ✅ (0/0), `test` ✅ (530/530). Cobertura `domain/services`/`application/services` mantenida (resolver 100 % funcs, 96 % líneas).
+
+**Iteraciones**:
+1. Exploración exhaustiva: command, heroes.json, Modifier, Character, opponent-service, snapshot, estrategias, CrossoverManager, combat-resolver, board/card-sprite, contrato targetId humano.
+2. Plan → aprobación (con reporte de estructuras + heurística extra de Crossover para GreedyAI).
+3. Implementación dominio → aplicación → presentación → tests.
+4. Ajuste de tests de catálogo (eventos, snapshots IA) y de mocks (`isCrossoverAvailable`).
+5. Fix de lint (`console.debug`→`info`, accesos `any`, Prettier) y refuerzo de cobertura de ramas del resolver.
+
+**Notas / desviaciones**: el resolver se instancia en `MatchService` (no `game-dependencies.ts`) por dónde vive el `match`; fatiga/daño reutilizan eventos existentes y solo se añadieron `CharacterDamaged`/`CharacterBuffed`. No se tocó Jake/chooseForm, ni el botón de Crossover/Poder del humano, ni la lógica de victoria/derrota.
