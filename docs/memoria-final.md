@@ -157,55 +157,55 @@ Esta sección expone de forma narrativa el avance empírico del proyecto a trav�
 
 El proyecto arrancó estableciendo unos cimientos tecnológicos robustos y una definición funcional inamovible. En primer lugar, se confió a los agentes de inicialización (como el `Project-Init-Agent`) la tarea de preparar un ecosistema TypeScript moderno. En lugar de configuraciones heredadas, se construyó un entorno limpio con **Vite**, **Vitest** (para pruebas), **ESLint flat config** (para control de calidad) y **Phaser 4** como motor gráfico. 
 
-![Figura 1: Plan de inicialización propuesto por el agente Project-Init](docs/screenshots/01-setup/2026-05-18_01-setup_agente-project-init-plan_003b.png)
+![Figura 1: Plan de inicialización propuesto por el agente Project-Init](screenshots/01-setup/2026-05-18_01-setup_agente-project-init-plan_003b.png)
 
 Una vez completada la configuración y verificada la compatibilidad local con la terminal (mediante opencode), se levantó el servidor de desarrollo, validando que el motor de físicas y renderizado de Phaser funcionaba correctamente.
 
-![Figura 2: Servidor en ejecución mostrando el "Hello World" de Phaser 4](docs/screenshots/01-setup/2026-05-18_01-setup_phaser-hello-world_003h.png)
+![Figura 2: Servidor en ejecución mostrando el "Hello World" de Phaser 4](screenshots/01-setup/2026-05-18_01-setup_phaser-hello-world_003h.png)
 
 Con el terreno técnico preparado, la atención giró hacia los requisitos. Mediante herramientas de IA con capacidades de Product Management, se generó un extenso **Product Requirements Document (PRD)**. Este documento actuó como el "contrato funcional" del juego, especificando casos de uso, restricciones técnicas y condiciones de victoria.
 
-![Figura 3: Propuesta metodológica del PRD-Agent para estructurar los requisitos](docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-agent-plan-propuesto_03.png)
+![Figura 3: Propuesta metodológica del PRD-Agent para estructurar los requisitos](screenshots/02-analysis/2026-05-19_02-analysis_prd-agent-plan-propuesto_03.png)
 
 Finalmente, un agente especializado en diseño lúdico y narrativo refactorizó dicho documento para inyectarle el ADN temático de *Crossover Cards*, incorporando de forma quirúrgica héroes icónicos de la animación como El Lich y Axel Blaze, así como la mecánica nuclear de toda la economía del juego: el recurso *Nostalgia*.
 
-![Figura 4: Resultado del PRD refactorizado inyectando los perfiles de los héroes](docs/screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-heroes_06a.png)
+![Figura 4: Resultado del PRD refactorizado inyectando los perfiles de los héroes](screenshots/02-analysis/2026-05-19_02-analysis_prd-refactor-heroes_06a.png)
 
 ### 4.2. Fase 2: Diseño
 
 Con las reglas del juego firmemente acotadas, la fase de diseño abordó la compleja tarea de separar las responsabilidades lógicas de las visuales. El `Architect-Agent` estableció una **Arquitectura en Capas** que independizó por completo el Dominio puro (las reglas y la máquina de estados en TypeScript) de la Presentación (la integración directa con el WebGL de Phaser 4). Esta división resultó crítica para permitir el testing unitario rápido.
 
-![Figura 5: Diagrama de arquitectura en capas generado por el Architect-Agent](docs/screenshots/03-design/2026-05-20_03-design_architecture-diagrama-capas_05.png)
+![Figura 5: Diagrama de arquitectura en capas generado por el Architect-Agent](screenshots/03-design/2026-05-20_03-design_architecture-diagrama-capas_05.png)
 
 Para garantizar que el resto de los agentes (que no comparten estado ni memoria) respetaran en todo momento estas directrices, se adoptó el estándar de la industria **Architecture Decision Records (ADR)**. Un agente dedicado se encargó de redactar formalmente documentos justificativos (ADR-001 a ADR-007) explicando el contexto y la elección de patrones concretos (como el Event Bus o Strategy).
 
-![Figura 6: Generación automática de registros de decisiones arquitectónicas (ADR)](docs/screenshots/03-design/2026-05-20_03-design_adr-writer-resultado_02.png)
+![Figura 6: Generación automática de registros de decisiones arquitectónicas (ADR)](screenshots/03-design/2026-05-20_03-design_adr-writer-resultado_02.png)
 
 En paralelo al modelado del software, se procedió al **Diseño Lúdico y Visual**. El `CardCatalog-Agent` generó un catálogo balanceado de 20 cartas distintas, calculando el coste matemático, el ataque, la vida y la rareza en formato JSON para facilitar su instanciación en el juego.
 
-![Figura 7: Ficha de diseño lúdico y balance numérico para una carta de rareza legendaria](docs/screenshots/03-design/2026-05-21_03-design_card-catalog-ficha-legendaria_06.png)
+![Figura 7: Ficha de diseño lúdico y balance numérico para una carta de rareza legendaria](screenshots/03-design/2026-05-21_03-design_card-catalog-ficha-legendaria_06.png)
 
 Por su parte, el `UI-Design-Agent` concibió la experiencia de usuario (UX), produciendo paletas de colores basadas en tonos nostálgicos y delineando *wireframes* detallados. Estos bocetos dictaminaron de forma exacta dónde se ubicarían la mano del jugador, el contador de Nostalgia y el panel de interacción, sentando unas bases gráficas inamovibles para la fase de programación venidera.
 
-![Figura 8: Wireframe esquemático de la disposición espacial en la escena de juego](docs/screenshots/03-design/2026-05-21_03-design_ui-design-wireframe-gamescene_06.png)
+![Figura 8: Wireframe esquemático de la disposición espacial en la escena de juego](screenshots/03-design/2026-05-21_03-design_ui-design-wireframe-gamescene_06.png)
 
 ### 4.3. Fase 3: Implementación
 
 La fase de implementación constituyó el núcleo práctico del proyecto y la prueba de fuego del sistema agéntico. Para gestionar la complejidad del código fuente, se instanció un *Custom Agent* con memoria persistente denominado `Implementation-Orchestrator-Agent`. Este agente actuó como director técnico: en lugar de escribir código directamente, dividió el trabajo en bloques manejables (IMPL-A a IMPL-F) y delegó tareas concretas a agentes de menor nivel.
 
-![Figura 9: Invocación inicial y configuración del Implementation-Orchestrator-Agent](docs/screenshots/04-implementation/2026-05-22_04-implementation_orchestrator-invocacion_01.png)
+![Figura 9: Invocación inicial y configuración del Implementation-Orchestrator-Agent](screenshots/04-implementation/2026-05-22_04-implementation_orchestrator-invocacion_01.png)
 
 Bajo esta orquestación jerárquica, el desarrollo avanzó capa por capa. El `Domain-Dev-Agent` materializó primero la lógica del juego (entidades, control de turnos y *Nostalgia*), seguido por el `AI-Opponent-Agent`, que integró la inteligencia del rival. Posteriormente, el `Phaser-Dev-Agent` se encargó de conectar esta lógica puramente matemática con el renderizado WebGL, dando vida visual al catálogo de cartas, los contadores interactivos y, por supuesto, a la selección de héroes.
 
-![Figura 10: Escena de presentación y selección asimétrica de héroes renderizada en Phaser 4](docs/screenshots/04-implementation/2026-05-26_04-implementation_imple-hero-select-scene.png)
+![Figura 10: Escena de presentación y selección asimétrica de héroes renderizada en Phaser 4](screenshots/04-implementation/2026-05-26_04-implementation_imple-hero-select-scene.png)
 
 El hito central de esta fase se alcanzó con el bloque IMPL-F, donde todos los subsistemas independientes (máquina de estados, Event Bus, animaciones UI y algoritmos de decisión de la IA) se integraron en el tablero de juego para formar un ciclo de partida funcional e interactivo.
 
-![Figura 11: Renderizado del tablero de la partida funcional con la interfaz de usuario completa integrada](docs/screenshots/04-implementation/2026-05-30_04-implementation_implf-partida-12.png)
+![Figura 11: Renderizado del tablero de la partida funcional con la interfaz de usuario completa integrada](screenshots/04-implementation/2026-05-30_04-implementation_implf-partida-12.png)
 
 Finalmente, se programaron las condiciones dinámicas de victoria y derrota, garantizando que el agotamiento de la vida de un héroe condujera de manera orgánica a la escena final de resolución, completando así el flujo de pantallas exigido en el PRD.
 
-![Figura 12: Escena de fin de partida documentando el resultado de una victoria](docs/screenshots/04-implementation/2026-05-30_04-implementation_implf-final-13.png)
+![Figura 12: Escena de fin de partida documentando el resultado de una victoria](screenshots/04-implementation/2026-05-30_04-implementation_implf-final-13.png)
 
 ### 4.4. Fase 4: Pruebas (QA)
 
@@ -213,25 +213,25 @@ A diferencia de metodologías tradicionales donde las pruebas se posponen al fin
 
 Para esta labor crítica se desplegó al `QA-Reviewer-Agent`. Este agente actuó como auditor externo del código, examinando el repositorio frente a los Documentos de Arquitectura (ADRs) preestablecidos para evaluar posibles transgresiones a los principios SOLID y debilidades en el acoplamiento.
 
-![Figura 13: Plan de auditoría propuesto por el QA-Reviewer-Agent enfocándose en acoplamiento y principios SOLID](docs/screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-plan_02.png)
+![Figura 13: Plan de auditoría propuesto por el QA-Reviewer-Agent enfocándose en acoplamiento y principios SOLID](screenshots/05-testing/2026-05-30_05-testing_qa-reviewer-plan_02.png)
 
 El resultado del análisis de cobertura profunda se consolidó en un reporte riguroso. El agente detectó áreas específicas de mejora, proponiendo desacoplar la lógica matemática de la presentación visual inherente a las clases `Phaser.GameObjects.Container`. Las observaciones se tradujeron en refactorizaciones quirúrgicas aprobadas por el equipo, certificando la alta calidad técnica del código de entrega y validando empíricamente la efectividad del sistema de revisión IA.
 
-![Figura 14: Emisión del veredicto y reporte final de aseguramiento de calidad (QA)](docs/screenshots/05-testing/2026-05-30_05-testing_qa-report-veredicto_04.png)
+![Figura 14: Emisión del veredicto y reporte final de aseguramiento de calidad (QA)](screenshots/05-testing/2026-05-30_05-testing_qa-report-veredicto_04.png)
 
 ### 4.5. Fase 5: Despliegue
 
 La fase de entrega técnica se encomendó al `Deploy-Agent`, cuyo objetivo era asegurar que el proyecto cumpliera con los estándares académicos sin incurrir en riesgos legales ni costes operativos innecesarios. Se formalizó la decisión arquitectónica (documentada en el **ADR-008**) de no desplegar el juego en un servidor web público gratuito (como Vercel o GitHub Pages) debido a que los *assets* visuales extraídos del universo *crossover* (personajes de series animadas) están protegidos por derechos de autor. En su lugar, el producto se entregaría de forma privada como código fuente empaquetado y ejecutable en local.
 
-![Figura 15: Invocación del Deploy-Agent y formulación del ADR-008 para la entrega final](docs/screenshots/06-deployment/2026-05-30_06-deployment_deploy-agent-invocacion_01.png)
+![Figura 15: Invocación del Deploy-Agent y formulación del ADR-008 para la entrega final](screenshots/06-deployment/2026-05-30_06-deployment_deploy-agent-invocacion_01.png)
 
 Para garantizar la fiabilidad irrefutable del código entregado, el agente configuró un *pipeline* de Integración Continua (CI) mediante **GitHub Actions**. Este flujo automatizado aseguraba de forma transparente que, antes de la entrega, se superaran los análisis estáticos de TypeScript y ESLint, pasaran todas las aserciones de Vitest y se compilara con éxito la rama *main*.
 
-![Figura 16: Ejecución exitosa del pipeline de Integración Continua (CI) en GitHub Actions](docs/screenshots/06-deployment/2026-05-30_06-deployment_github-actions-build-verde_02.png)
+![Figura 16: Ejecución exitosa del pipeline de Integración Continua (CI) en GitHub Actions](screenshots/06-deployment/2026-05-30_06-deployment_github-actions-build-verde_02.png)
 
 Como colofón a la fase de despliegue, el agente redactó un exhaustivo archivo `README.md` que sirve como manual de entrega, detallando los prerrequisitos de instalación, los comandos del ecosistema Vite y la configuración necesaria de Ollama para el *testing* del sistema agéntico.
 
-![Figura 17: Vista renderizada del README.md actuando como manual de instalación y uso](docs/screenshots/06-deployment/2026-05-30_06-deployment_readme-renderizado_03.png)
+![Figura 17: Vista renderizada del README.md actuando como manual de instalación y uso](screenshots/06-deployment/2026-05-30_06-deployment_readme-renderizado_03.png)
 
 ### 4.6. Fase 6: Memoria final
 
