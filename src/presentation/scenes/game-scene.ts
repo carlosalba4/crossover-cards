@@ -15,6 +15,7 @@ import { Toast } from "@presentation/ui/toast";
 import { Modal } from "@presentation/ui/modal";
 import { Button } from "@presentation/ui/button";
 import { CardSprite } from "@presentation/objects/card-sprite";
+import { friendlyErrorMessage } from "@presentation/utils/toast-messages";
 
 import type { MatchService } from "@application/services/match-service";
 import type { OpponentService } from "@application/services/opponent-service";
@@ -131,6 +132,14 @@ export class GameScene extends Phaser.Scene {
     this.setupEventHandlers();
 
     this.startMatch();
+
+    // Cambiar de music-menu a music-game. Suscribir SHUTDOWN para parar
+    // music-game si la escena se destruye (ej.: el jugador reinicia).
+    this.swapToGameMusic();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      const track = this.sound.get("music-game");
+      if (track?.isPlaying) track.stop();
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -664,7 +673,11 @@ export class GameScene extends Phaser.Scene {
         playerId: "p1",
       });
       if (!result.success) {
-        Toast.show(this, result.error?.message || "No puedes terminar el turno ahora", "warn");
+        Toast.show(
+          this,
+          friendlyErrorMessage(result.error, "No puedes terminar el turno ahora"),
+          "warn",
+        );
       }
     });
 
@@ -700,7 +713,11 @@ export class GameScene extends Phaser.Scene {
             playerId: "p1",
           });
           if (!result.success) {
-            Toast.show(this, result.error?.message || "Acción Crossover inválida", "warn");
+            Toast.show(
+              this,
+              friendlyErrorMessage(result.error, "Acción Crossover inválida"),
+              "warn",
+            );
           }
         },
       });
@@ -757,7 +774,11 @@ export class GameScene extends Phaser.Scene {
           playerId: "p1",
         });
         if (!result.success) {
-          Toast.show(this, result.error?.message || "No se pudo usar la habilidad", "warn");
+          Toast.show(
+            this,
+            friendlyErrorMessage(result.error, "No se pudo usar la habilidad"),
+            "warn",
+          );
         }
       } else {
         this.targetSelectionMode = "heroPower";
@@ -780,7 +801,8 @@ export class GameScene extends Phaser.Scene {
           // El poder de héroe identifica al héroe objetivo por su staticId.
           targetId: rivalState.hero.staticId,
         });
-        if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
+        if (!result.success)
+          Toast.show(this, friendlyErrorMessage(result.error, "Objetivo inválido"), "warn");
         this.targetSelectionMode = null;
         return;
       }
@@ -796,7 +818,7 @@ export class GameScene extends Phaser.Scene {
           defenderId: rivalState.playerId,
         });
         if (!result.success) {
-          Toast.show(this, result.error?.message || "Ataque inválido", "warn");
+          Toast.show(this, friendlyErrorMessage(result.error, "Ataque inválido"), "warn");
         }
         this.clearAttackerSelection();
       }
@@ -866,7 +888,11 @@ export class GameScene extends Phaser.Scene {
         });
 
         if (!result.success) {
-          Toast.show(this, result.error?.message || "No se puede jugar la carta", "warn");
+          Toast.show(
+            this,
+            friendlyErrorMessage(result.error, "No se puede jugar la carta"),
+            "warn",
+          );
           // rearrange anima la carta de vuelta a su hueco en el abanico
           this.handPlayer.rearrange();
         }
@@ -894,7 +920,8 @@ export class GameScene extends Phaser.Scene {
           playerId: "p1",
           targetId: characterId,
         });
-        if (!result.success) Toast.show(this, result.error?.message || "Objetivo inválido", "warn");
+        if (!result.success)
+          Toast.show(this, friendlyErrorMessage(result.error, "Objetivo inválido"), "warn");
         this.targetSelectionMode = null;
         return;
       }
@@ -914,7 +941,7 @@ export class GameScene extends Phaser.Scene {
           });
 
           if (!result.success) {
-            Toast.show(this, result.error?.message || "Ataque inválido", "warn");
+            Toast.show(this, friendlyErrorMessage(result.error, "Ataque inválido"), "warn");
           }
           this.clearAttackerSelection();
         }
@@ -1037,6 +1064,25 @@ export class GameScene extends Phaser.Scene {
           child.removeAllListeners();
         }
       });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Música
+  // -------------------------------------------------------------------------
+
+  /**
+   * Para music-menu si está sonando y arranca music-game en bucle.
+   * La detención de music-game al salir se gestiona en el handler
+   * SHUTDOWN registrado en create().
+   */
+  private swapToGameMusic(): void {
+    const menuTrack = this.sound.get("music-menu");
+    if (menuTrack?.isPlaying) menuTrack.stop();
+
+    const gameTrack = this.sound.get("music-game");
+    if (!gameTrack?.isPlaying) {
+      this.sound.play("music-game", { loop: true, volume: 0.3 });
     }
   }
 }

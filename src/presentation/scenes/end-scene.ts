@@ -85,6 +85,11 @@ export class EndScene extends Phaser.Scene {
     const cx = width / 2;
     const cy = height / 2;
 
+    // Parar music-game si estuviese sonando al llegar a la pantalla de resultado.
+    // EndScene no inicia ninguna pista nueva.
+    const gameTrack = this.sound.get("music-game");
+    if (gameTrack?.isPlaying) gameTrack.stop();
+
     // 1. Fondo bg-deep con vignette
     this.drawBackground(width, height);
 

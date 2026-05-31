@@ -2486,3 +2486,135 @@ fase se redefinió como "Empaquetado + CI + documentación" tras verificar que
 el enunciado no exige URL pública. La build de producción está lista para ser 
 subida a itch.io en un futuro si las condiciones del proyecto cambiasen. 
 Próximo paso: Fase 6 (Memoria) con Memory-Agent.
+
+---
+
+### Interacción #073 — 2026-05-31 (Cabos sueltos de presentación: bg-boot y música)
+
+- **Fase**: Implementación (días 5-10) — refinamiento
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity (workflow `/phaser-dev-agent`)
+- **Modelo**: Claude Sonnet 4.6 Thinking
+- **Tokens (entrada ≈ / salida ≈)**: ~18000 / ~4000
+
+**Objetivo**: Conectar dos assets ya cargados en BootScene que no se usaban:
+(1) imagen `bg-boot` como fondo de la pantalla de carga, y (2) pistas de audio
+`music-menu` y `music-game` en las escenas correspondientes.
+
+**Prompt**: Tarea directa vía `/phaser-dev-agent` con especificación detallada de
+comportamiento esperado por escena, matices de continuidad musical y restricciones
+de capa (solo `src/presentation/scenes/`).
+
+**Resultado**:
+
+- `boot-scene.ts`: `create()` sustituye el `add.rectangle` por `add.image("bg-boot")`
+  con `setDisplaySize(width, height)`. Fallback al rectángulo si la textura no existe.
+- `menu-scene.ts`: helper privado `ensureMusic("music-menu")` invocado al final de
+  `create()`. Solo arranca si no está ya sonando (idempotente). Sin lógica SHUTDOWN.
+- `hero-select-scene.ts`: misma llamada a `ensureMusic("music-menu")` al final de
+  `create()`, dando continuidad musical desde MenuScene sin reiniciar la pista.
+- `game-scene.ts`: método privado `swapToGameMusic()` para `music-menu` y arrancar
+  `music-game` en bucle a 0.3 de volumen. SHUTDOWN suscrito con `events.once` para
+  detener `music-game` si la escena se destruye (reinicio de partida).
+- `end-scene.ts`: para `music-game` al inicio de `create()` si estuviese sonando.
+  No inicia ninguna pista nueva.
+
+**Decisiones clave**:
+
+- Continuidad entre MenuScene y HeroSelectScene: `ensureMusic` es idempotente; si
+  la pista ya suena, no la reinicia. GameScene es la única que la para explícitamente.
+- Solo GameScene se suscribe a SHUTDOWN (para su propia pista). MenuScene y
+  HeroSelectScene no registran SHUTDOWN de audio para evitar interferencias.
+- EndScene para la música con una simple guardia `isPlaying` sin más complejidad.
+- Fallback de `bg-boot`: `this.textures.exists("bg-boot")` antes de crear la imagen
+  (igual que el patrón ya establecido en el resto de escenas del proyecto).
+
+**Iteraciones**:
+
+1. Lectura de los 5 archivos de escena y skill phaser-patterns.
+2. Plan propuesto → aprobado con dos matices del equipo:
+   (a) MenuScene y HeroSelectScene no suscriben SHUTDOWN.
+   (b) EndScene no inicia ninguna pista nueva.
+3. Ejecución de los 5 cambios (uno por archivo).
+4. Verificación: `typecheck` ✅, `lint` ✅, `test` ✅ (486/486 tests pasando).
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
+
+**Notas**: Cambios quirúrgicos exclusivamente en `src/presentation/scenes/`.
+Dominio, aplicación e infraestructura intactos. Todos los checks de calidad en verde.
+---
+
+### Interacción #074 — 2026-05-31 (Fase 7: Bugfixes de presentación — sprite fantasma y fuga de UUIDs en toasts)
+
+- **Fase**: Fase 7 (Extras / pulido de calidad)
+- **Agente**: Claude Code
+- **Herramienta**: Claude Code (CLI)
+- **Modelo**: Claude Opus 4.8
+- **Tokens (entrada ≈ / salida ≈)**: ~70000 / ~9000
+
+**Objetivo**: Corregir dos bugs detectados al jugar, ambos en la capa de
+presentación, sin tocar dominio ni aplicación.
+
+- **Bug A**: al destruir un Personaje (rival o propio), su sprite quedaba en el
+  tablero semi-transparente, sin destruir y aún clicable ("fantasma"), pese a que
+  el dominio ya lo había retirado.
+- **Bug B**: los toasts mostraban mensajes de error del dominio con UUIDs internos
+  visibles al usuario (p.ej. «El defensor con id "d31ad54b-…" no está en el tablero»).
+
+**Resultado**:
+
+- **Bug A** — Causa raíz: `CardSprite.onPointerOver/onPointerOut` ejecutan
+  `tweens.killTweensOf(this)`. Al destruir un Personaje recién clicado, el tween de
+  muerte (fade 400 ms de `BoardView.removeCharacterSprite`) era abortado por el
+  `POINTER_OUT` al salir el puntero, dejando el sprite a medio desvanecer y aún
+  interactivo. Fix en `removeCharacterSprite`: se mantiene la baja inmediata de
+  `spriteMap`/`slots` (T=0) y, antes de animar, se blinda el sprite con
+  `disableInteractive()`, `removeAllListeners()` y `killTweensOf(sprite)`, de modo
+  que ningún handler de hover pueda matar el tween de muerte ni quede residuo
+  clicable. El `onComplete` sigue destruyendo el sprite.
+- **Bug B** — Nuevo helper de presentación `src/presentation/utils/toast-messages.ts`:
+  - `sanitizeMessage(msg)`: red de seguridad que reemplaza cualquier UUID v4 por el
+    literal "objetivo".
+  - `friendlyErrorMessage(error: unknown, fallback)`: mapea por `error.name` los
+    errores conocidos (`InvalidTargetError`, `PhaseViolationError`, `BoardFullError`)
+    a textos amigables en español; el resto se sanea. Tipado como `unknown` con
+    comprobación `instanceof Error` (sin `any`).
+  - `GameScene`: las 8 llamadas `Toast.show(this, result.error?.message || "…")` pasan
+    ahora por `friendlyErrorMessage(result.error, "…")`. El dominio conserva sus
+    mensajes detallados (útiles para debug/tests); la sanitización vive solo en
+    presentación.
+- Nuevo test `tests/presentation/utils/toast-messages.test.ts` (11 casos, función pura
+  sin Phaser): saneado de UUIDs y mapeo de errores conocidos.
+
+**Decisiones clave**:
+
+- Mapeo por `error.name` (cada error asigna `name = this.constructor.name`): fiable y
+  no acopla la presentación a la jerarquía concreta de errores.
+- Orden en `removeCharacterSprite`: baja de registros en T=0 (no en el `onComplete`),
+  para que el sprite quede huérfano de los mapas desde el instante de la muerte.
+
+**Deuda técnica conocida**: `CharacterDestroyed` se emite por duplicado para un
+defensor muerto en combate (una vez en `CombatResolver` y otra en
+`MatchService.cleanupDeadCharacters`). Es idempotente —el segundo `removeCharacterSprite`
+hace no-op— y no causa el bug, por lo que se deja como está y se documenta aquí.
+
+**Iteraciones**:
+
+1. Lectura de AGENTS.md, escenas, `board-view`, `card-sprite`, `combat-resolver`,
+   `match-service` y clases de error.
+2. Plan propuesto → aprobado con tres matices del equipo: (a) baja de registros en T=0;
+   (b) `error: unknown` + `instanceof Error`; (c) documentar la doble emisión como deuda.
+3. Ejecución: fix en `board-view.ts`, nuevo helper, 8 sustituciones en `game-scene.ts`,
+   nuevo test.
+4. Verificación: `typecheck` ✅, `lint` ✅ (autofix de formato Prettier), `test` ✅
+   (497/497 tests pasando; 486 previos + 11 nuevos).
+
+**Capturas asociadas**:
+
+- (pendiente de captura manual)
+
+**Notas**: Cambios contenidos en `src/presentation/` (`board-view.ts`, `game-scene.ts`,
+nuevo `utils/toast-messages.ts`) y su test. Dominio, aplicación e infraestructura
+intactos.

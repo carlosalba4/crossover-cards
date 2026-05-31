@@ -149,6 +149,9 @@ export class HeroSelectScene extends Phaser.Scene {
         loadingText.setText("Error al cargar héroes.");
         loadingText.setColor("#E83E3E");
       });
+
+    // Continuar music-menu si ya estaba sonando (sin reiniciarla).
+    this.ensureMusic("music-menu");
   }
 
   // -------------------------------------------------------------------------
@@ -268,5 +271,20 @@ export class HeroSelectScene extends Phaser.Scene {
     this.cameras.main.once("camerafadeoutcomplete", () => {
       this.scene.start("GameScene", { heroId: this._selectedHeroId });
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Música
+  // -------------------------------------------------------------------------
+
+  /**
+   * Arranca la pista indicada si no está ya reproduciéndose.
+   * Sin lógica de SHUTDOWN: MenuScene y HeroSelectScene comparten
+   * music-menu de forma continua; es GameScene quien la detiene al entrar.
+   */
+  private ensureMusic(key: "music-menu" | "music-game"): void {
+    const existing = this.sound.get(key);
+    if (existing?.isPlaying) return;
+    this.sound.play(key, { loop: true, volume: 0.3 });
   }
 }

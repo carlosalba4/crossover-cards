@@ -85,8 +85,12 @@ export class BootScene extends Phaser.Scene {
     const cx = width / 2;
     const cy = height / 2;
 
-    // Fondo sólido (bg-deep)
-    this.add.rectangle(cx, cy, width, height, COLOR_BG_DEEP);
+    // Fondo: imagen bg-boot si está disponible; rectángulo sólido como fallback.
+    if (this.textures.exists("bg-boot")) {
+      this.add.image(cx, cy, "bg-boot").setDisplaySize(width, height);
+    } else {
+      this.add.rectangle(cx, cy, width, height, COLOR_BG_DEEP);
+    }
 
     // Logo — "CROSSOVER"
     const logoText = this.add

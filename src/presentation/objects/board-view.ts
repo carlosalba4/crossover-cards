@@ -196,12 +196,23 @@ export class BoardView extends Phaser.GameObjects.Container {
     const sprite = this.spriteMap.get(characterId);
     if (!sprite) return;
 
+    // T=0: el sprite queda huérfano de los registros de inmediato (no al final
+    // del tween). Así getSpriteByInstanceId/getZoneCount dejan de verlo desde ya.
     for (const side of ["player", "opponent"] as const) {
       for (const z of ["left", "center", "right", "free"] as const) {
         this.slots[side][z] = this.slots[side][z].filter((s) => s.id !== characterId);
       }
     }
     this.spriteMap.delete(characterId);
+
+    // Blindar el sprite antes de animar: sin interactividad ni listeners no queda
+    // residuo clicable ("fantasma") y, sobre todo, los handlers de hover de
+    // CardSprite (POINTER_OVER/OUT) no podrán matar el tween de muerte con
+    // killTweensOf al salir el puntero. Matamos también cualquier tween de hover
+    // en curso para que no interfiera con el fade de muerte (Bug A).
+    sprite.disableInteractive();
+    sprite.removeAllListeners();
+    this.scene.tweens.killTweensOf(sprite);
 
     if (animate) {
       this.scene.tweens.add({

@@ -67,6 +67,9 @@ export class MenuScene extends Phaser.Scene {
     this.createLogo(cx, cy);
     this.createButtons(cx, cy);
     this.createVersionText(height);
+
+    // Arrancar música de menú (no la reinicia si ya está sonando).
+    this.ensureMusic("music-menu");
   }
 
   // -------------------------------------------------------------------------
@@ -286,5 +289,20 @@ export class MenuScene extends Phaser.Scene {
       title: "Créditos",
       body: "Crossover Cards v1.0.0\n\nDesarrollo: Equipo (2 personas)\nAsignatura: IA y Big Data\n\nSprites: respectivos propietarios\n(CN, Nickelodeon, Toei, Level-5)\nUso exclusivamente académico.",
     });
+  }
+
+  // -------------------------------------------------------------------------
+  // Música
+  // -------------------------------------------------------------------------
+
+  /**
+   * Arranca la pista indicada si no está ya reproduciéndose.
+   * No detiene ninguna otra pista (la continuidad de music-menu entre
+   * MenuScene y HeroSelectScene se obtiene al no reiniciarla).
+   */
+  private ensureMusic(key: "music-menu" | "music-game"): void {
+    const existing = this.sound.get(key);
+    if (existing?.isPlaying) return;
+    this.sound.play(key, { loop: true, volume: 0.3 });
   }
 }
