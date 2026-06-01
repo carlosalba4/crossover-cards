@@ -3030,3 +3030,16 @@ intactos.
 - `RightHUDPanel` modificado para reducir el offset X del botón Crossover de 80 a 50, y su `depth` aumentado a 100 en `GameScene`.
 - `BoardView.addCharacterSprite` actualizado para redistribuir a la IA a una zona libre si la zona solicitada ("center") está llena visualmente, evitando el solapamiento.
 - Test unitario añadido en `draw-phase.test.ts` para verificar el reset del hero power.
+
+### Interacción #085 — 2026-06-01 (Corrección de Escala de Fondo)
+
+- **Fase**: Implementación / QA
+- **Agente**: Phaser-Dev-Agent
+- **Herramienta**: Antigravity
+- **Modelo**: Gemini 3.1 Pro (High)
+
+**Objetivo**: Corregir las franjas negras a los lados de la pantalla asegurando que el fondo se extienda hasta completar el ancho del viewport.
+
+**Resultado**:
+- Se actualizó el modo de escala en `src/presentation/config/game-config.ts` de `Phaser.Scale.FIT` a `Phaser.Scale.ENVELOP`.
+- Esto permite que el canvas cubra toda el área del contenedor manteniendo el aspect ratio, eliminando las barras laterales y haciendo la vista más inmersiva.

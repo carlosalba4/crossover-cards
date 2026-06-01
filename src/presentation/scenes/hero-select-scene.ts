@@ -101,8 +101,8 @@ export class HeroSelectScene extends Phaser.Scene {
     // Botón "Volver" con la misma textura que en EndScene
     new Button({
       scene: this,
-      x: 90,
-      y: 40,
+      x: 160,
+      y: 90,
       width: 180,
       height: 68,
       label: "",
