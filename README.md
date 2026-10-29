@@ -1,165 +1,160 @@
 # Crossover Cards
 
-Juego de cartas estratégico por turnos 1 vs 1 (Jugador vs IA) desarrollado con
-herramientas agénticas como proyecto académico de la asignatura Programación de
-Inteligencia Artificial.
+A turn-based 1-vs-1 strategy card game (player vs AI opponent), built almost entirely through an **agentic AI development workflow**. Academic capstone project for the *Artificial Intelligence Programming* module of the AI & Big Data Specialization at Instituto Nebrija.
 
-Stack: Phaser 4 + TypeScript (strict) + Vite. Tests: Vitest. Lint/Format:
-ESLint + Prettier.
+The game has a nostalgic crossover theme: cards featuring characters from animated series, two playable heroes (The Lich and Axel Blaze) and a central resource called *Nostalgia* that players manage every turn.
 
----
-
-## Requisitos previos
-
-- Node.js 24.x o superior ([nodejs.org](https://nodejs.org))
-- npm 11.x o superior (incluido con Node.js)
-- Navegador moderno con WebGL habilitado: Chrome 120+, Firefox 120+, Edge 120+
-- Sistema operativo: Windows 10/11, macOS 13+ o Linux con soporte WebGL
+**Stack:** Phaser 4 · TypeScript (strict) · Vite · Vitest · ESLint + Prettier · GitHub Actions
 
 ---
 
-## Instalación y ejecución
+## Highlights
+
+- **19 specialised AI agents** covering the full lifecycle: requirements (PRD), architecture, ADRs, card catalogue, UI design, implementation, opponent AI, QA, CI and documentation. Every agent works under a human-in-the-loop *plan → approve → execute* cycle.
+- **Dual-model architecture:**
+  - Cloud models in an agentic IDE (Google Antigravity with Gemini and Claude) for architecture, documentation and complex code.
+  - Local models via Ollama and opencode (Qwen2.5-Coder, Qwen3) for repetitive tasks and boilerplate, keeping token usage under control.
+- **Clean, layered architecture:** pure domain logic with no Phaser dependencies, plus application, infrastructure and presentation layers. Uses the State pattern for turns, the Strategy pattern for the AI opponent and an event bus between layers.
+- **AI opponent** with interchangeable strategies: greedy, and threat-aware heuristics. It decides card plays, hero powers and the once-per-match Crossover mechanic.
+- **Quality:**
+  - 486 automated tests across 48 files.
+  - 92–100% coverage on the domain layers.
+  - TypeScript strict mode with zero errors.
+  - CI pipeline: type-check → lint → test → build.
+- **Full traceability:** 8 ADRs, QA reports and a log of every interaction with AI tools (`docs/ai-log.md`).
+
+> Most project documentation (PRD, architecture, ADRs, AI log) is written in Spanish, as required by the course.
+
+---
+
+## Prerequisites
+
+- Node.js 24.x or later ([nodejs.org](https://nodejs.org))
+- npm 11.x or later (bundled with Node.js)
+- A modern browser with WebGL enabled: Chrome 120+, Firefox 120+ or Edge 120+
+
+---
+
+## Getting started
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/Dubricius/cartas-turnos-ia.git
-
-# 2. Entrar al directorio
-cd cartas-turnos-ia
-
-# 3. Instalar dependencias
+git clone https://github.com/carlosalba4/crossover-cards.git
+cd crossover-cards
 npm install
-
-# 4. Arrancar el servidor de desarrollo
 npm run dev
 ```
 
-5. Abrir `http://localhost:5173` en el navegador.
+Then open `http://localhost:5173` in your browser.
 
----
-
-## Build de producción
+### Production build
 
 ```bash
-# Genera el directorio dist/ optimizado
-npm run build
-
-# Levanta un servidor local para verificar la build
-npm run preview
+npm run build     # generates an optimised dist/ folder
+npm run preview   # serves the build at http://localhost:4173
 ```
 
-El juego estará disponible en `http://localhost:4173`.
+The bundle-size warning during the build is known and documented in `docs/decisions/ADR-002-bundle-size.md`.
 
----
-
-## Verificación
-
-El evaluador puede verificar el estado del proyecto con los siguientes comandos:
+### Quality checks
 
 ```bash
-# Comprobación de tipos TypeScript (debe pasar sin errores)
-npm run typecheck
-
-# Análisis estático de código (debe pasar sin errores)
-npm run lint
-
-# Suite de tests unitarios e integración (debe mostrar todos los tests en verde)
-npm test
-
-# Build de producción (debe completarse con warning aceptable de bundle size)
-npm run build
+npm run typecheck   # TypeScript type checking
+npm run lint        # static analysis
+npm test            # unit and integration tests
 ```
-
-El warning de tamaño de bundle en la salida de `npm run build` es conocido y
-está documentado en `docs/decisions/ADR-002-bundle-size.md`.
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
-cartas-turnos-ia/
+crossover-cards/
 ├── src/
-│   ├── domain/          # Lógica pura del juego (sin dependencias de Phaser)
-│   ├── application/     # Casos de uso y servicios de orquestación
-│   ├── infrastructure/  # Repositorios, adaptadores y persistencia
-│   └── presentation/    # Escenas, sprites y UI de Phaser 4
-├── tests/               # Tests unitarios e integración (Vitest)
-├── assets/              # Sprites, fuentes y audio
-├── docs/                # Documentación del proyecto
-│   ├── decisions/       # Architecture Decision Records (ADR-001 a ADR-008)
-│   ├── qa/              # Informes de revisión QA por fase
-│   └── screenshots/     # Capturas por fase del proyecto
-└── .agent/              # Workflows y skills de los agentes de IA
+│   ├── domain/          # Pure game logic (no Phaser dependencies)
+│   ├── application/     # Use cases and orchestration services
+│   ├── infrastructure/  # Repositories and adapters
+│   └── presentation/    # Phaser 4 scenes, sprites and UI
+├── tests/               # Unit and integration tests (Vitest)
+├── assets/              # Sprites, fonts and audio
+├── docs/                # Project documentation
+│   ├── decisions/       # Architecture Decision Records (ADR-001 to ADR-008)
+│   ├── qa/              # QA review reports
+│   └── screenshots/     # Screenshots for each project phase
+└── .agent/              # AI agent workflows and skills
 ```
 
 ---
 
-## Documentación adicional
+## Documentation
 
-| Documento | Ruta |
+| Document | Path |
 | --- | --- |
+| Project report (PDF) | `docs/Crossover_Cards_Report.pdf` |
 | Product Requirements Document | `docs/01-prd.md` |
-| Arquitectura técnica | `docs/02-architecture.md` |
-| Catálogo de agentes | `docs/03-agents.md` |
-| Catálogo de cartas | `docs/04-card-catalog.md` |
-| Diseño UI/UX | `docs/05-ui-design.md` |
-| ADR-001: Stack tecnológico | `docs/decisions/ADR-001-stack-tecnologico.md` |
+| Technical architecture | `docs/02-architecture.md` |
+| AI agent catalogue | `docs/03-agents.md` |
+| Card catalogue | `docs/04-card-catalog.md` |
+| UI/UX design | `docs/05-ui-design.md` |
+| AI interaction log | `docs/ai-log.md` |
+| QA report (phase 4) | `docs/qa/fase-4-qa-report.md` |
+| ADR-001: Tech stack | `docs/decisions/ADR-001-stack-tecnologico.md` |
 | ADR-002: Bundle size | `docs/decisions/ADR-002-bundle-size.md` |
-| ADR-003: AGENTS.md y rules | `docs/decisions/ADR-003-agents-md-y-rules.md` |
-| ADR-004: Patrón State (turnos) | `docs/decisions/ADR-004-patron-state-turnos.md` |
-| ADR-005: Event Bus | `docs/decisions/ADR-005-event-bus-comunicacion.md` |
-| ADR-006: Estrategia de identificadores | `docs/decisions/ADR-006-estrategia-identificadores.md` |
-| ADR-007: Patrón Strategy (IA) | `docs/decisions/ADR-007-patron-strategy-ia.md` |
-| ADR-008: Entrega sin despliegue público | `docs/decisions/ADR-008-entrega-sin-despliegue-publico.md` |
-| Log de interacciones con IA | `docs/ai-log.md` |
-| Informe QA Fase 4 | `docs/qa/fase-4-qa-report.md` |
+| ADR-003: AGENTS.md and rules | `docs/decisions/ADR-003-agents-md-y-rules.md` |
+| ADR-004: State pattern for turns | `docs/decisions/ADR-004-patron-state-turnos.md` |
+| ADR-005: Event bus | `docs/decisions/ADR-005-event-bus-comunicacion.md` |
+| ADR-006: Identifier strategy | `docs/decisions/ADR-006-estrategia-identificadores.md` |
+| ADR-007: Strategy pattern for the AI | `docs/decisions/ADR-007-patron-strategy-ia.md` |
+| ADR-008: Delivery without public deployment | `docs/decisions/ADR-008-entrega-sin-despliegue-publico.md` |
 
 ---
 
-## Integración continua
+## Continuous integration
 
-El proyecto cuenta con un workflow de GitHub Actions en
-`.github/workflows/ci.yml` que se ejecuta en cada push a cualquier rama y en
-cada pull request a main.
-
-El pipeline ejecuta en orden: typecheck, lint, tests y build de producción. El
-directorio `dist/` generado se sube como artifact descargable de la run con
-retención de 7 días.
-
-El estado de las ejecuciones es visible en la pestaña Actions del repositorio.
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and on pull requests to `main`. It runs type-check, lint, tests and the production build, then uploads `dist/` as a downloadable artifact, kept for 7 days.
 
 ---
 
-## Setup del entorno de desarrollo con IA (para nuevos miembros del equipo)
+## Scope and known limitations
 
-### Software agéntico requerido
+The project was scoped as an MVP for the course deadline. Some mechanics described in the PRD, such as Momentum, tribal synergies, quests and dynamic zones, are designed and partly implemented in the domain layer but not yet wired into the match flow. This is documented as technical debt in the QA report and the project report.
 
-- Antigravity ([antigravity.google/download](https://antigravity.google/download))
-- Ollama ([ollama.com/download](https://ollama.com/download))
+---
 
-### Modelos locales en Ollama
+## AI development environment (optional)
+
+To reproduce the agentic workflow used to build the project:
+
+- [Google Antigravity](https://antigravity.google/download), the agentic IDE (cloud models)
+- [Ollama](https://ollama.com/download), for local models
 
 ```bash
 ollama pull qwen2.5-coder:7b
 ollama pull qwen3:8b
 ollama pull deepseek-r1:8b
 ollama pull phi4-mini
-```
 
-### Modelos personalizados de Ollama (contexto extendido a 16K)
-
-```bash
+# Custom models with a 16K context window
 ollama create qwen-coder-agent -f Modelfile-qwen-coder
 ollama create qwen3-agent -f Modelfile-qwen3
 ```
 
-### Opencode
+- [opencode](https://opencode.ai), the terminal agent connected to Ollama:
 
 ```bash
 # Windows
 irm https://opencode.ai/install.ps1 | iex
 
-# macOS/Linux
+# macOS / Linux
 curl -fsSL https://opencode.ai/install | bash
 ```
+
+---
+
+## Authors
+
+- **Carlos Alba Buenestado** · [github.com/carlosalba4](https://github.com/carlosalba4)
+- **Arturo Gómez Marín**
+
+## Disclaimer
+
+This is a non-commercial academic project. All characters, names and artwork from third-party animated series belong to their respective owners and are used for educational purposes only.
